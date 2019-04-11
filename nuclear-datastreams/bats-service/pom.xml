@@ -10,9 +10,18 @@
   <artifactId>bats-service</artifactId>
   <name>bats-service</name>
   <url>http://maven.apache.org</url>
+  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+  
+  <repositories>
+	<repository>
+	  <id>jitpack.io</id>
+	  <url>https://jitpack.io</url>
+	</repository>
+  </repositories>
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -20,5 +29,10 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+	<dependency>
+	    <groupId>com.github.marshallmcdonnell</groupId>
+	    <artifactId>bats</artifactId>
+	    <version>a0f3437</version>
+	</dependency>
   </dependencies>
 </project>
