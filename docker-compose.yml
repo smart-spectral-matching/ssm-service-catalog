@@ -2,15 +2,13 @@ version: '3.7'
 services:
   fuseki:
     image: code.ornl.gov:4567/rse/datastreams/nuclear-datastreams/backend/bats-microservice/fuseki
-    network_mode: "host"
     ports:
       - "3030:3030"
     volumes:
-      - fuseki-TDB:/data/TDB:Z
+      - /opt/fuseki-TDB:/data/TDB:Z
   bats-microservice:
     image: code.ornl.gov:4567/rse/datastreams/nuclear-datastreams/backend/bats-microservice/bats-microservice
-    network_mode: "host"
+    depends_on: 
+       - fuseki
     ports:
       - "8080:8080"
-volumes:
-  fuseki-TDB: {}

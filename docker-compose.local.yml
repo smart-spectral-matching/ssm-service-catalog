@@ -8,13 +8,14 @@ services:
     ports:
       - "3030:3030"
     volumes:
-      - fuseki-TDB:/data/TDB:Z
+      - /opt/fuseki-TDB
   bats-microservice:
     build:
       context: ./
       dockerfile: ./dockerfiles/Dockerfile.bats_microservice
+    depends_on: 
+       - fuseki
     network_mode: "host"
     ports:
       - "8080:8080"
-volumes:
-  fuseki-TDB: {}
+
