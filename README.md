@@ -24,6 +24,16 @@ You can use the `local` development docker compose file to spin up container for
 docker-compose -f docker-compose.local.yml up
 ```
 
+## API
+
+Currently, the endpoint for data ingestion is `/ingest`, which takes a JSON-LD as the request body, using BATS creates a Jena Model, and uploads this model to Fuseki. 
+
+To issue a POST of a JSON-LD payload, an example is below:
+
+```
+curl -X POST localhost:8080/ingest -H 'Content-type:application/json' -d '{   "@context": "http://schema.org/",   "@type": "Person",   "name": "Jane Doe",   "jobTitle": "Professor",   "telephone": "(425) 123-4567",   "url": "http://www.janedoe.com" }'
+```
+
 #### Development Setup (in Eclipse)
 
 "Skeleton" requirements:
