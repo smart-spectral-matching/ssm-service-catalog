@@ -7,8 +7,6 @@ services:
     network_mode: "host"
     ports:
       - "3030:3030"
-    volumes:
-      - /opt/fuseki-TDB
   bats-microservice:
     build:
       context: ./
