@@ -1,0 +1,19 @@
+stages:
+    - dockerbuild
+
+variables:
+    V_NUM: "v0.0.1"
+    CONTAINER_URL: "code.ornl.gov:4567/rse/datastreams/nuclear-datastreams/backend/bats-microservice"
+
+dockerbuild:
+    stage: dockerbuild
+    script:
+        - sudo systemctl stop docker
+        - sudo rm -rf /var/lib/docker
+        - sudo systemctl start docker
+        - sudo docker rmi -f $CONTAINER_URL/$CI_COMMIT_REF_NAME:$V_NUM
+        - docker build -t $CONTAINER_URL/$CI_COMMIT_REF_NAME:$V_NUM .
+        - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
+        - docker push $CONTAINER_URL/$CI_COMMIT_REF_NAME:$V_NUM
+    tags:
+        - rse-nds-builder
