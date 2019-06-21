@@ -5,15 +5,28 @@ variables:
     V_NUM: "v0.0.1"
     CONTAINER_URL: "code.ornl.gov:4567/rse/datastreams/nuclear-datastreams/backend/bats-microservice"
 
-dockerbuild:
+dockerbuild-fuseki:
     stage: dockerbuild
     script:
         - sudo systemctl stop docker
         - sudo rm -rf /var/lib/docker
         - sudo systemctl start docker
-        - sudo docker rmi -f $CONTAINER_URL/$CI_COMMIT_REF_NAME:$V_NUM
-        - docker build -t $CONTAINER_URL/$CI_COMMIT_REF_NAME:$V_NUM .
+        - sudo docker rmi -f $CONTAINER_URL/fuseki/$CI_COMMIT_REF_NAME:$V_NUM
+        - docker build -t $CONTAINER_URL/fuseki/$CI_COMMIT_REF_NAME:$V_NUM .
         - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
-        - docker push $CONTAINER_URL/$CI_COMMIT_REF_NAME:$V_NUM
+        - docker push $CONTAINER_URL/fuseki/$CI_COMMIT_REF_NAME:$V_NUM
+    tags:
+        - rse-nds-builder
+
+dockerbuild-bats_microservice:
+    stage: dockerbuild
+    script:
+        - sudo systemctl stop docker
+        - sudo rm -rf /var/lib/docker
+        - sudo systemctl start docker
+        - sudo docker rmi -f $CONTAINER_URL/bats-macroservice/$CI_COMMIT_REF_NAME:$V_NUM
+        - docker build -t $CONTAINER_URL/bats-macroservice/$CI_COMMIT_REF_NAME:$V_NUM .
+        - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
+        - docker push $CONTAINER_URL/bats-macroservice/$CI_COMMIT_REF_NAME:$V_NUM
     tags:
         - rse-nds-builder
