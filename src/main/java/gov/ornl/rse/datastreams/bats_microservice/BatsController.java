@@ -23,7 +23,7 @@ public class BatsController {
 		dataset.setName(modelName);
 		dataset.setHost("http://rse-nds-dev1.ornl.gov");
 		dataset.create();
-		System.out.println(dataset.getFullUri());
+		System.out.println(dataset.getFullURI());
 		dataset.updateModel(modelName, model);
 	}
 	   
