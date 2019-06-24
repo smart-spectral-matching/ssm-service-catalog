@@ -21,6 +21,7 @@ public class BatsController {
 		Model model = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(stringToParse,"UTF-8"), null, "JSON-LD");
 		DataSet dataset = new DataSet();
 		dataset.setName(modelName);
+		dataset.setHost("http://rse-nds-dev1.ornl.gov")
 		dataset.create();
 		dataset.updateModel(modelName, model);
 	}
