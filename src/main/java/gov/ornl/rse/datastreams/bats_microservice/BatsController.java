@@ -25,6 +25,7 @@ public class BatsController {
 		dataset.create();
 		System.out.println(dataset.getFullURI());
 		dataset.updateModel(modelName, model);
+		dataset.getModel(modelName);
 	}
 	   
 }
