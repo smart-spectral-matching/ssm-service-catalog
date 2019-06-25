@@ -118,14 +118,10 @@
 	        <id>dev</id>
 		    <properties>
 		        <activatedProperties>dev</activatedProperties>
-		        <server>rse-nds-dev1</server>
-		        <scheme>http</scheme>
-		        <host>rse-nds-dev1.ornl.gov</host>
 		        <port>8080</port>
-		        <path>/server</path>
 		    </properties>
 		    <activation>
-		        <activeByDefault>false</activeByDefault>
+		        <activeByDefault>true</activeByDefault>
 		    </activation>
  		</profile>
     </profiles>
