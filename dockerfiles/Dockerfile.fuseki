@@ -1,5 +1,4 @@
 FROM openjdk:11.0.1-jre
-MAINTAINER Jay Jay Billings (billingsjj@ornl.gov)
 
 # Specify Fuseki variables
 ARG FUSEKI_VERSION=3.12.0
@@ -14,8 +13,8 @@ RUN wget https://www-us.apache.org/dist/jena/binaries/$FUSEKI_DOWNLOAD_FILE && \
 
 
 # Add dataset turtle to fuseki config and shiro.ini  for security config
-ADD dataset.ttl $FUSEKI_NAME/run/configuration/dataset.ttl
-ADD shiro.ini $FUSEKI_NAME/run/shiro.ini
+ADD dataset.ttl /opt/$FUSEKI_NAME/run/configuration/dataset.ttl
+ADD shiro.ini /opt/$FUSEKI_NAME/run/shiro.ini
 
 # Expose the Fuseki port
 EXPOSE 3030

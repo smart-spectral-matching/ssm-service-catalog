@@ -4,18 +4,27 @@ services:
     build:
       context: ./dockerfiles
       dockerfile: Dockerfile.fuseki
-    network_mode: "host"
+    networks:
+      nds:
+        aliases:
+          - rse-nds-dev1.ornl.gov 
     ports:
       - "3030:3030"
     volumes:
-      - /opt/fuseki-TDB
+      - /opt/fuseki-TDB:/data/TDB
   bats-microservice:
     build:
       context: ./
       dockerfile: ./dockerfiles/Dockerfile.bats_microservice
     depends_on: 
        - fuseki
-    network_mode: "host"
+    networks:
+      nds:
+        aliases:
+          - rse-nds-dev1.ornl.gov 
     ports:
       - "8080:8080"
 
+networks:
+  nds:
+    driver: bridge
