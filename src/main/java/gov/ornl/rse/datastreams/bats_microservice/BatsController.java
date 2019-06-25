@@ -9,12 +9,15 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import gov.ornl.rse.bats.DataSet;
 
 @RestController
 public class BatsController {
-	
+	private static final Logger logger = LoggerFactory.getLogger(BatsController.class);
+
 	@PostMapping("/ingest")
 	public void ingestDataset(@RequestBody String stringToParse) throws Exception{
 		String modelName = "testModel";
@@ -24,12 +27,15 @@ public class BatsController {
 		dataset.setHost("http://rse-nds-dev1.ornl.gov");
 		dataset.create();
 		System.out.println(dataset.getFullURI());
-		try ( dataset.updateModel(modelName, model) ) {
+		try { 
+            dataset.updateModel(modelName, model);
 			logger.debug("Model uploaded!");
 		} catch (Exception e) {
 			logger.error("Unable to update model on the remote Fuseki server.", e);
 		}
-		try ( dataset.getModel(modelName) ) {
+
+		try { 
+            Model modelPulled = dataset.getModel(modelName);
 			logger.debug("Model successfully accessed from Fuseki");
 		} catch (Exception e) {
 			logger.error("Unable to pull model from the remote Fuseki server.", e);
