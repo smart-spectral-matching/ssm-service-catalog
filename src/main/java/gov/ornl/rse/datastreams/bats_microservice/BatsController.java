@@ -24,8 +24,15 @@ public class BatsController {
 		dataset.setHost("http://rse-nds-dev1.ornl.gov");
 		dataset.create();
 		System.out.println(dataset.getFullURI());
-		dataset.updateModel(modelName, model);
-		dataset.getModel(modelName);
-	}
-	   
+		try ( dataset.updateModel(modelName, model) ) {
+			logger.debug("Model uploaded!");
+		} catch (Exception e) {
+			logger.error("Unable to update model on the remote Fuseki server.", e);
+		}
+		try ( dataset.getModel(modelName) ) {
+			logger.debug("Model successfully accessed from Fuseki");
+		} catch (Exception e) {
+			logger.error("Unable to pull model from the remote Fuseki server.", e);
+		}
+	}   
 }
