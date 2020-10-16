@@ -1,13 +1,13 @@
-package gov.ornl.rse.datastreams.bats_microservice;
+package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class BatsMicroserviceApplication {
+public class SSMBatsRestApiApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(BatsMicroserviceApplication.class, args);
+		SpringApplication.run(SSMBatsRestApiApplication.class, args);
 	}
 
 }

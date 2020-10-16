@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.bats_microservice;
+package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class BatsMicroserviceApplicationTests {
+public class SSMBatsRestApiApplicationTests {
 
 	@Test
 	public void contextLoads() {
