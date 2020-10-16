@@ -7,7 +7,7 @@ This is a Spring Boot REST Web Service for [BATS](https://github.com/jayjaybilli
 ### Just the BATS microservice
 To build the image with `<image_name>` set to `nds/bats` for example below, use:
 ```
-docker build -t nds/bats -f dockerfiles/Dockerfile.bats_microservice .
+docker build -t nds/bats -f dockerfiles/Dockerfile.ssm_bats_rest_api .
 ```
 
 To startup a container instance of this image, use:

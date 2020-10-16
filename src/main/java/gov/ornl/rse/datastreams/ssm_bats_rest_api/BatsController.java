@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.bats_microservice;
+package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

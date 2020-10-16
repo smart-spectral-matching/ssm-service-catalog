@@ -15,7 +15,7 @@ services:
   bats-microservice:
     build:
       context: ./
-      dockerfile: ./dockerfiles/Dockerfile.bats_microservice
+      dockerfile: ./dockerfiles/Dockerfile.ssm_bats_rest_api
     depends_on: 
        - fuseki
     networks:
