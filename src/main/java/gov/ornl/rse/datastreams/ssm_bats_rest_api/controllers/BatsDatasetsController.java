@@ -1,21 +1,10 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
-import java.io.StringReader;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,12 +33,10 @@ public class BatsDatasetsController {
         dataset.setHost(hostname);
 
         Dataset contents = dataset.getJenaDataset();
-
         if ( contents == null ) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSet Not Found");
         }
-
-        return "{\"UUID\" : " + uuid + "}";
+        return "{\"UUID\" : \" " + uuid + " \"}";
     }
 
     // POST
@@ -60,6 +47,6 @@ public class BatsDatasetsController {
         dataset.setName(uuid);
         dataset.setHost(hostname);
         dataset.create();
-        return new ResponseEntity<String>(uuid, HttpStatus.CREATED);
+        return new ResponseEntity<String>("{\"UUID\" : \"" + uuid + "\"}", HttpStatus.CREATED);
     }
 }
