@@ -1,5 +1,7 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
+import org.json.JSONObject;
+
 import org.apache.jena.query.Dataset;
 
 import org.springframework.http.HttpStatus;
@@ -27,7 +29,7 @@ public class BatsDatasetsController {
 
     // GET
     @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
-    public String  getDataSetById(@PathVariable("uuid") String uuid) {
+    public String  getDataSetById(@PathVariable("uuid") String uuid) throws ResponseStatusException {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
         dataset.setHost(hostname);
@@ -36,7 +38,10 @@ public class BatsDatasetsController {
         if ( contents == null ) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSet Not Found");
         }
-        return "{\"UUID\" : \" " + uuid + " \"}";
+
+        JSONObject uuidJsonObject = new JSONObject();
+        uuidJsonObject.put("UUID", uuid);
+        return uuidJsonObject.toString();
     }
 
     // POST
@@ -47,6 +52,8 @@ public class BatsDatasetsController {
         dataset.setName(uuid);
         dataset.setHost(hostname);
         dataset.create();
-        return new ResponseEntity<String>("{\"UUID\" : \"" + uuid + "\"}", HttpStatus.CREATED);
+        JSONObject uuidJsonObject = new JSONObject();
+        uuidJsonObject.put("UUID", uuid);
+        return new ResponseEntity<String>(uuidJsonObject.toString(), HttpStatus.CREATED);
     }
 }
