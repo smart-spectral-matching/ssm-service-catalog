@@ -1,7 +1,9 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
-import static org.junit.Assert.assertEquals;
+import org.json.JSONObject;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -42,17 +45,24 @@ public class BatsDatasetsControllerTest {
     public void testGetDataset() throws Exception {
         String jsonString = createDataset();
         ObjectMapper mapper = new ObjectMapper();
-        System.out.println("jsonString: " + jsonString);
         String uuid  = mapper.readTree(jsonString).get("UUID").textValue();
-        System.out.println("---");
-        System.out.println("UUID:  " + uuid);
-        System.out.println("---");
+
         assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
                 BASE_URL + ":" + port + "/datasets/" + uuid,
-                Void.class
+                String.class
             ).getStatusCode()
+        );
+
+        JSONObject uuidJsonObject = new JSONObject();
+        uuidJsonObject.put("UUID", uuid);
+        assertEquals(
+            uuidJsonObject.toString(),
+            restTemplate.getForEntity(
+                BASE_URL + ":" + port + "/datasets/" + uuid,
+                String.class
+            ).getBody()
         );
 
     }
@@ -66,5 +76,25 @@ public class BatsDatasetsControllerTest {
                 Void.class
             ).getStatusCode()
         );
+    }
+
+    @Test
+    public void testCreateDataset() throws Exception {
+        HttpEntity<String> entity = null;
+        assertEquals(
+            HttpStatus.CREATED,
+            restTemplate.postForEntity(
+                getUrl() + "/datasets",
+                entity,
+                String.class
+            ).getStatusCode()
+        );
+        
+        String json = restTemplate.postForEntity(
+                getUrl() + "/datasets",
+                entity,
+                String.class
+            ).getBody();
+        assertTrue(json.contains("\"UUID\":"));
     }
 }
