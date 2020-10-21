@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -29,28 +30,28 @@ public class BatsDatasetsControllerTest {
 
     private static final String BASE_URL = "http://localhost";
 
-    private String getUrl() {
+    private String baseUrl() {
         return BASE_URL + ":" + port;
     }
 
-    private String createDataset() {
-        String uuid = restTemplate.postForEntity(
-            getUrl() + "/datasets",
+    private String createDataset() throws Exception {
+        String jsonString = restTemplate.postForEntity(
+            baseUrl() + "/datasets",
             "",
             String.class).getBody();
+        ObjectMapper mapper = new ObjectMapper();
+        String uuid  = mapper.readTree(jsonString).get("UUID").textValue();
         return uuid;
     }
 
     @Test
     public void testGetDataset() throws Exception {
-        String jsonString = createDataset();
-        ObjectMapper mapper = new ObjectMapper();
-        String uuid  = mapper.readTree(jsonString).get("UUID").textValue();
+        String uuid = createDataset();
 
         assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
-                BASE_URL + ":" + port + "/datasets/" + uuid,
+                baseUrl() + "/datasets/" + uuid,
                 String.class
             ).getStatusCode()
         );
@@ -60,7 +61,7 @@ public class BatsDatasetsControllerTest {
         assertEquals(
             uuidJsonObject.toString(),
             restTemplate.getForEntity(
-                BASE_URL + ":" + port + "/datasets/" + uuid,
+                baseUrl() + "/datasets/" + uuid,
                 String.class
             ).getBody()
         );
@@ -68,33 +69,46 @@ public class BatsDatasetsControllerTest {
     }
 
     @Test
-    public void testGetDatasetNotFound() throws Exception {
+    public void testGetDataSetNotFound() throws Exception {
         assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                getUrl() + "/datasets/1",
+                baseUrl() + "/datasets/1",
                 Void.class
             ).getStatusCode()
         );
     }
 
     @Test
-    public void testCreateDataset() throws Exception {
-        HttpEntity<String> entity = null;
+    public void testCreateDataSet() throws Exception {
         assertEquals(
             HttpStatus.CREATED,
             restTemplate.postForEntity(
-                getUrl() + "/datasets",
-                entity,
+                baseUrl() + "/datasets",
+                HttpEntity.EMPTY,
                 String.class
             ).getStatusCode()
         );
         
         String json = restTemplate.postForEntity(
-                getUrl() + "/datasets",
-                entity,
+                baseUrl() + "/datasets",
+                HttpEntity.EMPTY,
                 String.class
             ).getBody();
         assertTrue(json.contains("\"UUID\":"));
+    }
+
+    @Test
+    public void testDeleteDataSet() throws Exception {
+        String uuid = createDataset();
+        assertEquals(
+            HttpStatus.NO_CONTENT,
+            restTemplate.exchange(
+                baseUrl() + "/datasets/" + uuid,
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                Void.class
+            ).getStatusCode()
+        );
     }
 }
