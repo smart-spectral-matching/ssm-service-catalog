@@ -12,6 +12,7 @@ services:
       - "3030:3030"
     volumes:
       - /opt/fuseki-TDB:/data/TDB
+
   ssm-bats-rest-api:
     build:
       context: ./

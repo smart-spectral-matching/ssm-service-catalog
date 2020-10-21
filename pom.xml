@@ -32,9 +32,9 @@
             <version>0.12.4</version>
         </dependency>
 		<dependency>
-		    <groupId>com.github.jayjaybillings</groupId>
-	    	<artifactId>bats</artifactId>
-	    	<version>d8854b6</version>
+            <groupId>com.github.marshallmcdonnell</groupId>
+            <artifactId>bats</artifactId>
+            <version>43d1c45</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
