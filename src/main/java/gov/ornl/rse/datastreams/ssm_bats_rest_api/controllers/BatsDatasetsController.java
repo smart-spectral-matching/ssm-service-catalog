@@ -27,9 +27,22 @@ public class BatsDatasetsController {
     
     private String hostname = "http://rse-nds-dev1.ornl.gov";
 
-    // GET
+    // CREATE
+    @RequestMapping(value = "", method = RequestMethod.POST)
+    public ResponseEntity<String>  createDataSet() throws Exception {
+        DataSet dataset = new DataSet();
+        String uuid = UUIDGenerator.generateUUID();
+        dataset.setName(uuid);
+        dataset.setHost(hostname);
+        dataset.create();
+        JSONObject uuidJsonObject = new JSONObject();
+        uuidJsonObject.put("UUID", uuid);
+        return new ResponseEntity<String>(uuidJsonObject.toString(), HttpStatus.CREATED);
+    }
+
+    // READ
     @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
-    public String  getDataSetById(@PathVariable("uuid") String uuid) throws ResponseStatusException {
+    public String  getDataSet(@PathVariable("uuid") String uuid) throws ResponseStatusException {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
         dataset.setHost(hostname);
@@ -44,16 +57,15 @@ public class BatsDatasetsController {
         return uuidJsonObject.toString();
     }
 
-    // POST
-    @RequestMapping(value = "", method = RequestMethod.POST)
-    public ResponseEntity<String>  createDataset() throws Exception {
+    //UPDATE
+
+    //DELETE
+    @RequestMapping(value = "/{uuid}", method = RequestMethod.DELETE)
+    public ResponseEntity<String> deleteDataSet(@PathVariable("uuid") String uuid) throws Exception {
         DataSet dataset = new DataSet();
-        String uuid = UUIDGenerator.generateUUID();
         dataset.setName(uuid);
         dataset.setHost(hostname);
-        dataset.create();
-        JSONObject uuidJsonObject = new JSONObject();
-        uuidJsonObject.put("UUID", uuid);
-        return new ResponseEntity<String>(uuidJsonObject.toString(), HttpStatus.CREATED);
+        dataset.delete();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
