@@ -12,11 +12,10 @@ services:
       - "3030:3030"
     volumes:
       - /opt/fuseki-TDB:/data/TDB
-
   ssm-bats-rest-api:
     build:
       context: ./
-      dockerfile: ./dockerfiles/Dockerfile.ssm_bats_rest_api
+      dockerfile: ./dockerfiles/Dockerfile.ssm_bats_rest_api.testing
     depends_on: 
        - fuseki
     networks:

@@ -1,16 +1,17 @@
 stages:
-    - dockerbuild
+    - build-and-test
 
 variables:
     V_NUM: "v0.0.1"
     CONTAINER_URL: "code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api"
 
-dockerbuild-fuseki:
-    stage: dockerbuild
+include:
+    remote: "https://code.ornl.gov/rse-deployment/rse-sharables/-/raw/master/.gitlab-ci-before_script.yml"
+
+build-fuseki:
+    stage: build-and-test
     script:
-        - sudo systemctl stop docker
-        - sudo rm -rf /var/lib/docker
-        - sudo systemctl start docker
+        - func_rse_docker_cleanup
         - sudo docker rmi -f $CONTAINER_URL/fuseki/$CI_COMMIT_REF_NAME:$V_NUM
         - cd dockerfiles
         - docker build -f Dockerfile.fuseki -t $CONTAINER_URL/fuseki/$CI_COMMIT_REF_NAME:$V_NUM .
@@ -19,15 +20,24 @@ dockerbuild-fuseki:
     tags:
         - rse-nds-builder
 
-dockerbuild-ssm-bats-rest-api:
-    stage: dockerbuild
+build-ssm-bats-rest-api:
+    stage: build-and-test
     script:
-        - sudo systemctl stop docker
-        - sudo rm -rf /var/lib/docker
-        - sudo systemctl start docker
+        - func_rse_docker_cleanup
         - sudo docker rmi -f $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM
         - docker build -f dockerfiles/Dockerfile.ssm_bats_rest_api -t $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM .
         - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
         - docker push $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM
     tags:
         - rse-nds-builder
+
+test-ssm-bats-rest-api:
+    stage: build-and-test
+    script:
+        - func_rse_docker_cleanup
+        - docker-compose -f docker-compose.test.yml down 
+        - docker-compose -f docker-compose.test.yml build
+        - docker-compose -f docker-compose.test.yml run ssm-bats-rest-api mvn test
+    tags:
+        - rse-nds-builder
+
