@@ -40,6 +40,14 @@ or
 ```
 docker-compose -f docker-compose.test.yml run ssm-bats-rest-api mvn test
 ```
+### Documentation of REST API
+
+[Swagger](https://swagger.io/) is used to document the REST API
+
+To access the documentation, after spinning up the application, navigate to:
+```
+<url>:8080/swagger-ui.html
+```
 
 ### Development Setup 
 
