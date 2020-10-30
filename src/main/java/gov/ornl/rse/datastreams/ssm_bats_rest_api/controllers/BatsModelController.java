@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/dogs")
 //@RequestMapping("/datasets/{dataset_uuid}/models")
-public class BatsModelsController {
+public class BatsModelController {
     /*
     // GET
     @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)

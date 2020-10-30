@@ -20,7 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class BatsDatasetsControllerTest {
+public class ITBatsDatasetController {
 
 	@Autowired
     private TestRestTemplate restTemplate;
@@ -40,7 +40,7 @@ public class BatsDatasetsControllerTest {
             "",
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
-        String uuid  = mapper.readTree(jsonString).get("UUID").textValue();
+        String uuid  = mapper.readTree(jsonString).get("uuid").textValue();
         return uuid;
     }
 
@@ -56,16 +56,13 @@ public class BatsDatasetsControllerTest {
             ).getStatusCode()
         );
 
-        JSONObject uuidJsonObject = new JSONObject();
-        uuidJsonObject.put("UUID", uuid);
-        assertEquals(
-            uuidJsonObject.toString(),
-            restTemplate.getForEntity(
+        String json = restTemplate.getForEntity(
                 baseUrl() + "/datasets/" + uuid,
                 String.class
-            ).getBody()
-        );
+            ).getBody();
 
+        assertTrue(json.contains("\"uuid\":\"" + uuid + "\""));
+        assertTrue(json.contains("\"fusekiInfo\""));
     }
 
     @Test
@@ -95,7 +92,7 @@ public class BatsDatasetsControllerTest {
                 HttpEntity.EMPTY,
                 String.class
             ).getBody();
-        assertTrue(json.contains("\"UUID\":"));
+        assertTrue(json.contains("\"uuid\":"));
     }
 
     @Test
