@@ -8,18 +8,6 @@ variables:
 include:
     remote: "https://code.ornl.gov/rse-deployment/rse-sharables/-/raw/master/.gitlab-ci-before_script.yml"
 
-build-fuseki:
-    stage: build-and-test
-    script:
-        - func_rse_docker_cleanup
-        - sudo docker rmi -f $CONTAINER_URL/fuseki/$CI_COMMIT_REF_NAME:$V_NUM
-        - cd dockerfiles
-        - docker build -f Dockerfile.fuseki -t $CONTAINER_URL/fuseki/$CI_COMMIT_REF_NAME:$V_NUM .
-        - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
-        - docker push $CONTAINER_URL/fuseki/$CI_COMMIT_REF_NAME:$V_NUM
-    tags:
-        - rse-nds-builder
-
 build-ssm-bats-rest-api:
     stage: build-and-test
     script:
@@ -35,9 +23,9 @@ test-ssm-bats-rest-api:
     stage: build-and-test
     script:
         - func_rse_docker_cleanup
-        - docker-compose -f docker-compose.test.yml down 
-        - docker-compose -f docker-compose.test.yml build
-        - docker-compose -f docker-compose.test.yml run ssm-bats-rest-api mvn test
+        - docker build -f dockerfiles/Dockerfile.ssm_bats_rest_api.testing -t ssm-bats-test .
+        - docker run ssm-bats-test
+        - func_rse_docker_cleanup
     tags:
         - rse-nds-builder
 
