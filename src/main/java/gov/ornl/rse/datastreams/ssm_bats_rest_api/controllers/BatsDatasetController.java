@@ -29,7 +29,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsFusekiInfo;
 public class BatsDatasetController {
     private static final Logger logger = LoggerFactory.getLogger(BatsDatasetController.class);
     
-    private String hostname = "http://rse-nds-dev1.ornl.gov";
+    private String hostname = "http://localhost";
 
     // CREATE
     @RequestMapping(value = "", method = RequestMethod.POST)
