@@ -23,7 +23,7 @@ test-ssm-bats-rest-api:
     stage: build-and-test
     script:
         - func_rse_docker_cleanup
-        - docker build -f dockerfiles/Dockerfile.ssm_bats_rest_api.testing -t ssm-bats-test .
+        - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
         - func_rse_docker_cleanup
     tags:

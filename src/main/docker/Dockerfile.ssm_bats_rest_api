@@ -4,4 +4,5 @@ WORKDIR ${APP_DIR}
 COPY pom.xml ${APP_DIR}/pom.xml
 RUN mvn -f ${APP_DIR}/pom.xml verify clean --fail-never
 COPY src ${APP_DIR}/src
-CMD ["mvn", "docker:build", "verify"]
+CMD ["mvn", "clean", "docker:build", "verify"]
+

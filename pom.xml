@@ -14,6 +14,21 @@
     <name>ssm-bats-rest-api</name>
     <description>Smart Spectral Matching BATS Rest API</description>
 
+    <profiles>
+      <profile>
+        <id>docker</id>
+        <properties>
+          <activatedProperties>docker</activatedProperties>
+        </properties>
+      </profile>
+      <profile>
+        <id>dev</id>
+        <properties>
+          <activatedProperties>dev</activatedProperties>
+        </properties>
+      </profile>
+    </profiles>
+
     <properties>
         <java.version>11</java.version>
     </properties>
@@ -101,6 +116,11 @@
           <groupId>org.slf4j</groupId>
           <artifactId>jcl-over-slf4j</artifactId>
         </dependency>
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-configuration-processor</artifactId>
+          <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
@@ -174,6 +194,14 @@
           </executions>
         </plugin>
       </plugins>
+
+      <resources>
+        <resource>
+          <directory>src/main/resources</directory>
+          <filtering>true</filtering>
+        </resource>
+      </resources>
+
     </build>
 
 </project>

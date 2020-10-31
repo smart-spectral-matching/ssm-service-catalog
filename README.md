@@ -2,13 +2,33 @@
 
 This is a Spring Boot REST Web Service for [BATS](https://github.com/jayjaybillings/bats)(Basic Artifact Tracking System).
 
-## Getting Started (with Docker)
+## Getting Started
 
-### Just the BATS REST API
-To build the image with `<image_name>` set to `nds/bats` for example below, use:
+The fastest way to spin up a working setup is to use docker-compose top-level file:
 
 ```
-docker build -t ssm-bats-rest-api -f dockerfiles/Dockerfile.ssm_bats_rest_api .
+docker-compose up
+```
+
+You can use both "bare metal" and docker during testing
+
+### Testing
+
+You can run the full test suite via:
+
+```
+mvn clean docker:build verify
+```
+
+The `docker:build` is necessary to build the Fuseki docker container for integration tests
+
+### Using Docker
+
+#### Just the BATS REST API
+To build the image with `<image_name>` set to `ssm-bats-rest-api` for example below, use:
+
+```
+docker build -t ssm-bats-rest-api .
 ```
 
 To startup a container instance of this image, use:
@@ -19,27 +39,23 @@ docker run -p 8080:8080 ssm-bats-rest-api
 
 Then, the web service is up and running at `localhost:8080`
 
-### BATS REST API + Fuseki server
+#### BATS REST API + Fuseki server
 
-You can use the `local` development docker compose file to spin up container for both services:
+You can use docker compose to spin up a container for both services (REST API + Fuseki server):
 
 ```
-docker-compose -f docker-compose.local.yml up
+docker-compose up
 ```
 
-### Testing
+#### Testing
 
 To run tests, use:
 
 ```
-docker-compose -f docker-compose.test.yml run ssm-bats-rest-api up
+docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
+docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
 ```
 
-or
-
-```
-docker-compose -f docker-compose.test.yml run ssm-bats-rest-api mvn test
-```
 ### Documentation of REST API
 
 [Swagger](https://swagger.io/) is used to document the REST API
@@ -48,14 +64,6 @@ To access the documentation, after spinning up the application, navigate to:
 ```
 <url>:8080/swagger-ui.html
 ```
-
-### Development Setup 
-
-"Skeleton" requirements:
-1) JDK 1.8 or later
-2) Maven 3.2+
-3) Installation of [Docker](https://docs.docker.com/install/)
-
 #### Theia IDE
 
 If running remotely, you can use [Theia IDE](https://theia-ide.org/) via a Docker container by running the following

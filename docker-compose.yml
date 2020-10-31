@@ -11,8 +11,8 @@ services:
 
   ssm-bats-rest-api:
     build:
-      context: ./
-      dockerfile: ./dockerfiles/Dockerfile.ssm_bats_rest_api
+      context: .
+      dockerfile: Dockerfile
     depends_on: 
        - fuseki
     ports:
