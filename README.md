@@ -1,4 +1,4 @@
-# BATS Microservice
+# SSM BATS REST API service
 
 This is a Spring Boot REST Web Service for [BATS](https://github.com/jayjaybillings/bats)(Basic Artifact Tracking System).
 
@@ -56,7 +56,40 @@ docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
 docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
 ```
 
-### Documentation of REST API
+### Documentation
+
+The REST API documentaion is below
+
+### Quickstart
+
+Below is a quick example of how to upload and retrieve data via the API.
+
+#### Pre-requisite
+For an example [JSON-LD](https://json-ld.org/) file for a model,
+you can us a PH measurement from the [SciData](https://github.com/stuchalk/scidata) repository:
+```
+wget https://raw.githubusercontent.com/stuchalk/scidata/master/examples/ph.jsonld
+```
+
+#### API Example
+
+Once running, you can create a dataset:
+```
+curl -X POST "http://localhost:8080/datasets
+```
+
+Given a JSON-LD file, you can upload this as a model to the dataset.
+With the returned dataset UUID, you can then upload a model to this dataset:
+```
+curl -X POST "http://localhost:8080/datasets/<dataset uuid>/models" -H "Content-Type: text/xml" -d "@ph.jsonld"
+```
+
+With the returned model UUID, you can retrieve the model via:
+```
+curl -X GET "http://localhost:8080/datasets/<dataset uuid>/models/<model uuid>"
+```
+
+### Swagger Docs of REST API
 
 [Swagger](https://swagger.io/) is used to document the REST API
 
