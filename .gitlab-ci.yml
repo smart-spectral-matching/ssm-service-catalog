@@ -13,7 +13,7 @@ build-ssm-bats-rest-api:
     script:
         - func_rse_docker_cleanup
         - sudo docker rmi -f $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM
-        - docker build -f dockerfiles/Dockerfile.ssm_bats_rest_api -t $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM .
+        - docker build -f Dockerfile -t $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM .
         - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
         - docker push $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM
     tags:
@@ -23,7 +23,7 @@ test-ssm-bats-rest-api:
     stage: build-and-test
     script:
         - func_rse_docker_cleanup
-        - docker build -f dockerfiles/Dockerfile.ssm_bats_rest_api.testing -t ssm-bats-test .
+        - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
         - func_rse_docker_cleanup
     tags:

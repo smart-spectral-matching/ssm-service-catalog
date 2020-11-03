@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 import org.apache.jena.query.Dataset;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,15 +22,16 @@ import org.slf4j.LoggerFactory;
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.FusekiConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsFusekiInfo;
 
 @RestController
 @RequestMapping("/datasets")
 public class BatsDatasetController {
     private static final Logger logger = LoggerFactory.getLogger(BatsDatasetController.class);
     
-    private String hostname = "http://localhost";
+    @Autowired
+    private FusekiConfig fusekiConfig;
 
     // CREATE
     @RequestMapping(value = "", method = RequestMethod.POST)
@@ -39,11 +41,11 @@ public class BatsDatasetController {
         String uuid = UUIDGenerator.generateUUID();
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(hostname);
+        dataset.setHost(fusekiConfig.getHost());
+        dataset.setPort(fusekiConfig.getPort());
         dataset.create();
-
-        BatsFusekiInfo info = new BatsFusekiInfo(dataset);
-        return new BatsDataset(uuid, info);
+        logger.info("Created datatset: " + uuid);
+        return new BatsDataset(uuid, dataset.getFullURI());
     }
 
     // READ
@@ -52,15 +54,15 @@ public class BatsDatasetController {
     public BatsDataset  getDataSet(@PathVariable("uuid") String uuid) throws ResponseStatusException {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(hostname);
+        dataset.setHost(fusekiConfig.getHost());
+        dataset.setPort(fusekiConfig.getPort());
 
         Dataset contents = dataset.getJenaDataset();
         if ( contents == null ) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSet Not Found");
         }
-
-        BatsFusekiInfo info = new BatsFusekiInfo(dataset);
-        return new BatsDataset(uuid, info);
+        logger.info("Pulled dataset: " + uuid);
+        return new BatsDataset(uuid, dataset.getFullURI());
     }
 
     //UPDATE
@@ -71,7 +73,9 @@ public class BatsDatasetController {
     public void deleteDataSet(@PathVariable("uuid") String uuid) throws Exception {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(hostname);
+        dataset.setHost(fusekiConfig.getHost());
+        dataset.setPort(fusekiConfig.getPort());
         dataset.delete();
+        logger.info("Deleted dataset: " + uuid);
     }
 }

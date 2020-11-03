@@ -7,4 +7,4 @@ RUN mvn -f /home/app/pom.xml package -Dmaven.test.skip=true
 FROM openjdk:11-jre-slim
 VOLUME /tmp 
 COPY --from=build /home/app/target/*.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+CMD ["java","-Dspring.profiles.active=docker","-jar","/app.jar"]

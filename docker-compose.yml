@@ -2,12 +2,8 @@ version: '3'
 services:
   fuseki:
     build:
-      context: ./dockerfiles
+      context: ./src/main/docker
       dockerfile: Dockerfile.fuseki
-    networks:
-      nds:
-        aliases:
-          - rse-nds-dev1.ornl.gov
     ports:
       - "3030:3030"
     volumes:
@@ -15,17 +11,9 @@ services:
 
   ssm-bats-rest-api:
     build:
-      context: ./
-      dockerfile: ./dockerfiles/Dockerfile.ssm_bats_rest_api
+      context: .
+      dockerfile: Dockerfile
     depends_on: 
        - fuseki
-    networks:
-      nds:
-        aliases:
-          - rse-nds-dev1.ornl.gov 
     ports:
       - "8080:8080"
-
-networks:
-  nds:
-    driver: bridge

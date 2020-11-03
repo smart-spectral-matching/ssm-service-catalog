@@ -1,16 +1,13 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsFusekiInfo;
-
 public class BatsDataset {
     private String uuid;
-    private String location;
-    private BatsFusekiInfo info;
+    private String uri;
 
-    public BatsDataset(String uuid, BatsFusekiInfo info) {
+    public BatsDataset(String uuid, String uri) {
         super();
         this.uuid = uuid;
-        this.info = info;
+        this.uri = uri;
     }
 
     // API
@@ -23,11 +20,11 @@ public class BatsDataset {
         this.uuid = uuid;
     }
 
-    public BatsFusekiInfo getFusekiInfo() {
-        return info;
+    public String getURI() {
+        return uri;
     }
 
-    public void setFusekiInfo(final BatsFusekiInfo info) {
-        this.info = info;
+    public void setURI(final String uri) {
+        this.uri = uri;
     }
 }
