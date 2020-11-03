@@ -190,19 +190,38 @@ public class ITBatsModelController {
         );
     }
 
-    /*
     @Test
-    public void testDeleteDataSet() throws Exception {
-        String uuid = createDataset();
+    public void testDeleteModel() throws Exception {
+        String datasetUUID = createDataset();
+        String modelUUID = createModel(datasetUUID);
+
+        // Make sure model exists
+        assertEquals(
+            HttpStatus.OK,
+            restTemplate.getForEntity(
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                Void.class
+            ).getStatusCode()
+        );
+
+        // Ensure we return correct code for delete
         assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
-                baseUrl() + "/datasets/" + uuid,
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class
             ).getStatusCode()
         );
+
+        // Make sure model does not exists
+        assertEquals(
+            HttpStatus.NOT_FOUND,
+            restTemplate.getForEntity(
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                Void.class
+            ).getStatusCode()
+        );
     }
-    */
 }
