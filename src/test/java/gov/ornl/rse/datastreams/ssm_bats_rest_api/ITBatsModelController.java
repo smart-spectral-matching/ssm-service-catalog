@@ -177,18 +177,20 @@ public class ITBatsModelController {
         );
     }
 
-    /*
     @Test
-    public void testGetDataSetNotFound() throws Exception {
+    public void testGetModelNotFound() throws Exception {
+        String datasetUUID = createDataset();
+
         assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                baseUrl() + "/datasets/1",
+                baseUrl() + "/datasets/" + datasetUUID + "/models/1",
                 Void.class
             ).getStatusCode()
         );
     }
 
+    /*
     @Test
     public void testDeleteDataSet() throws Exception {
         String uuid = createDataset();
