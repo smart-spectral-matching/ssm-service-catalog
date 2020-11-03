@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.github.marshallmcdonnell</groupId>
             <artifactId>bats</artifactId>
-            <version>43d1c45</version>
+            <version>b83bdaf</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
