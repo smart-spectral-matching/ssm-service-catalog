@@ -118,6 +118,7 @@ public class BatsModelController {
             jsonld = RdfModelWriter.model2jsonld(model);
         } catch (Exception e) {
             logger.error("Unable to get model on the remote Fuseki server.", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Model Not Found");
         }
         return jsonld;
     }
