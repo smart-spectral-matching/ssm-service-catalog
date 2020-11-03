@@ -34,24 +34,37 @@ public class BatsModelController {
     @Autowired
     private FusekiConfig fusekiConfig;
 
+    private boolean doesDataSetExist(DataSet dataset) {
+                // Get the dataset
+        logger.info("Pulling dataset: " + dataset.getName());
+        Dataset contents = dataset.getJenaDataset();
+        if ( contents == null ) {
+            logger.info("Dataset " + dataset.getName() + " NOT FOUND!");
+            return false;
+        } else {
+            logger.info("Dataset " + dataset.getName() + " exists!");
+            return true;
+        }
+    }
+
     // GET
     @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.GET)
     public String getDataSetById(
         @PathVariable("dataset_uuid") String datasetUUID,
         @PathVariable("model_uuid") String modelUUID
     ) {
-        // Get the dataset
-        logger.info("Pulling dataset: " + datasetUUID);
+        // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
         dataset.setHost(fusekiConfig.getHost());
         dataset.setPort(fusekiConfig.getPort());
 
-        Dataset contents = dataset.getJenaDataset();
-        if ( contents == null ) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSet Not Found");
+        // Check if dataset exists
+        if (! doesDataSetExist(dataset)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Dataset " + datasetUUID + " NOT FOUND!");
         }
-        logger.info("Dataset " + datasetUUID + " exists!");
 
         // Get the dataset's model
         logger.info("Pulling model: " + modelUUID);
@@ -71,25 +84,25 @@ public class BatsModelController {
         @PathVariable("dataset_uuid") String datasetUUID,
         @RequestBody String jsonPayload
     ) throws Exception {
-        // Get the dataset
-        logger.info("Pulling dataset: " + datasetUUID);
+        // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
         dataset.setHost(fusekiConfig.getHost());
         dataset.setPort(fusekiConfig.getPort());
 
-        Dataset contents = dataset.getJenaDataset();
-        if ( contents == null ) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DataSet Not Found");
+        // Check if dataset exists
+        if (! doesDataSetExist(dataset)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Dataset " + datasetUUID + " NOT FOUND!");
         }
-        logger.info("Dataset " + datasetUUID + " exists!");
 
         logger.info("Extracting JSON-LD -> model");
         // JSON -> Tree
         ObjectMapper mapper = new ObjectMapper();
         JsonNode treeNode = mapper.readTree(jsonPayload);
 
-        // add stuff to tree here
+        // Create Model UUID
         String modelUUID = UUIDGenerator.generateUUID();
 
         logger.info("Uploading model: " + modelUUID);
