@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -47,40 +48,10 @@ public class BatsModelController {
         }
     }
 
-    // GET
-    @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.GET)
-    public String getDataSetById(
-        @PathVariable("dataset_uuid") String datasetUUID,
-        @PathVariable("model_uuid") String modelUUID
-    ) {
-        // Initialize dataset
-        DataSet dataset = new DataSet();
-        dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHost());
-        dataset.setPort(fusekiConfig.getPort());
-
-        // Check if dataset exists
-        if (! doesDataSetExist(dataset)) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Dataset " + datasetUUID + " NOT FOUND!");
-        }
-
-        // Get the dataset's model
-        logger.info("Pulling model: " + modelUUID);
-        String jsonld = new String();
-        try {
-            Model model = dataset.getModel(modelUUID);
-            jsonld = RdfModelWriter.model2jsonld(model);
-        } catch (Exception e) {
-            logger.error("Unable to get model on the remote Fuseki server.", e);
-        }
-        return jsonld;
-    }
-
-    // POST
+    // CREATE
     @RequestMapping(value = "/{dataset_uuid}/models", method = RequestMethod.POST)
-    public String createDataset(
+    @ResponseStatus(HttpStatus.CREATED)
+    public String createModel(
         @PathVariable("dataset_uuid") String datasetUUID,
         @RequestBody String jsonPayload
     ) throws Exception {
@@ -118,5 +89,66 @@ public class BatsModelController {
             logger.error("Unable to upload model on the remote Fuseki server.", e);
         }
         return modelUUID;
+    }
+
+    // READ
+    @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.GET)
+    public String getModel(
+        @PathVariable("dataset_uuid") String datasetUUID,
+        @PathVariable("model_uuid") String modelUUID
+    ) {
+        // Initialize dataset
+        DataSet dataset = new DataSet();
+        dataset.setName(datasetUUID);
+        dataset.setHost(fusekiConfig.getHost());
+        dataset.setPort(fusekiConfig.getPort());
+
+        // Check if dataset exists
+        if (! doesDataSetExist(dataset)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Dataset " + datasetUUID + " NOT FOUND!");
+        }
+
+        // Get the dataset's model
+        logger.info("Pulling model: " + modelUUID);
+        String jsonld = new String();
+        try {
+            Model model = dataset.getModel(modelUUID);
+            jsonld = RdfModelWriter.model2jsonld(model);
+        } catch (Exception e) {
+            logger.error("Unable to get model on the remote Fuseki server.", e);
+        }
+        return jsonld;
+    }
+
+    // DELETE
+    @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteModel(
+        @PathVariable("dataset_uuid") String datasetUUID,
+        @PathVariable("model_uuid") String modelUUID
+    ) {
+        // Initialize dataset
+        DataSet dataset = new DataSet();
+        dataset.setName(datasetUUID);
+        dataset.setHost(fusekiConfig.getHost());
+        dataset.setPort(fusekiConfig.getPort());
+
+        // Check if dataset exists
+        if (! doesDataSetExist(dataset)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Dataset " + datasetUUID + " NOT FOUND!");
+        }
+
+        // Delete the dataset's model
+        logger.info("Deleting model: " + modelUUID);
+        String jsonld = new String();
+        try {
+            dataset.deleteModel(modelUUID);
+        } catch (Exception e) {
+            logger.error("Unable to delete model on the remote Fuseki server.", e);
+        }
     }
 }
