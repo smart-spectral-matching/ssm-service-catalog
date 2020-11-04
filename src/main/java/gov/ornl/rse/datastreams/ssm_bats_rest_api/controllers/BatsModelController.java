@@ -1,5 +1,6 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
+import java.io.IOException;
 import java.io.StringReader;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -121,6 +122,68 @@ public class BatsModelController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Model Not Found");
         }
         return jsonld;
+    }
+
+    // UPDATE (replace)
+    //@RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.PUT)
+
+    // UPDATE (partial)
+    @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.PATCH)
+    @ResponseStatus(HttpStatus.OK)
+    public String updateModelPartial(
+        @PathVariable("dataset_uuid") String datasetUUID,
+        @PathVariable("model_uuid") String modelUUID,
+        @RequestBody String jsonPayload
+    ) throws IOException {
+        // Initialize dataset
+        DataSet dataset = new DataSet();
+        dataset.setName(datasetUUID);
+        dataset.setHost(fusekiConfig.getHost());
+        dataset.setPort(fusekiConfig.getPort());
+
+        // Check if dataset exists
+        if (! doesDataSetExist(dataset)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Dataset " + datasetUUID + " NOT FOUND!");
+        }
+
+        // Get the dataset's model
+        logger.info("Pulling model: " + modelUUID);
+        String modelJSONLD = new String();
+        try {
+            Model model = dataset.getModel(modelUUID);
+            modelJSONLD = RdfModelWriter.model2jsonld(model);
+        } catch (Exception e) {
+            logger.error("Unable to get model on the remote Fuseki server.", e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Model Not Found");
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode modelNode = mapper.readTree(modelJSONLD);
+        logger.info("Pulled model: " + modelUUID);
+
+        logger.info("Extracting JSON-LD from body data");
+        // JSON -> Tree
+        JsonNode payloadNode = mapper.readTree(jsonPayload);
+
+        // Merge payload with model
+        JsonNode mergedModelNode = mapper.readerForUpdating(modelNode).readValue(payloadNode);
+
+        // Merged Tree -> Merged JSON -> Jena Model
+        StringReader reader = new StringReader(mergedModelNode.toString());
+        Model mergedModel = ModelFactory.createDefaultModel().read(reader, null, "JSON-LD");
+
+        // Upload merged model
+        try {
+            dataset.updateModel(modelUUID, mergedModel);
+            logger.info("Model udated and uploaded!");
+        } catch (Exception e) {
+            logger.error("Unable to upload model on the remote Fuseki server.", e);
+        }
+
+        return RdfModelWriter.model2jsonld(mergedModel);
+
     }
 
     // DELETE

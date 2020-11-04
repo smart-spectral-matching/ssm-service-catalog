@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -18,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
@@ -96,13 +98,13 @@ public class ITBatsModelController {
     }
 
     /*
-     * Helper function to create POST method HTTP body
+     * Helper function to create HTTP body
      *
-     * @param mediaType Content Type for the POST
+     * @param mediaType Content Type for the body data
      * @param body      Data to be posted
      * @return properly formatted body for post statement (with HTTP headers)
      */
-    private HttpEntity<Object> makePostBody(MediaType mediaType, Object body) {
+    private HttpEntity<Object> makeBody(MediaType mediaType, Object body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(mediaType);
         return new HttpEntity<>(body, headers);
@@ -132,7 +134,7 @@ public class ITBatsModelController {
     private String createModel(String datasetUUID) throws Exception {
         String modelUUID= restTemplate.postForEntity(
             baseUrl() + "/datasets/" + datasetUUID + "/models",
-            makePostBody(MediaType.APPLICATION_JSON, exampleInputJSONLD()),
+            makeBody(MediaType.APPLICATION_JSON, exampleInputJSONLD()),
             String.class).getBody();
         return modelUUID;
     }
@@ -146,7 +148,7 @@ public class ITBatsModelController {
             HttpStatus.CREATED,
             restTemplate.postForEntity(
                 baseUrl() + "/datasets/" + datasetUUID + "/models",
-                makePostBody(MediaType.APPLICATION_JSON, exampleInputJSONLD()),
+                makeBody(MediaType.APPLICATION_JSON, exampleInputJSONLD()),
                 String.class
             ).getStatusCode()
         );
@@ -188,6 +190,36 @@ public class ITBatsModelController {
                 Void.class
             ).getStatusCode()
         );
+    }
+
+    @Test
+    public void testUpdateModelPartial() throws Exception {
+        String datasetUUID = createDataset();
+        String modelUUID = createModel(datasetUUID);
+
+        // Create body for our update to the model
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode newNameNode = mapper.createObjectNode();
+        newNameNode.put("name", "Ringo Starr");
+        String newName = mapper.writeValueAsString(newNameNode);
+
+        // Send the update
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                HttpMethod.PATCH,
+                makeBody(MediaType.APPLICATION_JSON, newName),
+                String.class);
+
+        // Check the status code
+        assertEquals(response.getStatusCode(), HttpStatus.OK);
+
+        // Merge payload with model for target we verify against
+        JsonNode originalJson = mapper.readTree(exampleOutputJSONLD());
+        JsonNode newNameJson = mapper.readTree(newName);
+        JsonNode target = mapper.readerForUpdating(originalJson).readValue(newNameJson);
+
+        // Ensure the update modified the data
+        assertEquals(target, mapper.readTree(response.getBody()));
     }
 
     @Test
