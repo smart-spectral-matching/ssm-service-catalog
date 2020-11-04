@@ -193,6 +193,36 @@ public class ITBatsModelController {
     }
 
     @Test
+    public void testUpdateModelReplace() throws Exception {
+        String datasetUUID = createDataset();
+        String modelUUID = createModel(datasetUUID);
+
+        // Create body for our update to the model
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode newNameNode = mapper.createObjectNode();
+        newNameNode.put("name", "Ringo Starr");
+        String newName = mapper.writeValueAsString(newNameNode);
+
+        // Merge payload with model for target we verify against
+        JsonNode originalJson = mapper.readTree(exampleOutputJSONLD());
+        JsonNode newNameJson = mapper.readTree(newName);
+        JsonNode jsonldPayload = mapper.readerForUpdating(originalJson).readValue(newNameJson);
+
+        // Send the update
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                HttpMethod.PATCH,
+                makeBody(MediaType.APPLICATION_JSON, jsonldPayload),
+                String.class);
+
+        // Check the status code
+        assertEquals(response.getStatusCode(), HttpStatus.OK);
+
+        // Ensure the update modified the data
+        assertEquals(jsonldPayload, mapper.readTree(response.getBody()));
+    }
+
+    @Test
     public void testUpdateModelPartial() throws Exception {
         String datasetUUID = createDataset();
         String modelUUID = createModel(datasetUUID);

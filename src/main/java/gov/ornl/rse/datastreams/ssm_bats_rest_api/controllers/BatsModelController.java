@@ -69,13 +69,13 @@ public class BatsModelController {
                 "Dataset " + datasetUUID + " NOT FOUND!");
         }
 
+        // Create Model UUID
+        String modelUUID = UUIDGenerator.generateUUID();
+
         logger.info("Extracting JSON-LD -> model");
         // JSON -> Tree
         ObjectMapper mapper = new ObjectMapper();
         JsonNode treeNode = mapper.readTree(jsonPayload);
-
-        // Create Model UUID
-        String modelUUID = UUIDGenerator.generateUUID();
 
         logger.info("Uploading model: " + modelUUID);
         // Tree -> JSON -> Jena Model
@@ -94,6 +94,7 @@ public class BatsModelController {
 
     // READ
     @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
     public String getModel(
         @PathVariable("dataset_uuid") String datasetUUID,
         @PathVariable("model_uuid") String modelUUID
@@ -113,7 +114,7 @@ public class BatsModelController {
 
         // Get the dataset's model
         logger.info("Pulling model: " + modelUUID);
-        String jsonld = new String();
+        String jsonld;
         try {
             Model model = dataset.getModel(modelUUID);
             jsonld = RdfModelWriter.model2jsonld(model);
@@ -125,7 +126,46 @@ public class BatsModelController {
     }
 
     // UPDATE (replace)
-    //@RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
+    public String updateModelReplace(
+        @PathVariable("dataset_uuid") String datasetUUID,
+        @PathVariable("model_uuid") String modelUUID,
+        @RequestBody String jsonPayload
+    ) throws IOException {
+        // Initialize dataset
+        DataSet dataset = new DataSet();
+        dataset.setName(datasetUUID);
+        dataset.setHost(fusekiConfig.getHost());
+        dataset.setPort(fusekiConfig.getPort());
+
+        // Check if dataset exists
+        if (! doesDataSetExist(dataset)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Dataset " + datasetUUID + " NOT FOUND!");
+        }
+
+        logger.info("Extracting JSON-LD -> model");
+        // JSON -> Tree
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode treeNode = mapper.readTree(jsonPayload);
+
+        logger.info("Uploading model: " + modelUUID);
+        // Tree -> JSON -> Jena Model
+        StringReader reader = new StringReader(treeNode.toString());
+        Model model = ModelFactory.createDefaultModel().read(reader, null, "JSON-LD");
+
+        // Jena Model -> BATS DataSet
+        try {
+            dataset.updateModel(modelUUID, model);
+            logger.info("Model uploaded!");
+        } catch (Exception e) {
+            logger.error("Unable to upload model on the remote Fuseki server.", e);
+        }
+
+        return RdfModelWriter.model2jsonld(model);
+    }
 
     // UPDATE (partial)
     @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.PATCH)
@@ -183,7 +223,6 @@ public class BatsModelController {
         }
 
         return RdfModelWriter.model2jsonld(mergedModel);
-
     }
 
     // DELETE
