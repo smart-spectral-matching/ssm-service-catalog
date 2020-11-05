@@ -17,7 +17,7 @@ build-ssm-bats-rest-api:
         - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
         - docker push $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM
     tags:
-        - rse-nds-builder
+        - rse-ssm-builder
 
 test-ssm-bats-rest-api:
     stage: build-and-test
@@ -27,5 +27,5 @@ test-ssm-bats-rest-api:
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
         - func_rse_docker_cleanup
     tags:
-        - rse-nds-builder
+        - rse-ssm-builder
 
