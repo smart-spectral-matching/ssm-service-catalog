@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +28,7 @@ import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.FusekiConfig;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 
 @RestController
 @RequestMapping("/datasets")
@@ -52,7 +54,8 @@ public class BatsModelController {
     // CREATE
     @RequestMapping(value = "/{dataset_uuid}/models", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public String createModel(
+    @ResponseBody
+    public BatsModel createModel(
         @PathVariable("dataset_uuid") String datasetUUID,
         @RequestBody String jsonPayload
     ) throws Exception {
@@ -89,13 +92,16 @@ public class BatsModelController {
         } catch (Exception e) {
             logger.error("Unable to upload model on the remote Fuseki server.", e);
         }
-        return modelUUID;
+
+        Model newModel = dataset.getModel(modelUUID);
+        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
     }
 
     // READ
     @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public String getModel(
+    @ResponseBody
+    public BatsModel getModel(
         @PathVariable("dataset_uuid") String datasetUUID,
         @PathVariable("model_uuid") String modelUUID
     ) {
@@ -114,21 +120,20 @@ public class BatsModelController {
 
         // Get the dataset's model
         logger.info("Pulling model: " + modelUUID);
-        String jsonld;
         try {
             Model model = dataset.getModel(modelUUID);
-            jsonld = RdfModelWriter.model2jsonld(model);
+            return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
         } catch (Exception e) {
             logger.error("Unable to get model on the remote Fuseki server.", e);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Model Not Found");
         }
-        return jsonld;
     }
 
     // UPDATE (replace)
     @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
-    public String updateModelReplace(
+    @ResponseBody
+    public BatsModel updateModelReplace(
         @PathVariable("dataset_uuid") String datasetUUID,
         @PathVariable("model_uuid") String modelUUID,
         @RequestBody String jsonPayload
@@ -164,13 +169,15 @@ public class BatsModelController {
             logger.error("Unable to upload model on the remote Fuseki server.", e);
         }
 
-        return RdfModelWriter.model2jsonld(model);
+        Model newModel = dataset.getModel(modelUUID);
+        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
     }
 
     // UPDATE (partial)
     @RequestMapping(value = "/{dataset_uuid}/models/{model_uuid}", method = RequestMethod.PATCH)
     @ResponseStatus(HttpStatus.OK)
-    public String updateModelPartial(
+    @ResponseBody
+    public BatsModel updateModelPartial(
         @PathVariable("dataset_uuid") String datasetUUID,
         @PathVariable("model_uuid") String modelUUID,
         @RequestBody String jsonPayload
@@ -222,7 +229,8 @@ public class BatsModelController {
             logger.error("Unable to upload model on the remote Fuseki server.", e);
         }
 
-        return RdfModelWriter.model2jsonld(mergedModel);
+        Model newModel = dataset.getModel(modelUUID);
+        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
     }
 
     // DELETE
