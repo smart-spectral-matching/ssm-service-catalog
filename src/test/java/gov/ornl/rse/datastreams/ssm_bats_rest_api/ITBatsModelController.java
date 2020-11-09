@@ -22,6 +22,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsModelController {
@@ -132,10 +134,12 @@ public class ITBatsModelController {
      * @return Model UUID
      */
     private String createModel(String datasetUUID) throws Exception {
-        String modelUUID= restTemplate.postForEntity(
+        String jsonString = restTemplate.postForEntity(
             baseUrl() + "/datasets/" + datasetUUID + "/models",
             makeBody(MediaType.APPLICATION_JSON, exampleInputJSONLD()),
             String.class).getBody();
+        ObjectMapper mapper = new ObjectMapper();
+        String modelUUID  = mapper.readTree(jsonString).get("uuid").textValue();
         return modelUUID;
     }
 
@@ -167,15 +171,15 @@ public class ITBatsModelController {
             ).getStatusCode()
         );
 
-        String jsonld = restTemplate.getForEntity(
+        ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
                 String.class
-            ).getBody();
+            );
 
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(
             mapper.readTree(exampleOutputJSONLD()),
-            mapper.readTree(jsonld)
+            mapper.readTree(response.getBody()).get("model")
         );
     }
 
@@ -219,7 +223,7 @@ public class ITBatsModelController {
         assertEquals(response.getStatusCode(), HttpStatus.OK);
 
         // Ensure the update modified the data
-        assertEquals(jsonldPayload, mapper.readTree(response.getBody()));
+        assertEquals(jsonldPayload, mapper.readTree(response.getBody()).get("model"));
     }
 
     @Test
@@ -249,7 +253,7 @@ public class ITBatsModelController {
         JsonNode target = mapper.readerForUpdating(originalJson).readValue(newNameJson);
 
         // Ensure the update modified the data
-        assertEquals(target, mapper.readTree(response.getBody()));
+        assertEquals(target, mapper.readTree(response.getBody()).get("model"));
     }
 
     @Test
