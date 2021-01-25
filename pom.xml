@@ -193,6 +193,27 @@
             </execution>
           </executions>
         </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>checkstyle-validation</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>true</failsOnError>
+                <failOnViolation>true</failOnViolation>
+                <violationSeverity>warning</violationSeverity>
+              </configuration>
+             </execution>
+           </executions>
+        </plugin>
       </plugins>
 
       <resources>
@@ -203,14 +224,5 @@
       </resources>
 
     </build>
-    <reporting>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <version>3.0.0</version>
-        </plugin>
-      </plugins>
-    </reporting>
 
 </project>
