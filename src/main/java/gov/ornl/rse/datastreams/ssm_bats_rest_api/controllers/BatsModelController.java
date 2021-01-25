@@ -1,10 +1,16 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
@@ -78,11 +84,23 @@ public class BatsModelController {
         logger.info("Extracting JSON-LD -> model");
         // JSON -> Tree
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode treeNode = mapper.readTree(jsonPayload);
+        ObjectNode scidataNode = mapper.readValue(jsonPayload, ObjectNode.class);
 
         logger.info("Uploading model: " + modelUUID);
+
+
+        // Check if we have a @graph node, need to move all fields to top-level
+        JsonNode isGraphNode = scidataNode.get("@graph");
+        if (isGraphNode != null) {
+            // Merge @graph node into top-level of Tree and remove duplicate @id node
+            JsonNode graphNode = scidataNode.remove("@graph");
+            scidataNode.remove("@id");
+            ObjectReader objectReader = mapper.readerForUpdating(scidataNode);
+            scidataNode = objectReader.readValue(graphNode);
+        }
+
         // Tree -> JSON -> Jena Model
-        StringReader reader = new StringReader(treeNode.toString());
+        StringReader reader = new StringReader(scidataNode.toString());
         Model model = ModelFactory.createDefaultModel().read(reader, null, "JSON-LD");
 
         // Jena Model -> BATS DataSet

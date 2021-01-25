@@ -1,14 +1,22 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import com.github.jsonldjava.utils.JsonUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,6 +48,10 @@ public class ITBatsModelController {
         return BASE_URL + ":" + port;
     }
 
+    private String getFileDataFromTestResources(String filename) throws IOException {
+        return new String(Files.readAllBytes(Paths.get("src", "test", "resources", filename)));
+    }
+
     /*
      * Constructs an input JSON-LD for creating an example model
      * Comes from "A Simple Example" at https://json-ld.org/
@@ -48,16 +60,8 @@ public class ITBatsModelController {
      *
      * @return JSOND-LD as string
      */
-    private String simpleInputJSONLD() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode jsonld = mapper.createObjectNode();
-        jsonld.put("@context", "https://json-ld.org/contexts/person.jsonld");
-        jsonld.put("@id", "http://dbpedia.org/resource/John_Lennon");
-        jsonld.put("name", "John Lennon");
-        jsonld.put("born", "1940-10-09");
-        jsonld.put("spouse", "http://dbpedia.org/resource/Cynthia_Lennon");
-        return mapper.writeValueAsString(jsonld);
+    private String simpleInputJSONLD() throws IOException {
+        return getFileDataFromTestResources("simple.input.jsonld");
     }
 
     /*
@@ -66,72 +70,32 @@ public class ITBatsModelController {
      *
      * @return JSOND-LD as string
      */
-    private String simpleOutputJSONLD() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        
-        // Create output JSON-LD
-        ObjectNode jsonld = mapper.createObjectNode();
-        jsonld.put("@id", "http://dbpedia.org/resource/John_Lennon");
-        jsonld.put("birthDate", "1940-10-09");
-        jsonld.put("spouse", "http://dbpedia.org/resource/Cynthia_Lennon");
-        jsonld.put("name", "John Lennon");
-
-        // Create @context entry to JSON-LD
-        ObjectNode context = mapper.createObjectNode();
-        context.put("xsd", "http://www.w3.org/2001/XMLSchema#");
-
-        ObjectNode contextBirthDate = mapper.createObjectNode();
-        contextBirthDate.put("@id", "http://schema.org/birthDate");
-        contextBirthDate.put("@type", "http://www.w3.org/2001/XMLSchema#date");
-        context.set("birthDate", contextBirthDate);
-
-        ObjectNode contextSpouse = mapper.createObjectNode();
-        contextSpouse.put("@id", "http://schema.org/spouse");
-        contextSpouse.put("@type", "@id");
-        context.set("spouse", contextSpouse);
-
-        ObjectNode contextName = mapper.createObjectNode();
-        contextName.put("@id", "http://xmlns.com/foaf/0.1/name");
-        context.set("name", contextName);
-
-        jsonld.set("@context", context);
-
-        return mapper.writeValueAsString(jsonld);
+    private String simpleOutputJSONLD() throws IOException {
+        return getFileDataFromTestResources("simple.output.jsonld");
     }
 
     /*
-     * Constructs an input JSON-LD for a model with a complex '@context'
-     * Comes from "Environment Linked Features" JSON-LD
-     * of the OpenGeoSpatial ELFIE project
-     * Retrieved on 1/15/2021 from:
-     *     https://opengeospatial.github.io/ELFIE/json-ld/elf.jsonld
+     * Constructs an input JSON-LD for a SciData model
+     * Partial JSON-LD example from nmr.jsonld
+     * Retrieved on 1/22/2021 from:
+     *     https://github.com/stuchalk/scidata/blob/master/examples/nmr.jsonld
      * The JSON-LD retrieved after uploading is found in the
-     * complexContextOutputJSONLD() method
+     * scidataPhOutputJSONLD() method
      *
      * @return JSOND-LD as string
      */
-    private String complexContextInputJSONLD() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
+    private String scidataInputJSONLD() throws IOException {
+        return getFileDataFromTestResources("scidata_nmr_abbreviated.input.jsonld");
+    }
 
-        ObjectNode jsonld = mapper.createObjectNode();
-        ObjectNode context = mapper.createObjectNode();
-        context.put("schema", "http://schema.org/");
-        context.put("skos", "https://www.w3.org/TR/skos-reference/");
-        context.put("gsp", "http://www.opengis.net/ont/geosparql#");
-        context.put("description", "schema:description");
-        context.put("geo", "schema:geo");
-        context.put("hasGeometry", "gsp:hasGeometry");
-        context.put("asWKT", "gsp:asWKT");
-        context.put("name", "schema:name");
-        context.put("sameAs", "schema:sameAs");
-        context.put("related", "skos:related");
-
-        ObjectNode contextImage = mapper.createObjectNode();
-        contextImage.put("@id", "schema:image");
-        contextImage.put("@type", "@id");
-        context.set("image", contextImage);
-
-        return mapper.writeValueAsString(jsonld);
+    /*
+     * Constructs the output JSON-LD we get back from the API from the one
+     * created in the scidataInputJSONLD() method.
+     *
+     * @return JSOND-LD as string
+     */
+    private String scidataOutputJSONLD() throws IOException {
+        return getFileDataFromTestResources("scidata_nmr_abbreviated.output.jsonld");
     }
 
     /*
@@ -168,10 +132,10 @@ public class ITBatsModelController {
      * @param  datasetUUID The UUID of the dataset to add the model
      * @return Model UUID
      */
-    private String createSimpleModel(String datasetUUID) throws Exception {
+    private String createModel(String datasetUUID, String jsonld) throws Exception {
         String jsonString = restTemplate.postForEntity(
             baseUrl() + "/datasets/" + datasetUUID + "/models",
-            makeBody(MediaType.APPLICATION_JSON, simpleInputJSONLD()),
+            makeBody(MediaType.APPLICATION_JSON, jsonld),
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
         String modelUUID  = mapper.readTree(jsonString).get("uuid").textValue();
@@ -194,13 +158,13 @@ public class ITBatsModelController {
     }
 
     @Test
-    public void testCreateComplexContextModel() throws Exception {
+    public void testCreateSciDataModel() throws Exception {
         String datasetUUID = createDataset();
         assertEquals(
             HttpStatus.CREATED,
             restTemplate.postForEntity(
                 baseUrl() + "/datasets/" + datasetUUID + "/models",
-                makeBody(MediaType.APPLICATION_JSON, complexContextInputJSONLD()),
+                makeBody(MediaType.APPLICATION_JSON, scidataInputJSONLD()),
                 String.class
             ).getStatusCode()
         );
@@ -209,7 +173,7 @@ public class ITBatsModelController {
     @Test
     public void testGetSimpleModel() throws Exception {
         String datasetUUID = createDataset();
-        String modelUUID = createSimpleModel(datasetUUID);
+        String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         assertEquals(
             HttpStatus.OK,
@@ -232,6 +196,32 @@ public class ITBatsModelController {
     }
 
     @Test
+    public void testGetSciDataModel() throws Exception {
+        String datasetUUID = createDataset();
+        String modelUUID = createModel(datasetUUID, scidataInputJSONLD());
+
+        assertEquals(
+            HttpStatus.OK,
+            restTemplate.getForEntity(
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                String.class
+            ).getStatusCode()
+        );
+
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                String.class
+            );
+
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(
+            mapper.readTree(scidataOutputJSONLD()),
+            mapper.readTree(response.getBody()).get("model")
+        );
+    }
+
+
+    @Test
     public void testGetModelNotFound() throws Exception {
         String datasetUUID = createDataset();
 
@@ -247,7 +237,7 @@ public class ITBatsModelController {
     @Test
     public void testUpdateSimpleModelReplace() throws Exception {
         String datasetUUID = createDataset();
-        String modelUUID = createSimpleModel(datasetUUID);
+        String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         // Create body for our update to the model
         ObjectMapper mapper = new ObjectMapper();
@@ -277,7 +267,7 @@ public class ITBatsModelController {
     @Test
     public void testUpdateSimpleModelPartial() throws Exception {
         String datasetUUID = createDataset();
-        String modelUUID = createSimpleModel(datasetUUID);
+        String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         // Create body for our update to the model
         ObjectMapper mapper = new ObjectMapper();
@@ -307,7 +297,7 @@ public class ITBatsModelController {
     @Test
     public void testDeleteSimpleModel() throws Exception {
         String datasetUUID = createDataset();
-        String modelUUID = createSimpleModel(datasetUUID);
+        String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         // Make sure model exists
         assertEquals(
