@@ -8,31 +8,38 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableConfigurationProperties
 @ConfigurationProperties
+/*
+ * Represents the Apache Jena Fuseki triple store database config.
+*/
 public class FusekiConfig {
 
     /**
-     * Hostname for Fuseki server
-     */
+     * Hostname for Fuseki server.
+    */
     @Value("${fuseki.hostname}")
     private String hostname;
 
     /**
-     * Port for Fuseki server
-     */
+     * Port for Fuseki server.
+    */
     @Value("${fuseki.port}")
     private int port;
 
     /**
-     * Get host for Fuseki server set by properties
-     */
-    public String getHost() {
+     * Get host for Fuseki server set by properties.
+     *
+     * @return Hostname for the Fuseki server
+    */
+    public final String getHost() {
         return hostname;
     }
 
     /**
-     * Get port for Fuseki server set by properties
-     */
-    public int getPort() {
+     * Get port for Fuseki server set by properties.
+     *
+     * @return Port number for the Fuseki server
+    */
+    public final int getPort() {
         return port;
     }
-} 
+}
