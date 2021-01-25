@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Main class for Spring App - BATS REST API.
 */
+@SuppressWarnings("checkstyle:hideutilityclassconstructor")
 @SpringBootApplication
 public class SSMBatsRestApiApplication {
     /**
