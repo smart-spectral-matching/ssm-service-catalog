@@ -176,13 +176,17 @@ public class ITBatsModelController {
     @Test
     public void testCreateSimpleModel() throws Exception {
         String datasetUUID = createDataset();
-        assertEquals(
-            HttpStatus.CREATED,
-            restTemplate.postForEntity(
+        ResponseEntity<String> response = restTemplate.postForEntity(
                 baseUrl() + "/datasets/" + datasetUUID + "/models",
                 makeBody(MediaType.APPLICATION_JSON, simpleInputJSONLD()),
-                String.class
-            ).getStatusCode()
+                String.class);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(
+            mapper.readTree(simpleOutputJSONLD()),
+            mapper.readTree(response.getBody()).get("model")
         );
     }
 
@@ -192,13 +196,18 @@ public class ITBatsModelController {
     @Test
     public void testCreateSciDataModel() throws Exception {
         String datasetUUID = createDataset();
-        assertEquals(
-            HttpStatus.CREATED,
-            restTemplate.postForEntity(
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
                 baseUrl() + "/datasets/" + datasetUUID + "/models",
                 makeBody(MediaType.APPLICATION_JSON, scidataInputJSONLD()),
-                String.class
-            ).getStatusCode()
+                String.class);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(
+            mapper.readTree(scidataOutputJSONLD()),
+            mapper.readTree(response.getBody()).get("model")
         );
     }
 
@@ -210,18 +219,13 @@ public class ITBatsModelController {
         String datasetUUID = createDataset();
         String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
-        assertEquals(
-            HttpStatus.OK,
-            restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
-                String.class
-            ).getStatusCode()
-        );
-
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
                 String.class
-            );
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
 
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(
@@ -238,18 +242,13 @@ public class ITBatsModelController {
         String datasetUUID = createDataset();
         String modelUUID = createModel(datasetUUID, scidataInputJSONLD());
 
-        assertEquals(
-            HttpStatus.OK,
-            restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
-                String.class
-            ).getStatusCode()
-        );
-
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
                 String.class
-            );
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
 
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(
