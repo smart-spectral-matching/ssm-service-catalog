@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.github.jsonld-java</groupId>
             <artifactId>jsonld-java</artifactId>
-            <version>0.12.4</version>
+            <version>0.13.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.marshallmcdonnell</groupId>
@@ -192,6 +192,28 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>checkstyle-validation</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+              <configuration>
+                <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                <consoleOutput>true</consoleOutput>
+                <suppressionsLocation>src/main/resources/checkstyle-suppressions.xml</suppressionsLocation>
+                <failsOnError>true</failsOnError>
+                <failOnViolation>true</failOnViolation>
+                <violationSeverity>warning</violationSeverity>
+              </configuration>
+             </execution>
+           </executions>
         </plugin>
       </plugins>
 

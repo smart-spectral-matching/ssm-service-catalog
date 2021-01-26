@@ -2,20 +2,33 @@ stages:
     - build-and-test
 
 variables:
-    V_NUM: "v0.0.1"
-    CONTAINER_URL: "code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api"
+    CONTAINER_API_URL: "${CI_REGISTRY_IMAGE}/ssm-bats-rest-api"
+    CONTAINER_FUSEKI_URL: "${CI_REGISTRY_IMAGE}/fuseki"
 
 include:
     remote: "https://code.ornl.gov/rse-deployment/rse-sharables/-/raw/master/.gitlab-ci-before_script.yml"
+
+build-fuseki:
+    stage: build-and-test
+    script:
+        - func_rse_docker_cleanup
+        - docker build -f src/main/docker/Dockerfile.fuseki -t $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA src/main/docker/
+        - docker tag $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:latest
+        - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
+        - docker push $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
+        - docker push $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:latest
+    tags:
+        - rse-ssm-builder
 
 build-ssm-bats-rest-api:
     stage: build-and-test
     script:
         - func_rse_docker_cleanup
-        - sudo docker rmi -f $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM
-        - docker build -f Dockerfile -t $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM .
+        - docker build -f Dockerfile -t $CONTAINER_API_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA .
+        - docker tag $CONTAINER_API_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA $CONTAINER_API_URL/$CI_COMMIT_REF_NAME:latest
         - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
-        - docker push $CONTAINER_URL/ssm-bats-rest-api/$CI_COMMIT_REF_NAME:$V_NUM
+        - docker push $CONTAINER_API_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
+        - docker push $CONTAINER_API_URL/$CI_COMMIT_REF_NAME:latest
     tags:
         - rse-ssm-builder
 

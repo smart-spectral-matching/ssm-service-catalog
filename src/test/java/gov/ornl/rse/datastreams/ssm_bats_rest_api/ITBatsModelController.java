@@ -1,11 +1,14 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -22,146 +25,190 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsModelController {
 
-	@Autowired
+    /**
+     * Setup test rest template.
+    */
+    @Autowired
     private TestRestTemplate restTemplate;
 
+    /**
+     * Setup local server port for testing.
+    */
     @LocalServerPort
-	private int port;
+    private int port;
 
+    /**
+     * Setup base url.
+    */
     private static final String BASE_URL = "http://localhost";
 
+    /**
+     * Returns full base url w/ port.
+     *
+     * @return Base URL:port as string
+    */
     private String baseUrl() {
         return BASE_URL + ":" + port;
     }
 
-    /*
-     * Constructs an input JSON-LD for creating an example model
+    /**
+     * Returns string for a file located in test/resources.
+     *
+     * @param filename Filename to load from test/resources as string
+     * @return         File data as string
+    */
+    private String getFileDataFromTestResources(final String filename)
+        throws
+            IOException {
+        return new String(
+            Files.readAllBytes(Paths.get("src", "test", "resources", filename))
+        );
+    }
+
+    /**
+     * Constructs an input JSON-LD for creating an example model.
      * Comes from "A Simple Example" at https://json-ld.org/
      * The JSON-LD retrieved after uploading is found in the
-     * exampleOutputJSONLD() method
+     * simpleOutputJSONLD() method
      *
      * @return JSOND-LD as string
-     */
-    private String exampleInputJSONLD() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode jsonld = mapper.createObjectNode();
-        jsonld.put("@context", "https://json-ld.org/contexts/person.jsonld");
-        jsonld.put("@id", "http://dbpedia.org/resource/John_Lennon");
-        jsonld.put("name", "John Lennon");
-        jsonld.put("born", "1940-10-09");
-        jsonld.put("spouse", "http://dbpedia.org/resource/Cynthia_Lennon");
-        return mapper.writeValueAsString(jsonld);
+    */
+    private String simpleInputJSONLD() throws IOException {
+        return getFileDataFromTestResources("simple.input.jsonld");
     }
 
-    /*
+    /**
+     * Constructs the output JSON-LD we get back from the API from the one.
+     * created in the simpleInputJSONLD() method.
+     *
+     * @return JSOND-LD as string
+    */
+    private String simpleOutputJSONLD() throws IOException {
+        return getFileDataFromTestResources("simple.output.jsonld");
+    }
+
+    /**
+     * Constructs an input JSON-LD for a SciData model.
+     * Partial JSON-LD example from nmr.jsonld
+     * Retrieved on 1/22/2021 from:
+     *     https://github.com/stuchalk/scidata/blob/master/examples/nmr.jsonld
+     * The JSON-LD retrieved after uploading is found in the
+     * scidataPhOutputJSONLD() method
+     *
+     * @return JSOND-LD as string
+    */
+    private String scidataInputJSONLD() throws IOException {
+        return getFileDataFromTestResources(
+            "scidata_nmr_abbreviated.input.jsonld"
+        );
+    }
+
+    /**
      * Constructs the output JSON-LD we get back from the API from the one
-     * created in the exampleInputJSONLD() method.
+     * created in the scidataInputJSONLD() method.
      *
      * @return JSOND-LD as string
-     */
-    private String exampleOutputJSONLD() throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        
-        // Create output JSON-LD
-        ObjectNode jsonld = mapper.createObjectNode();
-        jsonld.put("@id", "http://dbpedia.org/resource/John_Lennon");
-        jsonld.put("birthDate", "1940-10-09");
-        jsonld.put("spouse", "http://dbpedia.org/resource/Cynthia_Lennon");
-        jsonld.put("name", "John Lennon");
-
-        // Create @context entry to JSON-LD
-        ObjectNode context = mapper.createObjectNode();
-        context.put("xsd", "http://www.w3.org/2001/XMLSchema#");
-
-        ObjectNode contextBirthDate = mapper.createObjectNode();
-        contextBirthDate.put("@id", "http://schema.org/birthDate");
-        contextBirthDate.put("@type", "http://www.w3.org/2001/XMLSchema#date");
-        context.set("birthDate", contextBirthDate);
-
-        ObjectNode contextSpouse = mapper.createObjectNode();
-        contextSpouse.put("@id", "http://schema.org/spouse");
-        contextSpouse.put("@type", "@id");
-        context.set("spouse", contextSpouse);
-
-        ObjectNode contextName = mapper.createObjectNode();
-        contextName.put("@id", "http://xmlns.com/foaf/0.1/name");
-        context.set("name", contextName);
-
-        jsonld.set("@context", context);
-
-        return mapper.writeValueAsString(jsonld);
+    */
+    private String scidataOutputJSONLD() throws IOException {
+        return getFileDataFromTestResources(
+            "scidata_nmr_abbreviated.output.jsonld"
+        );
     }
 
-    /*
-     * Helper function to create HTTP body
+    /**
+     * Helper function to create HTTP body.
      *
      * @param mediaType Content Type for the body data
      * @param body      Data to be posted
      * @return properly formatted body for post statement (with HTTP headers)
-     */
-    private HttpEntity<Object> makeBody(MediaType mediaType, Object body) {
+    */
+    private HttpEntity<Object> makeBody(
+        final MediaType mediaType,
+        final Object body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(mediaType);
         return new HttpEntity<>(body, headers);
     }
 
-    /*
-     * Helper function to create a dataset we can add models to
+    /**
+     * Helper function to create a dataset we can add models to.
      *
      * @return Dataset UUID
-     */
+    */
     private String createDataset() throws Exception {
         String jsonString = restTemplate.postForEntity(
             baseUrl() + "/datasets",
             HttpEntity.EMPTY,
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
-        String datasetUUID  = mapper.readTree(jsonString).get("uuid").textValue();
+        String datasetUUID  = mapper.readTree(jsonString)
+                                    .get("uuid")
+                                    .textValue();
         return datasetUUID;
     }
 
-    /*
-     * Helper function to create a model to a given dataset
+    /**
+     * Helper function to create a model to a given dataset.
      *
-     * @param  datasetUUID The UUID of the dataset to add the model
-     * @return Model UUID
-     */
-    private String createModel(String datasetUUID) throws Exception {
+     * @param datasetUUID The UUID of the dataset to add the model
+     * @param jsonld      JSON-LD for the Model to create
+     * @return            Model UUID
+    */
+    private String createModel(final String datasetUUID, final String jsonld)
+        throws
+            Exception {
         String jsonString = restTemplate.postForEntity(
             baseUrl() + "/datasets/" + datasetUUID + "/models",
-            makeBody(MediaType.APPLICATION_JSON, exampleInputJSONLD()),
+            makeBody(MediaType.APPLICATION_JSON, jsonld),
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
         String modelUUID  = mapper.readTree(jsonString).get("uuid").textValue();
         return modelUUID;
     }
 
-    // Tests
-
+    /**
+     * Test to create a Model from a simple JSON-LD.
+    */
     @Test
-    public void testCreateModel() throws Exception {
+    public void testCreateSimpleModel() throws Exception {
         String datasetUUID = createDataset();
         assertEquals(
             HttpStatus.CREATED,
             restTemplate.postForEntity(
                 baseUrl() + "/datasets/" + datasetUUID + "/models",
-                makeBody(MediaType.APPLICATION_JSON, exampleInputJSONLD()),
+                makeBody(MediaType.APPLICATION_JSON, simpleInputJSONLD()),
                 String.class
             ).getStatusCode()
         );
     }
 
+    /**
+     * Test to create a Model from a SciData JSON-LD.
+    */
     @Test
-    public void testGetModel() throws Exception {
+    public void testCreateSciDataModel() throws Exception {
         String datasetUUID = createDataset();
-        String modelUUID = createModel(datasetUUID);
+        assertEquals(
+            HttpStatus.CREATED,
+            restTemplate.postForEntity(
+                baseUrl() + "/datasets/" + datasetUUID + "/models",
+                makeBody(MediaType.APPLICATION_JSON, scidataInputJSONLD()),
+                String.class
+            ).getStatusCode()
+        );
+    }
+
+    /**
+     * Test to get a Model created from a simple JSON-LD.
+    */
+    @Test
+    public void testGetSimpleModel() throws Exception {
+        String datasetUUID = createDataset();
+        String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         assertEquals(
             HttpStatus.OK,
@@ -178,11 +225,42 @@ public class ITBatsModelController {
 
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(
-            mapper.readTree(exampleOutputJSONLD()),
+            mapper.readTree(simpleOutputJSONLD()),
             mapper.readTree(response.getBody()).get("model")
         );
     }
 
+    /**
+     * Test to get a Model created from a SciData JSON-LD.
+    */
+    @Test
+    public void testGetSciDataModel() throws Exception {
+        String datasetUUID = createDataset();
+        String modelUUID = createModel(datasetUUID, scidataInputJSONLD());
+
+        assertEquals(
+            HttpStatus.OK,
+            restTemplate.getForEntity(
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                String.class
+            ).getStatusCode()
+        );
+
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                String.class
+            );
+
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(
+            mapper.readTree(scidataOutputJSONLD()),
+            mapper.readTree(response.getBody()).get("model")
+        );
+    }
+
+    /**
+     * Test to get correct HTTP status if Model not found.
+    */
     @Test
     public void testGetModelNotFound() throws Exception {
         String datasetUUID = createDataset();
@@ -196,10 +274,13 @@ public class ITBatsModelController {
         );
     }
 
+    /**
+     * Test to update via replace for a Model using a simple JSON-LD.
+    */
     @Test
-    public void testUpdateModelReplace() throws Exception {
+    public void testUpdateSimpleModelReplace() throws Exception {
         String datasetUUID = createDataset();
-        String modelUUID = createModel(datasetUUID);
+        String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         // Create body for our update to the model
         ObjectMapper mapper = new ObjectMapper();
@@ -208,9 +289,10 @@ public class ITBatsModelController {
         String newName = mapper.writeValueAsString(newNameNode);
 
         // Merge payload with model for target we verify against
-        JsonNode originalJson = mapper.readTree(exampleOutputJSONLD());
+        JsonNode originalJson = mapper.readTree(simpleOutputJSONLD());
         JsonNode newNameJson = mapper.readTree(newName);
-        JsonNode jsonldPayload = mapper.readerForUpdating(originalJson).readValue(newNameJson);
+        JsonNode jsonldPayload = mapper.readerForUpdating(originalJson)
+                                       .readValue(newNameJson);
 
         // Send the update
         ResponseEntity<String> response = restTemplate.exchange(
@@ -223,13 +305,19 @@ public class ITBatsModelController {
         assertEquals(response.getStatusCode(), HttpStatus.OK);
 
         // Ensure the update modified the data
-        assertEquals(jsonldPayload, mapper.readTree(response.getBody()).get("model"));
+        assertEquals(
+            jsonldPayload,
+            mapper.readTree(response.getBody()).get("model")
+        );
     }
 
+    /**
+     * Test to partial update for a Model using a simple JSON-LD.
+    */
     @Test
-    public void testUpdateModelPartial() throws Exception {
+    public void testUpdateSimpleModelPartial() throws Exception {
         String datasetUUID = createDataset();
-        String modelUUID = createModel(datasetUUID);
+        String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         // Create body for our update to the model
         ObjectMapper mapper = new ObjectMapper();
@@ -248,18 +336,22 @@ public class ITBatsModelController {
         assertEquals(response.getStatusCode(), HttpStatus.OK);
 
         // Merge payload with model for target we verify against
-        JsonNode originalJson = mapper.readTree(exampleOutputJSONLD());
+        JsonNode originalJson = mapper.readTree(simpleOutputJSONLD());
         JsonNode newNameJson = mapper.readTree(newName);
-        JsonNode target = mapper.readerForUpdating(originalJson).readValue(newNameJson);
+        JsonNode target = mapper.readerForUpdating(originalJson)
+                                .readValue(newNameJson);
 
         // Ensure the update modified the data
         assertEquals(target, mapper.readTree(response.getBody()).get("model"));
     }
 
+    /**
+     * Test to delete a Model using a simple JSON-LD.
+    */
     @Test
-    public void testDeleteModel() throws Exception {
+    public void testDeleteSimpleModel() throws Exception {
         String datasetUUID = createDataset();
-        String modelUUID = createModel(datasetUUID);
+        String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         // Make sure model exists
         assertEquals(

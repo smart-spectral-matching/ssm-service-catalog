@@ -1,0 +1,518 @@
+{
+	"@graph": [{
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/",
+		"@type": "sdo:scidataFramework",
+		"IAO_0000129": "2",
+		"OBI_0001508": "2015-08-17T07:50:46-05:00",
+		"generatedAtTime": "2020-12-14 19:27:59",
+		"description": "NMR spectrum of (+)-(r)-limonene",
+		"identifier": ["obo:CHMO_0000591", "qudt:HZ", "w3i:Chemistry", "obo:CHMO_0000228", "qudt:SEC", "obo:CHEBI_35255", "qudt:MegaHZ", "obo:CHEBI_15384", "w3i:AnalyticalChemistry"],
+		"https://purl.org/dc/terms/identifier": {
+			"@type": "https://www.w3.org/2001/XMLSchema#string",
+			"@value": "scidata:example:nmr"
+		},
+		"publisher": "Bruker BioSpin GmbH",
+		"related": ["https://stuchalk.github.io/scidata/examples/ph.jsonld", "https://stuchalk.github.io/scidata/examples/scf.jsonld", "https://stuchalk.github.io/scidata/examples/ri.jsonld"],
+		"subject": ["nuclear magnetic resonance", "example data"],
+		"title": "R-(+)-Limonene (1H NMR)",
+		"url": "https://stuchalk.github.io/scidata/examples/nmr.jsonld",
+		"hasAuthor": "https://stuchalk.github.io/scidata/examples/nmr/author/1/",
+		"hasPart": ["dc:source", "sdo:substance", "sdo:compound", "sdo:methodology", "sdo:dataseries", "sdo:dataset", "sdo:system", "sdo:measurement", "sdo:procedure", "dc:rights", "sdo:datagroup"],
+		"hasRights": "https://stuchalk.github.io/scidata/examples/nmr/rights/1/",
+		"hasScientificData": "https://stuchalk.github.io/scidata/examples/nmr/scidata/",
+		"hasSource": "https://stuchalk.github.io/scidata/examples/nmr/source/1/"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/attribute/1/",
+		"@type": "sdo:attribute",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/attribute/1/value/",
+		"property": "First X-axis Value",
+		"quantity": "metric"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/attribute/1/value/",
+		"@type": "sdo:value",
+		"sdo:number": 4184.02539063,
+		"unitOfMeasure": "qudt:HZ"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/attribute/2/",
+		"@type": "sdo:attribute",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/attribute/2/value/",
+		"property": "First Y-axis Value",
+		"quantity": "metric"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/attribute/2/value/",
+		"@type": "sdo:value",
+		"sdo:number": 448.125
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/author/1/",
+		"@type": "dc:creator",
+		"IAO_0000590": "Bruker BioSpin GmbH"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/compound/1/",
+		"@type": "sdo:compound",
+		"data_1174": "obo:CHEBI_15384",
+		"IAO_0000590": "(+)-(r)-limonene",
+		"CHEMINF_000042": "C10H16",
+		"CHEMINF_000058": "InChI=1S/C10H16/c1-8(2)10-6-4-9(3)5-7-10/h4,10H,1,5-7H2,2-3H3/t10-/m0/s1",
+		"CHEMINF_000059": "XMGQYMWWDOXHJM-JTQLQIEISA-N",
+		"CHEMINF_000088": "136.234",
+		"CHEMINF_000107": "(4R)-1-methyl-4-prop-1-en-2-ylcyclohexene"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/compound/2/",
+		"@type": "sdo:compound",
+		"data_1174": "obo:CHEBI_35255",
+		"IAO_0000590": "Chloroform-d",
+		"CHEMINF_000042": "CHCl3",
+		"CHEMINF_000058": "InChI=1S/CHCl3/c2-1(3)4/h1H/i1D",
+		"CHEMINF_000059": "HEDRZPFGACZZDS-MICDWDOJSA-N",
+		"CHEMINF_000088": "120.384",
+		"CHEMINF_000107": "trichloro(deuterio)methane"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/datagroup/1/",
+		"@type": "sdo:datagroup",
+		"dataType": "spectrum",
+		"hasDataAttribute": ["https://stuchalk.github.io/scidata/examples/nmr/attribute/1/", "https://stuchalk.github.io/scidata/examples/nmr/attribute/2/"],
+		"hasDataSeries": ["https://stuchalk.github.io/scidata/examples/nmr/dataseries/1/", "https://stuchalk.github.io/scidata/examples/nmr/dataseries/2/"]
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/1/",
+		"@type": "sdo:independent",
+		"axisType": "x-axis",
+		"parameter": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/1/parameter/",
+		"label": "Excitation frequency (Hz)"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/1/parameter/",
+		"@type": "parameter",
+		"numericValueArray": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/1/parameter/valuearray/",
+		"property": "Radiofrequency",
+		"quantity": "frequency"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/1/parameter/valuearray/",
+		"@type": "sdo:valuearray",
+		"number:Array": {
+			"@list": [4184.0, 4183.70768546, 4183.41537092]
+		},
+		"numericDatatype": "https://stuchalk.github.io/scidata/examples/nmr/decimal",
+		"unitOfMeasure": "qudt:HZ"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/2/",
+		"@type": "sdo:dependent",
+		"axisType": "y-axis",
+		"parameter": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/2/parameter/",
+		"label": "Signal (Arbitrary Units)"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/2/parameter/",
+		"@type": "parameter",
+		"numericValueArray": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/2/parameter/valuearray/",
+		"property": "Free Induction Decay",
+		"quantity": "Voltage"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/dataseries/2/parameter/valuearray/",
+		"@type": "sdo:valuearray",
+		"number:Array": {
+			"@list": [448.1, 360.2, 415.6]
+		},
+		"numericDatatype": "https://stuchalk.github.io/scidata/examples/nmr/decimal"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/dataset/",
+		"@type": "sdo:dataset",
+		"dc:hasSource": {
+			"@id": "https://stuchalk.github.io/scidata/examples/nmr/measurement/1/"
+		},
+		"hasDataGroup": "https://stuchalk.github.io/scidata/examples/nmr/datagroup/1/",
+		"hasDataSeries": ["https://stuchalk.github.io/scidata/examples/nmr/dataseries/1/", "https://stuchalk.github.io/scidata/examples/nmr/dataseries/2/"],
+		"hasScope": "https://stuchalk.github.io/scidata/examples/nmr/substance/1/"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/measurement/1/",
+		"@type": "cao:CAO_000152",
+		"CAO_000011": "obo:CHMO_0000591",
+		"CAO_000048": "Unknown",
+		"CAO_000137": "300 MHz NMR",
+		"CAO_000218": "obo:CHMO_0000228",
+		"hasSetting": ["https://stuchalk.github.io/scidata/examples/nmr/setting/7/", "https://stuchalk.github.io/scidata/examples/nmr/setting/6/", "https://stuchalk.github.io/scidata/examples/nmr/setting/5/", "https://stuchalk.github.io/scidata/examples/nmr/setting/2/", "https://stuchalk.github.io/scidata/examples/nmr/setting/4/", "https://stuchalk.github.io/scidata/examples/nmr/setting/3/", "https://stuchalk.github.io/scidata/examples/nmr/setting/1/"]
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/methodology/",
+		"@type": "sdo:methodology",
+		"evaluationMethod": "experimental",
+		"hasMethodologyAspect": "https://stuchalk.github.io/scidata/examples/nmr/measurement/1/"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/rights/1/",
+		"@type": "dc:rights",
+		"license": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+		"rightsHolder": "Chalk Group, Department of Chemistry, University of North Florida"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/scidata/",
+		"@type": "sdo:scientificData",
+		"dataFormat": "spectrum",
+		"dataType": "property value",
+		"hasDataset": "https://stuchalk.github.io/scidata/examples/nmr/dataset/",
+		"hasMethodology": "https://stuchalk.github.io/scidata/examples/nmr/methodology/",
+		"hasSystem": "https://stuchalk.github.io/scidata/examples/nmr/system/",
+		"property": "Nuclear Magnetic Resonance"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/1/",
+		"@type": "sdo:setting",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/setting/1/value/",
+		"property": "Observe Frequency",
+		"quantity": "frequency"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/1/value/",
+		"@type": "sdo:value",
+		"sdo:number": 300.0318,
+		"unitOfMeasure": "qudt:MegaHZ"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/2/",
+		"@type": "sdo:setting",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/setting/2/value/",
+		"property": "Acquisition Time",
+		"quantity": "time"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/2/value/",
+		"@type": "sdo:value",
+		"sdo:number": 3.42098,
+		"unitOfMeasure": "qudt:SEC"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/3/",
+		"@type": "sdo:setting",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/setting/3/value/",
+		"property": "Zero Fill",
+		"quantity": "count"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/3/value/",
+		"@type": "sdo:value",
+		"sdo:number": 0.0
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/4/",
+		"@type": "sdo:setting",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/setting/4/value/",
+		"property": "Shift Reference",
+		"quantity": "parts per million (hz)"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/4/value/",
+		"text": "INTERNAL,  ,16384, -2.0163"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/5/",
+		"@type": "sdo:setting",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/setting/5/value/",
+		"property": "Observe Nucleus",
+		"quantity": "enumerated value"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/5/value/",
+		"text": "1H"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/6/",
+		"@type": "sdo:setting",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/setting/6/value/",
+		"property": "Acquisition Mode",
+		"quantity": "enumerated value"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/6/value/",
+		"text": "SIMULTANEOUS"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/7/",
+		"@type": "sdo:setting",
+		"hasValue": "https://stuchalk.github.io/scidata/examples/nmr/setting/7/value/",
+		"property": "Solvent Name",
+		"quantity": "identifier"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/setting/7/value/",
+		"text": "CHLOROFORM-d"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/source/1/",
+		"@type": "dc:source",
+		"bibliographicCitation": "SpectraSchool Spectra Dataset, Royal Society of Chemistry",
+		"schema:url": {
+			"@id": "http://www.rsc.org/learn-chemistry/collections/spectroscopy"
+		}
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/substance/1/",
+		"@type": "sdo:substance",
+		"IAO_0000590": "(+)-(r)-limonene and Chloroform-d",
+		"description": "A mixture of two organic compounds",
+		"hasConstituent": ["https://stuchalk.github.io/scidata/examples/nmr/substance/1/constituent/2/", "https://stuchalk.github.io/scidata/examples/nmr/substance/1/constituent/1/"],
+		"hasMixtureType": ["sub:homogeneousSolution", "sub:binaryMixture"],
+		"hasPhase": "sub:liquid",
+		"hasStateOfAggregation": "sub:sln"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/substance/1/constituent/1/",
+		"@type": "sdo:chemical",
+		"BFO_0000023": "chm:solute",
+		"hasScope": "https://stuchalk.github.io/scidata/examples/nmr/compound/1/"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/substance/1/constituent/2/",
+		"@type": "sdo:chemical",
+		"BFO_0000023": "chm:solvent",
+		"hasScope": "https://stuchalk.github.io/scidata/examples/nmr/compound/2/"
+	}, {
+		"@id": "https://stuchalk.github.io/scidata/examples/nmr/system/",
+		"@type": "sdo:system",
+		"discipline": "w3i:Chemistry",
+		"hasSystemFacet": ["https://stuchalk.github.io/scidata/examples/nmr/substance/1/", "https://stuchalk.github.io/scidata/examples/nmr/compound/1/", "https://stuchalk.github.io/scidata/examples/nmr/compound/2/"],
+		"subdiscipline": "w3i:AnalyticalChemistry"
+	}],
+	"@context": {
+		"number": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#number",
+			"@type": "http://www.w3.org/2001/XMLSchema#double"
+		},
+		"unitOfMeasure": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#unitOfMeasure",
+			"@type": "@id"
+		},
+		"IAO_0000590": {
+			"@id": "http://purl.obolibrary.org/obo/IAO_0000590",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"first": {
+			"@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#first",
+			"@type": "http://www.w3.org/2001/XMLSchema#double"
+		},
+		"rest": {
+			"@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+			"@type": "@id"
+		},
+		"hasValue": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasValue",
+			"@type": "@id"
+		},
+		"property": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#property",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"quantity": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#quantity",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"identifier": {
+			"@id": "https://purl.org/dc/terms/identifier",
+			"@type": "@id"
+		},
+		"hasPart": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasPart",
+			"@type": "@id"
+		},
+		"description": {
+			"@id": "https://purl.org/dc/terms/description",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"title": {
+			"@id": "https://purl.org/dc/terms/title",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"hasScientificData": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasScientificData",
+			"@type": "@id"
+		},
+		"generatedAtTime": {
+			"@id": "http://www.w3.org/ns/prov#generatedAtTime",
+			"@type": "https://www.w3.org/2001/XMLSchema#dateTime"
+		},
+		"url": {
+			"@id": "https://schema.org/url",
+			"@type": "https://www.w3.org/2001/XMLSchema#anyURI"
+		},
+		"OBI_0001508": {
+			"@id": "http://purl.obolibrary.org/obo/OBI_0001508",
+			"@type": "https://www.w3.org/2001/XMLSchema#dateTime"
+		},
+		"hasRights": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasRights",
+			"@type": "@id"
+		},
+		"related": {
+			"@id": "https://purl.org/dc/terms/related",
+			"@type": "https://www.w3.org/2001/XMLSchema#anyURI"
+		},
+		"publisher": {
+			"@id": "https://purl.org/dc/terms/publisher",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"subject": {
+			"@id": "https://purl.org/dc/terms/subject",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"IAO_0000129": {
+			"@id": "http://purl.obolibrary.org/obo/IAO_0000129",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"hasAuthor": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasAuthor",
+			"@type": "@id"
+		},
+		"hasSource": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasSource",
+			"@type": "@id"
+		},
+		"license": {
+			"@id": "https://purl.org/dc/terms/license",
+			"@type": "https://www.w3.org/2001/XMLSchema#anyURI"
+		},
+		"rightsHolder": {
+			"@id": "https://purl.org/dc/terms/rightsHolder",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"text": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#text"
+		},
+		"data_1174": {
+			"@id": "http://edamontology.org/data_1174",
+			"@type": "@id"
+		},
+		"CHEMINF_000042": {
+			"@id": "https://semanticchemistry.github.io/semanticchemistry/ontology/cheminf.owl#CHEMINF_000042"
+		},
+		"CHEMINF_000058": {
+			"@id": "https://semanticchemistry.github.io/semanticchemistry/ontology/cheminf.owl#CHEMINF_000058"
+		},
+		"CHEMINF_000059": {
+			"@id": "https://semanticchemistry.github.io/semanticchemistry/ontology/cheminf.owl#CHEMINF_000059"
+		},
+		"CHEMINF_000088": {
+			"@id": "https://semanticchemistry.github.io/semanticchemistry/ontology/cheminf.owl#CHEMINF_000088",
+			"@type": "http://www.w3.org/2001/XMLSchema#float"
+		},
+		"CHEMINF_000107": {
+			"@id": "https://semanticchemistry.github.io/semanticchemistry/ontology/cheminf.owl#CHEMINF_000107"
+		},
+		"BFO_0000023": {
+			"@id": "http://purl.obolibrary.org/obo/BFO_0000023",
+			"@type": "@id"
+		},
+		"hasScope": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasScope",
+			"@type": "@id"
+		},
+		"axisType": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#axisType",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"parameter": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#parameter",
+			"@type": "@id"
+		},
+		"label": {
+			"@id": "https://www.w3.org/2000/01/rdf-schema#label",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"bibliographicCitation": {
+			"@id": "https://purl.org/dc/terms/bibliographicCitation",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"numberArray": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#numberArray",
+			"@type": "@id"
+		},
+		"numericDatatype": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#numericDatatype",
+			"@type": "@id"
+		},
+		"discipline": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#discipline",
+			"@type": "@id"
+		},
+		"hasSystemFacet": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasSystemFacet",
+			"@type": "@id"
+		},
+		"subdiscipline": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#subdiscipline",
+			"@type": "@id"
+		},
+		"hasDataGroup": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasDataGroup",
+			"@type": "@id"
+		},
+		"hasDataSeries": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasDataSeries",
+			"@type": "@id"
+		},
+		"numericValueArray": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#numericValueArray",
+			"@type": "@id"
+		},
+		"dataType": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#dataType",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"hasDataAttribute": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasDataAttribute",
+			"@type": "@id"
+		},
+		"CAO_000218": {
+			"@id": "http://champ-project.org/images/ontology/cao.owl#CAO_000218",
+			"@type": "@id"
+		},
+		"hasSetting": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasSetting",
+			"@type": "@id"
+		},
+		"CAO_000048": {
+			"@id": "http://champ-project.org/images/ontology/cao.owl#CAO_000048"
+		},
+		"CAO_000011": {
+			"@id": "http://champ-project.org/images/ontology/cao.owl#CAO_000011",
+			"@type": "@id"
+		},
+		"CAO_000137": {
+			"@id": "http://champ-project.org/images/ontology/cao.owl#CAO_000137"
+		},
+		"hasConstituent": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/substance/substance.owl#hasConstituent",
+			"@type": "@id"
+		},
+		"hasMixtureType": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/substance/substance.owl#hasMixtureType",
+			"@type": "@id"
+		},
+		"hasPhase": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/substance/substance.owl#hasPhase",
+			"@type": "@id"
+		},
+		"hasStateOfAggregation": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/substance/substance.owl#hasStateOfAggregation",
+			"@type": "@id"
+		},
+		"dataFormat": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#dataFormat",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"hasDataset": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasDataset",
+			"@type": "@id"
+		},
+		"hasMethodology": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasMethodology",
+			"@type": "@id"
+		},
+		"hasSystem": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasSystem",
+			"@type": "@id"
+		},
+		"evaluationMethod": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#evaluationMethod",
+			"@type": "https://www.w3.org/2001/XMLSchema#string"
+		},
+		"hasMethodologyAspect": {
+			"@id": "https://stuchalk.github.io/scidata/ontology/scidata.owl#hasMethodologyAspect",
+			"@type": "@id"
+		},
+		"schema": "https://schema.org/",
+		"ss": "http://www.semanticweb.org/ontologies/cheminf.owl#",
+		"mat": "https://stuchalk.github.io/scidata/ontology/scidata_material.owl#",
+		"wkt": "http://en.wiktionary.org/wiki/",
+		"sub": "https://stuchalk.github.io/scidata/ontology/substance.owl#",
+		"qudt": "http://qudt.org/vocab/unit/",
+		"proc": "https://stuchalk.github.io/scidata/ontology/scidata_procedure.owl#",
+		"edam": "http://edamontology.org/",
+		"enm": "http://purl.enanomapper.org/onto/",
+		"xsd": "http://www.w3.org/2001/XMLSchema#",
+		"chm": "https://stuchalk.github.io/scidata/ontology/chemical.owl#",
+		"rdfs": "https://www.w3.org/2000/01/rdf-schema#",
+		"w3i": "https://w3id.org/skgo/modsci#",
+		"cao": "http://champ-project.org/images/ontology/cao.owl#",
+		"bibo": "http://purl.obolibrary.org/obo/bibo/",
+		"prov": "http://www.w3.org/ns/prov#",
+		"obo": "http://purl.obolibrary.org/obo/",
+		"foaf": "http://xmlns.com/foaf/0.1/",
+		"sdo": "https://stuchalk.github.io/scidata/ontology/scidata.owl#",
+		"dc": "http://purl.org/dc/terms/"
+	}
+}
