@@ -12,24 +12,14 @@ public class BatsDataset {
     private String uuid;
 
     /**
-     * URI for the Dataset in Fuseki server.
-     * TODO: Remove this field
-    */
-    private String uri;
-
-    /**
      * Constructor class to create a BatsDataset object.
      *
      * @param datasetUUID UUID for the new Dataset
-     * @param datasetURI  URI for the new Dataset in Fuseki database
     */
-    public BatsDataset(final String datasetUUID, final String datasetURI) {
+    public BatsDataset(final String datasetUUID) {
         super();
         this.uuid = datasetUUID;
-        this.uri = datasetURI;
     }
-
-    // API
 
     /**
      * Getter for the Dataset's UUID.
@@ -48,23 +38,5 @@ public class BatsDataset {
 
     public void setUUID(final String datasetUUID) {
         this.uuid = datasetUUID;
-    }
-
-    /**
-     * Getter for the Dataset URI.
-     *
-     * @return URI for the dataset in Fuseki database
-    */
-    public String getURI() {
-        return uri;
-    }
-
-    /**
-     * Setter for the Dataset URI.
-     *
-     * @param datasetURI New URI for Dataset in Fuseki database
-    */
-    public void setURI(final String datasetURI) {
-        this.uri = datasetURI;
     }
 }

@@ -82,7 +82,6 @@ public class ITBatsDatasetController {
             ).getBody();
 
         assertTrue(json.contains("\"uuid\":\"" + uuid + "\""));
-        assertTrue(json.contains("\"uri\""));
     }
 
     /**
