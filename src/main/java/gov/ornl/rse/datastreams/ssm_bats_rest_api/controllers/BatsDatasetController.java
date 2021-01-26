@@ -38,7 +38,7 @@ public class BatsDatasetController {
     private FusekiConfig fusekiConfig;
 
     /**
-     * CREAT a new Dataset collection for Models.
+     * CREATE a new Dataset collection for Models.
      *
      * @return BatsDataset for newly created Dataset in Fuseki
     */
