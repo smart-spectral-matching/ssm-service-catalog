@@ -3,20 +3,15 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import com.github.jsonldjava.utils.JsonUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,52 +25,74 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsModelController {
 
-	@Autowired
+    /**
+     * Setup test rest template.
+    */
+    @Autowired
     private TestRestTemplate restTemplate;
 
+    /**
+     * Setup local server port for testing.
+    */
     @LocalServerPort
-	private int port;
+    private int port;
 
+    /**
+     * Setup base url.
+    */
     private static final String BASE_URL = "http://localhost";
 
+    /**
+     * Returns full base url w/ port.
+     *
+     * @return Base URL:port as string
+    */
     private String baseUrl() {
         return BASE_URL + ":" + port;
     }
 
-    private String getFileDataFromTestResources(String filename) throws IOException {
-        return new String(Files.readAllBytes(Paths.get("src", "test", "resources", filename)));
+    /**
+     * Returns string for a file located in test/resources.
+     *
+     * @param filename Filename to load from test/resources as string
+     * @return         File data as string
+    */
+    private String getFileDataFromTestResources(final String filename)
+        throws
+            IOException {
+        return new String(
+            Files.readAllBytes(Paths.get("src", "test", "resources", filename))
+        );
     }
 
-    /*
-     * Constructs an input JSON-LD for creating an example model
+    /**
+     * Constructs an input JSON-LD for creating an example model.
      * Comes from "A Simple Example" at https://json-ld.org/
      * The JSON-LD retrieved after uploading is found in the
      * simpleOutputJSONLD() method
      *
      * @return JSOND-LD as string
-     */
+    */
     private String simpleInputJSONLD() throws IOException {
         return getFileDataFromTestResources("simple.input.jsonld");
     }
 
-    /*
-     * Constructs the output JSON-LD we get back from the API from the one
+    /**
+     * Constructs the output JSON-LD we get back from the API from the one.
      * created in the simpleInputJSONLD() method.
      *
      * @return JSOND-LD as string
-     */
+    */
     private String simpleOutputJSONLD() throws IOException {
         return getFileDataFromTestResources("simple.output.jsonld");
     }
 
-    /*
-     * Constructs an input JSON-LD for a SciData model
+    /**
+     * Constructs an input JSON-LD for a SciData model.
      * Partial JSON-LD example from nmr.jsonld
      * Retrieved on 1/22/2021 from:
      *     https://github.com/stuchalk/scidata/blob/master/examples/nmr.jsonld
@@ -83,56 +100,67 @@ public class ITBatsModelController {
      * scidataPhOutputJSONLD() method
      *
      * @return JSOND-LD as string
-     */
+    */
     private String scidataInputJSONLD() throws IOException {
-        return getFileDataFromTestResources("scidata_nmr_abbreviated.input.jsonld");
+        return getFileDataFromTestResources(
+            "scidata_nmr_abbreviated.input.jsonld"
+        );
     }
 
-    /*
+    /**
      * Constructs the output JSON-LD we get back from the API from the one
      * created in the scidataInputJSONLD() method.
      *
      * @return JSOND-LD as string
-     */
+    */
     private String scidataOutputJSONLD() throws IOException {
-        return getFileDataFromTestResources("scidata_nmr_abbreviated.output.jsonld");
+        return getFileDataFromTestResources(
+            "scidata_nmr_abbreviated.output.jsonld"
+        );
     }
 
-    /*
-     * Helper function to create HTTP body
+    /**
+     * Helper function to create HTTP body.
      *
      * @param mediaType Content Type for the body data
      * @param body      Data to be posted
      * @return properly formatted body for post statement (with HTTP headers)
-     */
-    private HttpEntity<Object> makeBody(MediaType mediaType, Object body) {
+    */
+    private HttpEntity<Object> makeBody(
+        final MediaType mediaType,
+        final Object body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(mediaType);
         return new HttpEntity<>(body, headers);
     }
 
-    /*
-     * Helper function to create a dataset we can add models to
+    /**
+     * Helper function to create a dataset we can add models to.
      *
      * @return Dataset UUID
-     */
+    */
     private String createDataset() throws Exception {
         String jsonString = restTemplate.postForEntity(
             baseUrl() + "/datasets",
             HttpEntity.EMPTY,
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
-        String datasetUUID  = mapper.readTree(jsonString).get("uuid").textValue();
+        String datasetUUID  = mapper.readTree(jsonString)
+                                    .get("uuid")
+                                    .textValue();
         return datasetUUID;
     }
 
-    /*
-     * Helper function to create a model to a given dataset
+    /**
+     * Helper function to create a model to a given dataset.
      *
-     * @param  datasetUUID The UUID of the dataset to add the model
-     * @return Model UUID
-     */
-    private String createModel(String datasetUUID, String jsonld) throws Exception {
+     * @param datasetUUID The UUID of the dataset to add the model
+     * @param jsonld      JSON-LD for the Model to create
+     * @return            Model UUID
+    */
+    private String createModel(final String datasetUUID, final String jsonld)
+        throws
+            Exception {
         String jsonString = restTemplate.postForEntity(
             baseUrl() + "/datasets/" + datasetUUID + "/models",
             makeBody(MediaType.APPLICATION_JSON, jsonld),
@@ -142,8 +170,9 @@ public class ITBatsModelController {
         return modelUUID;
     }
 
-    // Tests
-
+    /**
+     * Test to create a Model from a simple JSON-LD.
+    */
     @Test
     public void testCreateSimpleModel() throws Exception {
         String datasetUUID = createDataset();
@@ -157,6 +186,9 @@ public class ITBatsModelController {
         );
     }
 
+    /**
+     * Test to create a Model from a SciData JSON-LD.
+    */
     @Test
     public void testCreateSciDataModel() throws Exception {
         String datasetUUID = createDataset();
@@ -170,6 +202,9 @@ public class ITBatsModelController {
         );
     }
 
+    /**
+     * Test to get a Model created from a simple JSON-LD.
+    */
     @Test
     public void testGetSimpleModel() throws Exception {
         String datasetUUID = createDataset();
@@ -195,6 +230,9 @@ public class ITBatsModelController {
         );
     }
 
+    /**
+     * Test to get a Model created from a SciData JSON-LD.
+    */
     @Test
     public void testGetSciDataModel() throws Exception {
         String datasetUUID = createDataset();
@@ -220,7 +258,9 @@ public class ITBatsModelController {
         );
     }
 
-
+    /**
+     * Test to get correct HTTP status if Model not found.
+    */
     @Test
     public void testGetModelNotFound() throws Exception {
         String datasetUUID = createDataset();
@@ -234,6 +274,9 @@ public class ITBatsModelController {
         );
     }
 
+    /**
+     * Test to update via replace for a Model using a simple JSON-LD.
+    */
     @Test
     public void testUpdateSimpleModelReplace() throws Exception {
         String datasetUUID = createDataset();
@@ -248,7 +291,8 @@ public class ITBatsModelController {
         // Merge payload with model for target we verify against
         JsonNode originalJson = mapper.readTree(simpleOutputJSONLD());
         JsonNode newNameJson = mapper.readTree(newName);
-        JsonNode jsonldPayload = mapper.readerForUpdating(originalJson).readValue(newNameJson);
+        JsonNode jsonldPayload = mapper.readerForUpdating(originalJson)
+                                       .readValue(newNameJson);
 
         // Send the update
         ResponseEntity<String> response = restTemplate.exchange(
@@ -261,9 +305,15 @@ public class ITBatsModelController {
         assertEquals(response.getStatusCode(), HttpStatus.OK);
 
         // Ensure the update modified the data
-        assertEquals(jsonldPayload, mapper.readTree(response.getBody()).get("model"));
+        assertEquals(
+            jsonldPayload,
+            mapper.readTree(response.getBody()).get("model")
+        );
     }
 
+    /**
+     * Test to partial update for a Model using a simple JSON-LD.
+    */
     @Test
     public void testUpdateSimpleModelPartial() throws Exception {
         String datasetUUID = createDataset();
@@ -288,12 +338,16 @@ public class ITBatsModelController {
         // Merge payload with model for target we verify against
         JsonNode originalJson = mapper.readTree(simpleOutputJSONLD());
         JsonNode newNameJson = mapper.readTree(newName);
-        JsonNode target = mapper.readerForUpdating(originalJson).readValue(newNameJson);
+        JsonNode target = mapper.readerForUpdating(originalJson)
+                                .readValue(newNameJson);
 
         // Ensure the update modified the data
         assertEquals(target, mapper.readTree(response.getBody()).get("model"));
     }
 
+    /**
+     * Test to delete a Model using a simple JSON-LD.
+    */
     @Test
     public void testDeleteSimpleModel() throws Exception {
         String datasetUUID = createDataset();
