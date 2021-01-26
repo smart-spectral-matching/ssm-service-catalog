@@ -53,7 +53,7 @@ public class BatsDatasetController {
         dataset.setPort(fusekiConfig.getPort());
         dataset.create();
         LOGGER.info("Created datatset: " + uuid);
-        return new BatsDataset(uuid, dataset.getFullURI());
+        return new BatsDataset(uuid);
     }
 
     /**
@@ -62,7 +62,6 @@ public class BatsDatasetController {
      * @param uuid UUID of Dataset to retrieve
      * @return BatsDataset for given Dataset UUID
     */
-    @RequestMapping(value = "", method = RequestMethod.POST)
     @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
     @ResponseBody
     public BatsDataset  getDataSet(@PathVariable("uuid") final String uuid)
@@ -81,7 +80,7 @@ public class BatsDatasetController {
             );
         }
         LOGGER.info("Pulled dataset: " + uuid);
-        return new BatsDataset(uuid, dataset.getFullURI());
+        return new BatsDataset(uuid);
     }
 
     /**
@@ -89,7 +88,6 @@ public class BatsDatasetController {
      *
      * @param uuid UUID of Dataset to delete
     */
-    @RequestMapping(value = "", method = RequestMethod.POST)
     @RequestMapping(value = "/{uuid}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDataSet(@PathVariable("uuid") final String uuid)

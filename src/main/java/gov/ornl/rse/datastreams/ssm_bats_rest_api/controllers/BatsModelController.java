@@ -52,20 +52,19 @@ public class BatsModelController {
     /**
      * Error message for uploading model.
     */
-    private final String uploadModelErrorMessage =
+    private static final String UPLOAD_MODEL_ERROR =
         "Unable to upload model on the remote Fuseki server.";
-
 
     /**
      * Error message for reading model.
     */
-    private final String readModelErrorMessage =
+    private static final String READ_MODEL_ERROR =
         "Unable to read model on the remote Fuseki server.";
 
     /**
      * Error message for deleting model.
     */
-    private final String deleteModelErrorMessage =
+    private static final String DELETE_MODEL_ERROR =
         "Unable to delete model on the remote Fuseki server.";
 
 
@@ -149,7 +148,7 @@ public class BatsModelController {
             dataset.updateModel(modelUUID, model);
             LOGGER.info("Model uploaded!");
         } catch (Exception e) {
-            LOGGER.error(uploadModelErrorMessage, e);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
 
         Model newModel = dataset.getModel(modelUUID);
@@ -192,7 +191,7 @@ public class BatsModelController {
             Model model = dataset.getModel(modelUUID);
             return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
         } catch (Exception e) {
-            LOGGER.error(readModelErrorMessage, e);
+            LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Model Not Found"
@@ -248,7 +247,7 @@ public class BatsModelController {
             dataset.updateModel(modelUUID, model);
             LOGGER.info("Model uploaded!");
         } catch (Exception e) {
-            LOGGER.error(uploadModelErrorMessage, e);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
 
         Model newModel = dataset.getModel(modelUUID);
@@ -263,10 +262,6 @@ public class BatsModelController {
      * @param jsonPayload Partial JSON-LD of new Model to update current Model
      * @return            BatsModel for newly updated Model
     */
-    @RequestMapping(
-        value = "/{dataset_uuid}/models/{model_uuid}",
-        method = RequestMethod.PUT
-    )
     @RequestMapping(
         value = "/{dataset_uuid}/models/{model_uuid}",
         method = RequestMethod.PATCH
@@ -298,7 +293,7 @@ public class BatsModelController {
             Model model = dataset.getModel(modelUUID);
             modelJSONLD = RdfModelWriter.model2jsonld(model);
         } catch (Exception e) {
-            LOGGER.error(readModelErrorMessage, e);
+            LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Model Not Found"
@@ -320,14 +315,14 @@ public class BatsModelController {
         // Merged Tree -> Merged JSON -> Jena Model
         StringReader reader = new StringReader(mergedModelNode.toString());
         Model mergedModel = ModelFactory.createDefaultModel();
-        model.read(reader, null, "JSON-LD");
+        mergedModel.read(reader, null, "JSON-LD");
 
         // Upload merged model
         try {
             dataset.updateModel(modelUUID, mergedModel);
             LOGGER.info("Model udated and uploaded!");
         } catch (Exception e) {
-            LOGGER.error(uploadModelErrorMessage, e);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
 
         Model newModel = dataset.getModel(modelUUID);
@@ -368,7 +363,7 @@ public class BatsModelController {
         try {
             dataset.deleteModel(modelUUID);
         } catch (Exception e) {
-            LOGGER.error(deleteModelErrorMessage, e);
+            LOGGER.error(DELETE_MODEL_ERROR, e);
         }
     }
 }
