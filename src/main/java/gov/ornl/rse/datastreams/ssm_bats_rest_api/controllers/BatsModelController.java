@@ -140,10 +140,10 @@ public class BatsModelController {
     }
 
     /**
-     * Returns modified input JSON-LD with `@base` inserted with provided URI.
+     * Returns modified JSON-LD w/ `@base` and `@id` inserted with URI.
      *
-     * @param jsonld  JSON-LD to modify with new `@base`
-     * @param baseUri URI to use for the `@base` in the document
+     * @param jsonld  JSON-LD to modify with new `@base` and `@id`
+     * @param baseUri URI to use for `@base` and `@id` in the document
      * @return        Modified JSON-LD
     */
     private String addBaseToContextToJsonLD(
@@ -177,8 +177,12 @@ public class BatsModelController {
             baseContext.put("@base", baseUri);
             newContextNode.add(baseContext);
 
-            // Update JSON-LD with modified @context block for output
+            // Update JSON-LD with modified @context block
             jsonldNode.put("@context", newContextNode);
+
+            // Update JSON-LD with new @id to match @base in @context
+            jsonldNode.put("@id", baseUri);
+
             newJsonLd = jsonldNode.toString();
         }
 
