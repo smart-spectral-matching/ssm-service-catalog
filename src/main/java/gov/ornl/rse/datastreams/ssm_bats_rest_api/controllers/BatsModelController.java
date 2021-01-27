@@ -6,6 +6,7 @@ import java.io.StringReader;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.jena.query.Dataset;
@@ -30,6 +31,7 @@ import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.FusekiConfig;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ServerConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 
 @RestController
@@ -42,6 +44,12 @@ public class BatsModelController {
     private static final Logger LOGGER = LoggerFactory.getLogger(
         BatsModelController.class
     );
+
+    /**
+     * Setup REST API server config.
+    */
+    @Autowired
+    private ServerConfig serverConfig;
 
     /**
      * Setup Fuseki config.
@@ -87,6 +95,97 @@ public class BatsModelController {
     }
 
     /**
+     * Returns Model API URI given the Dataset and Model UUID.
+     *
+     * @param datasetUUID UUID for the Dataset the model belongs to
+     * @param modelUUID   UUID for the Model
+     * @return            Full URI for the Model
+    */
+    private String getModelUri(
+        final String datasetUUID,
+        final String modelUUID
+    ) {
+        String baseUri = serverConfig.getFullHost();
+        String datasetUri = baseUri + "/datasets/" + datasetUUID;
+        String modelUri = datasetUri + "/models/" + modelUUID + "/";
+        return modelUri;
+    }
+
+    /**
+     * Returns modified input JSON-LD with `@graph` at top-level.
+     *
+     * @param jsonldNode  JSON-LD to modify if it has @graph
+     * @return            Modified JSON-LD
+    */
+    private JsonNode formatGraphNode(final JsonNode jsonldNode)
+    throws IOException {
+        ObjectNode newJsonldNode = (ObjectNode) jsonldNode.deepCopy();
+
+        LOGGER.info("Checking for @graph in model...");
+        JsonNode isGraphNode = newJsonldNode.get("@graph");
+        if (isGraphNode != null) {
+
+            // Merge @graph node into top-level and remove duplicate @id node
+            LOGGER.info("Moving @graph to top-level of model...");
+            JsonNode graphNode = newJsonldNode.remove("@graph");
+            newJsonldNode.remove("@id");
+
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectReader objectReader = mapper.readerForUpdating(
+                newJsonldNode
+            );
+            newJsonldNode = objectReader.readValue(graphNode);
+        }
+        return (JsonNode) newJsonldNode;
+    }
+
+    /**
+     * Returns modified input JSON-LD with `@base` inserted with provided URI.
+     *
+     * @param jsonld  JSON-LD to modify with new `@base`
+     * @param baseUri URI to use for the `@base` in the document
+     * @return        Modified JSON-LD
+    */
+    private String addBaseToContextToJsonLD(
+        final String jsonld,
+        final String baseUri
+    )
+    throws IOException {
+        LOGGER.info("Updating @base in @context block...");
+
+        // Create default output JSON-LD
+        String newJsonLd = jsonld;
+
+        // Get the @context block of the input JSON-LD
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonldNode = mapper.readValue(jsonld, ObjectNode.class);
+        JsonNode contextNode = jsonldNode.get("@context");
+
+        // If @context is array, replace/add @base entry with input base uri
+        if (contextNode.isArray()) {
+
+            // Re-create @context block while leaving out pre-existing @base
+            ArrayNode newContextNode = mapper.createArrayNode();
+            for (final JsonNode elementNode: contextNode) {
+                if (!elementNode.has("@base")) {
+                    newContextNode.add(elementNode);
+                }
+            }
+
+            // Add new @base to @context block
+            ObjectNode baseContext = mapper.createObjectNode();
+            baseContext.put("@base", baseUri);
+            newContextNode.add(baseContext);
+
+            // Update JSON-LD with modified @context block for output
+            jsonldNode.put("@context", newContextNode);
+            newJsonLd = jsonldNode.toString();
+        }
+
+        return newJsonLd;
+    }
+
+    /**
      * CREATE a new Model in the Dataset collection.
      *
      * @param datasetUUID UUID for Dataset collection to add the new Model
@@ -122,24 +221,23 @@ public class BatsModelController {
         // JSON -> Tree
         LOGGER.info("Extracting JSON-LD -> model");
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode scidataNode = mapper.readValue(
+        JsonNode jsonldNode = mapper.readValue(
             jsonPayload,
-            ObjectNode.class
+            JsonNode.class
         );
 
         // Check if we have a @graph node, need to move all fields to top-level
-        LOGGER.info("Uploading model: " + modelUUID);
-        JsonNode isGraphNode = scidataNode.get("@graph");
-        if (isGraphNode != null) {
-            // Merge @graph node into top-level and remove duplicate @id node
-            JsonNode graphNode = scidataNode.remove("@graph");
-            scidataNode.remove("@id");
-            ObjectReader objectReader = mapper.readerForUpdating(scidataNode);
-            scidataNode = objectReader.readValue(graphNode);
-        }
+        JsonNode scidataNode = formatGraphNode(jsonldNode);
+
+        // Replace @base in @context block w/ new URI
+        String scidataString = addBaseToContextToJsonLD(
+            scidataNode.toString(),
+            getModelUri(datasetUUID, modelUUID)
+        );
 
         // Tree -> JSON -> Jena Model
-        StringReader reader = new StringReader(scidataNode.toString());
+        LOGGER.info("Uploading model: " + modelUUID);
+        StringReader reader = new StringReader(scidataString);
         Model model = ModelFactory.createDefaultModel();
         model.read(reader, null, "JSON-LD");
 
@@ -231,14 +329,23 @@ public class BatsModelController {
                 "Dataset " + datasetUUID + " NOT FOUND!");
         }
 
-        LOGGER.info("Extracting JSON-LD -> model");
         // JSON -> Tree
+        LOGGER.info("Extracting JSON-LD -> model");
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode treeNode = mapper.readTree(jsonPayload);
+        JsonNode scidataNode = mapper.readTree(jsonPayload);
 
-        LOGGER.info("Uploading model: " + modelUUID);
+        // Check if we have a @graph node, need to move all fields to top-level
+        JsonNode newScidataNode = formatGraphNode(scidataNode);
+
+        // Replace @base in @context block w/ new URI
+        String scidataString = addBaseToContextToJsonLD(
+            newScidataNode.toString(),
+            getModelUri(datasetUUID, modelUUID)
+        );
+
         // Tree -> JSON -> Jena Model
-        StringReader reader = new StringReader(treeNode.toString());
+        LOGGER.info("Uploading model: " + modelUUID);
+        StringReader reader = new StringReader(scidataString);
         Model model = ModelFactory.createDefaultModel();
         model.read(reader, null, "JSON-LD");
 
@@ -312,8 +419,17 @@ public class BatsModelController {
         JsonNode mergedModelNode = mapper.readerForUpdating(modelNode)
                                          .readValue(payloadNode);
 
+        // Check if we have a @graph node, need to move all fields to top-level
+        JsonNode scidataNode = formatGraphNode(mergedModelNode);
+
+        // Replace @base in @context block w/ new URI
+        String scidataString = addBaseToContextToJsonLD(
+            scidataNode.toString(),
+            getModelUri(datasetUUID, modelUUID)
+        );
+
         // Merged Tree -> Merged JSON -> Jena Model
-        StringReader reader = new StringReader(mergedModelNode.toString());
+        StringReader reader = new StringReader(scidataString);
         Model mergedModel = ModelFactory.createDefaultModel();
         mergedModel.read(reader, null, "JSON-LD");
 
