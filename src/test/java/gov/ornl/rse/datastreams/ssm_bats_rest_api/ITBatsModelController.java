@@ -25,6 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ServerConfig;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsModelController {
@@ -44,15 +46,62 @@ public class ITBatsModelController {
     /**
      * Setup base url.
     */
-    private static final String BASE_URL = "http://localhost";
+    private static final String BASE_URI = "http://localhost";
 
     /**
      * Returns full base url w/ port.
      *
-     * @return Base URL:port as string
+     * @return Base URI:port as string
     */
-    private String baseUrl() {
-        return BASE_URL + ":" + port;
+    private String baseUri() {
+        return BASE_URI + ":" + port;
+    }
+
+    /**
+     * Setup REST API server config.
+    */
+    @Autowired
+    private ServerConfig serverConfig;
+
+    /**
+     * Returns full database uri given the Dataset UUID.
+     *
+     * @param datasetUUID UUID for the Dataset
+     * @return            Full URI for the Dataset
+    */
+    private String getDatasetUri(final String datasetUUID) {
+        return baseUri() + "/datasets/" + datasetUUID;
+    }
+
+    /**
+     * Returns full database uri given the Dataset and Model UUID.
+     *
+     * @param datasetUUID UUID for the Dataset the model belongs to
+     * @param modelUUID   UUID for the Model
+     * @return            Full URI for the Model
+    */
+    private String getModelUri(
+        final String datasetUUID,
+        final String modelUUID
+    ) {
+        return getDatasetUri(datasetUUID) + "/models/" + modelUUID;
+    }
+
+    /**
+     * Returns the User-side API server Model URI.
+     *
+     * @param datasetUUID UUID for the Dataset the model belongs to
+     * @param modelUUID   UUID for the Model
+     * @return            Full URI for the Model from User-side for API
+    */
+    private String getApiModelUri(
+        final String datasetUUID,
+        final String modelUUID
+    ) {
+        String baseUri = serverConfig.getFullHost();
+        String datasetUri = baseUri + "/datasets/" + datasetUUID;
+        String modelUri = datasetUri + "/models/" + modelUUID + "/";
+        return modelUri.replace("\"", "");
     }
 
     /**
@@ -62,8 +111,7 @@ public class ITBatsModelController {
      * @return         File data as string
     */
     private String getFileDataFromTestResources(final String filename)
-        throws
-            IOException {
+    throws IOException {
         return new String(
             Files.readAllBytes(Paths.get("src", "test", "resources", filename))
         );
@@ -111,12 +159,20 @@ public class ITBatsModelController {
      * Constructs the output JSON-LD we get back from the API from the one
      * created in the scidataInputJSONLD() method.
      *
-     * @return JSOND-LD as string
+     * @param baseUri Base Uri to replace throughout the output JSON-LD
+     * @return        JSOND-LD as string
     */
-    private String scidataOutputJSONLD() throws IOException {
-        return getFileDataFromTestResources(
+    private String scidataOutputJSONLD(final String baseUri)
+    throws IOException {
+        String jsonld = getFileDataFromTestResources(
             "scidata_nmr_abbreviated.output.jsonld"
         );
+        String oldBaseUri = "https://stuchalk.github.io/scidata/examples/nmr/";
+        String newJsonld = jsonld.replaceAll(
+            oldBaseUri,
+            baseUri
+        );
+        return newJsonld;
     }
 
     /**
@@ -141,7 +197,7 @@ public class ITBatsModelController {
     */
     private String createDataset() throws Exception {
         String jsonString = restTemplate.postForEntity(
-            baseUrl() + "/datasets",
+            baseUri() + "/datasets",
             HttpEntity.EMPTY,
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
@@ -159,10 +215,9 @@ public class ITBatsModelController {
      * @return            Model UUID
     */
     private String createModel(final String datasetUUID, final String jsonld)
-        throws
-            Exception {
+    throws Exception {
         String jsonString = restTemplate.postForEntity(
-            baseUrl() + "/datasets/" + datasetUUID + "/models",
+            getDatasetUri(datasetUUID) + "/models",
             makeBody(MediaType.APPLICATION_JSON, jsonld),
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
@@ -177,7 +232,7 @@ public class ITBatsModelController {
     public void testCreateSimpleModel() throws Exception {
         String datasetUUID = createDataset();
         ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models",
+                getDatasetUri(datasetUUID) + "/models",
                 makeBody(MediaType.APPLICATION_JSON, simpleInputJSONLD()),
                 String.class);
 
@@ -198,17 +253,25 @@ public class ITBatsModelController {
         String datasetUUID = createDataset();
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models",
+                getDatasetUri(datasetUUID) + "/models",
                 makeBody(MediaType.APPLICATION_JSON, scidataInputJSONLD()),
                 String.class);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals(
-            mapper.readTree(scidataOutputJSONLD()),
-            mapper.readTree(response.getBody()).get("model")
-        );
+        String modelUUID = mapper.readTree(response.getBody())
+                                 .get("uuid")
+                                 .toString();
+        String modelApiUri = getApiModelUri(datasetUUID, modelUUID);
+
+        JsonNode targetGraph = mapper.readTree(scidataOutputJSONLD(modelApiUri))
+                                .get("@graph");
+        JsonNode resultGraph = mapper.readTree(response.getBody())
+                                .get("model")
+                                .get("@graph");
+
+        assertEquals(targetGraph.size(), resultGraph.size());
     }
 
     /**
@@ -218,14 +281,14 @@ public class ITBatsModelController {
     public void testGetSimpleModel() throws Exception {
         String datasetUUID = createDataset();
         String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
+        String modelUri = getModelUri(datasetUUID, modelUUID);
 
         ResponseEntity<String> response = restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
-                String.class
+            modelUri,
+            String.class
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-
 
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(
@@ -241,20 +304,25 @@ public class ITBatsModelController {
     public void testGetSciDataModel() throws Exception {
         String datasetUUID = createDataset();
         String modelUUID = createModel(datasetUUID, scidataInputJSONLD());
+        String modelUri = getModelUri(datasetUUID, modelUUID);
 
         ResponseEntity<String> response = restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
-                String.class
+            modelUri,
+            String.class
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals(
-            mapper.readTree(scidataOutputJSONLD()),
-            mapper.readTree(response.getBody()).get("model")
-        );
+        String modelApiUri = getApiModelUri(datasetUUID, modelUUID);
+
+        JsonNode targetGraph = mapper.readTree(scidataOutputJSONLD(modelApiUri))
+                                .get("@graph");
+        JsonNode resultGraph = mapper.readTree(response.getBody())
+                                .get("model")
+                                .get("@graph");
+
+        assertEquals(targetGraph.size(), resultGraph.size());
     }
 
     /**
@@ -267,7 +335,7 @@ public class ITBatsModelController {
         assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/1",
+                getModelUri(datasetUUID, "1"),
                 Void.class
             ).getStatusCode()
         );
@@ -280,6 +348,7 @@ public class ITBatsModelController {
     public void testUpdateSimpleModelReplace() throws Exception {
         String datasetUUID = createDataset();
         String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
+        String modelUri = getModelUri(datasetUUID, modelUUID);
 
         // Create body for our update to the model
         ObjectMapper mapper = new ObjectMapper();
@@ -295,10 +364,11 @@ public class ITBatsModelController {
 
         // Send the update
         ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
-                HttpMethod.PATCH,
-                makeBody(MediaType.APPLICATION_JSON, jsonldPayload),
-                String.class);
+            modelUri,
+            HttpMethod.PATCH,
+            makeBody(MediaType.APPLICATION_JSON, jsonldPayload),
+            String.class
+        );
 
         // Check the status code
         assertEquals(response.getStatusCode(), HttpStatus.OK);
@@ -317,6 +387,7 @@ public class ITBatsModelController {
     public void testUpdateSimpleModelPartial() throws Exception {
         String datasetUUID = createDataset();
         String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
+        String modelUri = getModelUri(datasetUUID, modelUUID);
 
         // Create body for our update to the model
         ObjectMapper mapper = new ObjectMapper();
@@ -326,10 +397,11 @@ public class ITBatsModelController {
 
         // Send the update
         ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
-                HttpMethod.PATCH,
-                makeBody(MediaType.APPLICATION_JSON, newName),
-                String.class);
+            modelUri,
+            HttpMethod.PATCH,
+            makeBody(MediaType.APPLICATION_JSON, newName),
+            String.class
+        );
 
         // Check the status code
         assertEquals(response.getStatusCode(), HttpStatus.OK);
@@ -356,7 +428,7 @@ public class ITBatsModelController {
         assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                getModelUri(datasetUUID, modelUUID),
                 Void.class
             ).getStatusCode()
         );
@@ -365,7 +437,7 @@ public class ITBatsModelController {
         assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                getModelUri(datasetUUID, modelUUID),
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class
@@ -376,7 +448,7 @@ public class ITBatsModelController {
         assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + datasetUUID + "/models/" + modelUUID,
+                getModelUri(datasetUUID, modelUUID),
                 Void.class
             ).getStatusCode()
         );
