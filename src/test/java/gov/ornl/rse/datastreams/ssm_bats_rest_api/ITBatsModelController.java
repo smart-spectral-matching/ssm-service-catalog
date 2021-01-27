@@ -5,12 +5,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -272,6 +274,15 @@ public class ITBatsModelController {
                                 .get("@graph");
 
         assertEquals(targetGraph.size(), resultGraph.size());
+
+        ArrayNode resultArray = (ArrayNode) resultGraph;
+        for (JsonNode jsonNode : resultArray) {
+            String nodeID = jsonNode.get("@id").toString();
+            String msg = "Asserting " + nodeID + " contains " + modelApiUri;
+            System.out.println(msg);
+            assertTrue(nodeID.contains(modelApiUri));
+            System.out.println("  - assertion true!\n");
+        }
     }
 
     /**
