@@ -40,6 +40,12 @@ public class ITBatsModelController {
     private TestRestTemplate restTemplate;
 
     /**
+     * Setup REST API server config.
+    */
+    @Autowired
+    private ServerConfig serverConfig;
+
+    /**
      * Setup local server port for testing.
     */
     @LocalServerPort
@@ -58,12 +64,6 @@ public class ITBatsModelController {
     private String baseUri() {
         return BASE_URI + ":" + port;
     }
-
-    /**
-     * Setup REST API server config.
-    */
-    @Autowired
-    private ServerConfig serverConfig;
 
     /**
      * Returns full database uri given the Dataset UUID.

@@ -16,6 +16,15 @@
 
     <profiles>
       <profile>
+        <id>local</id>
+        <properties>
+          <spring.profiles.active>local</spring.profiles.active>
+        </properties>
+        <activation>
+          <activeByDefault>true</activeByDefault>
+        </activation>
+      </profile>
+      <profile>
         <id>docker</id>
         <properties>
           <activatedProperties>docker</activatedProperties>
