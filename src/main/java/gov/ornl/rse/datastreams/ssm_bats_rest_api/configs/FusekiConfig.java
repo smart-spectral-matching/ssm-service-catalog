@@ -1,13 +1,10 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.stereotype.Component;
 
-@Component
-@EnableConfigurationProperties
-@ConfigurationProperties
+@Configuration
+@ConfigurationProperties(prefix = "fuseki")
 /*
  * Represents the Apache Jena Fuseki triple store database config.
 */
@@ -16,13 +13,11 @@ public class FusekiConfig {
     /**
      * Hostname for Fuseki server.
     */
-    @Value("${fuseki.hostname}")
     private String hostname;
 
     /**
      * Port for Fuseki server.
     */
-    @Value("${fuseki.port}")
     private int port;
 
     /**
