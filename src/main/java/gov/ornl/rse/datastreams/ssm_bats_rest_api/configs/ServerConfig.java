@@ -4,6 +4,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(Fuseki.class)
-public class FusekiConfig { }
+@EnableConfigurationProperties(Server.class)
+public class ServerConfig { }
 

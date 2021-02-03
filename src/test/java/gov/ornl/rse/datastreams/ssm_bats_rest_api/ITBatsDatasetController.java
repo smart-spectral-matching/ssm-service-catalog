@@ -1,9 +1,8 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -14,9 +13,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsDatasetController {
 
@@ -33,17 +30,18 @@ public class ITBatsDatasetController {
     private int port;
 
     /**
-     * Setup base url.
+     * Constant base url.
     */
     private static final String BASE_URL = "http://localhost";
 
     /**
-     * Returns full base url w/ port.
+     * Create url using base url.
      *
-     * @return Base URL:port as string
+     * @param path Path of URL to append to base url
+     * @return     Concatenated base url and path
     */
-    private String baseUrl() {
-        return BASE_URL + ":" + port;
+    private String createUrl(final String path) {
+        return BASE_URL + ":" + port + path;
     }
 
     /**
@@ -53,11 +51,11 @@ public class ITBatsDatasetController {
     */
     private String createDataset() throws Exception {
         String jsonString = restTemplate.postForEntity(
-            baseUrl() + "/datasets",
+            createUrl("/datasets"),
             "",
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
-        String uuid  = mapper.readTree(jsonString).get("uuid").textValue();
+        String uuid  = mapper.readTree(jsonString).get("uuid").asText();
         return uuid;
     }
 
@@ -71,13 +69,13 @@ public class ITBatsDatasetController {
         assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + uuid,
+                createUrl("/datasets/" + uuid),
                 String.class
             ).getStatusCode()
         );
 
         String json = restTemplate.getForEntity(
-                baseUrl() + "/datasets/" + uuid,
+                createUrl("/datasets/" + uuid),
                 String.class
             ).getBody();
 
@@ -92,7 +90,7 @@ public class ITBatsDatasetController {
         assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                baseUrl() + "/datasets/1",
+                createUrl("/datasets/1"),
                 Void.class
             ).getStatusCode()
         );
@@ -106,14 +104,14 @@ public class ITBatsDatasetController {
         assertEquals(
             HttpStatus.CREATED,
             restTemplate.postForEntity(
-                baseUrl() + "/datasets",
+                createUrl("/datasets"),
                 HttpEntity.EMPTY,
                 String.class
             ).getStatusCode()
         );
 
         String json = restTemplate.postForEntity(
-                baseUrl() + "/datasets",
+                createUrl("/datasets"),
                 HttpEntity.EMPTY,
                 String.class
             ).getBody();
@@ -129,7 +127,7 @@ public class ITBatsDatasetController {
         assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
-                baseUrl() + "/datasets/" + uuid,
+                createUrl("/datasets/" + uuid),
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class
