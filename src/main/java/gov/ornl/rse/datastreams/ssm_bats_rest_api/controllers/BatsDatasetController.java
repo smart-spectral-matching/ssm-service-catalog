@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.FusekiConfig;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 
 @RestController
@@ -35,7 +35,7 @@ public class BatsDatasetController {
      * Setup Fuseki config.
     */
     @Autowired
-    private FusekiConfig fusekiConfig;
+    private Fuseki fusekiConfig;
 
     /**
      * CREATE a new Dataset collection for Models.
@@ -49,7 +49,7 @@ public class BatsDatasetController {
         String uuid = UUIDGenerator.generateUUID();
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(fusekiConfig.getHost());
+        dataset.setHost(fusekiConfig.getHostname());
         dataset.setPort(fusekiConfig.getPort());
         dataset.create();
         LOGGER.info("Created datatset: " + uuid);
@@ -69,7 +69,7 @@ public class BatsDatasetController {
             ResponseStatusException {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(fusekiConfig.getHost());
+        dataset.setHost(fusekiConfig.getHostname());
         dataset.setPort(fusekiConfig.getPort());
 
         Dataset contents = dataset.getJenaDataset();
@@ -95,7 +95,7 @@ public class BatsDatasetController {
             Exception {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(fusekiConfig.getHost());
+        dataset.setHost(fusekiConfig.getHostname());
         dataset.setPort(fusekiConfig.getPort());
         dataset.delete();
         LOGGER.info("Deleted dataset: " + uuid);

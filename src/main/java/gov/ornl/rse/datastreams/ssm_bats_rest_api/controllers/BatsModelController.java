@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.FusekiConfig;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ServerConfig;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Fuseki;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Server;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 
 @RestController
@@ -49,13 +49,13 @@ public class BatsModelController {
      * Setup REST API server config.
     */
     @Autowired
-    private ServerConfig serverConfig;
+    private Server serverConfig;
 
     /**
      * Setup Fuseki config.
     */
     @Autowired
-    private FusekiConfig fusekiConfig;
+    private Fuseki fusekiConfig;
 
     /**
      * Error message for uploading model.
@@ -108,7 +108,7 @@ public class BatsModelController {
         String baseUri = serverConfig.getFullHost();
         String datasetUri = baseUri + "/datasets/" + datasetUUID;
         String modelUri = datasetUri + "/models/" + modelUUID + "/";
-        return modelUri;
+        return modelUri.replace("\"", "");
     }
 
     /**
@@ -209,7 +209,7 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHost());
+        dataset.setHost(fusekiConfig.getHostname());
         dataset.setPort(fusekiConfig.getPort());
 
         // Check if dataset exists
@@ -277,7 +277,7 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHost());
+        dataset.setHost(fusekiConfig.getHostname());
         dataset.setPort(fusekiConfig.getPort());
 
         // Check if dataset exists
@@ -323,7 +323,7 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHost());
+        dataset.setHost(fusekiConfig.getHostname());
         dataset.setPort(fusekiConfig.getPort());
 
         // Check if dataset exists
@@ -387,7 +387,7 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHost());
+        dataset.setHost(fusekiConfig.getHostname());
         dataset.setPort(fusekiConfig.getPort());
 
         // Check if dataset exists
@@ -467,7 +467,7 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHost());
+        dataset.setHost(fusekiConfig.getHostname());
         dataset.setPort(fusekiConfig.getPort());
 
         // Check if dataset exists
