@@ -4,11 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,11 +23,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ServerConfig;
-
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsModelController {
 
@@ -38,12 +32,6 @@ public class ITBatsModelController {
     */
     @Autowired
     private TestRestTemplate restTemplate;
-
-    /**
-     * Setup REST API server config.
-    */
-    @Autowired
-    private ServerConfig serverConfig;
 
     /**
      * Setup local server port for testing.
@@ -90,20 +78,17 @@ public class ITBatsModelController {
     }
 
     /**
-     * Returns the User-side API server Model URI.
+     * Returns parital uri w/o base url given the Dataset and Model UUID.
      *
      * @param datasetUUID UUID for the Dataset the model belongs to
      * @param modelUUID   UUID for the Model
-     * @return            Full URI for the Model from User-side for API
+     * @return            Partial URI for the Model
     */
-    private String getApiModelUri(
+    private String getModelUriPartial(
         final String datasetUUID,
         final String modelUUID
     ) {
-        String baseUri = serverConfig.getFullHost();
-        String datasetUri = baseUri + "/datasets/" + datasetUUID;
-        String modelUri = datasetUri + "/models/" + modelUUID + "/";
-        return modelUri.replace("\"", "");
+        return "/datasets/" + datasetUUID + "/models/" + modelUUID;
     }
 
     /**
@@ -205,7 +190,7 @@ public class ITBatsModelController {
         ObjectMapper mapper = new ObjectMapper();
         String datasetUUID  = mapper.readTree(jsonString)
                                     .get("uuid")
-                                    .textValue();
+                                    .asText();
         return datasetUUID;
     }
 
@@ -223,7 +208,7 @@ public class ITBatsModelController {
             makeBody(MediaType.APPLICATION_JSON, jsonld),
             String.class).getBody();
         ObjectMapper mapper = new ObjectMapper();
-        String modelUUID  = mapper.readTree(jsonString).get("uuid").textValue();
+        String modelUUID  = mapper.readTree(jsonString).get("uuid").asText();
         return modelUUID;
     }
 
@@ -264,10 +249,15 @@ public class ITBatsModelController {
         ObjectMapper mapper = new ObjectMapper();
         String modelUUID = mapper.readTree(response.getBody())
                                  .get("uuid")
-                                 .toString();
-        String modelApiUri = getApiModelUri(datasetUUID, modelUUID);
+                                 .asText();
+        String modelUri = getModelUri(datasetUUID, modelUUID);
 
-        JsonNode targetGraph = mapper.readTree(scidataOutputJSONLD(modelApiUri))
+        System.out.println("\n\n");
+        System.out.println("Dataset Uuid: " + datasetUUID);
+        System.out.println("Model Uuid: " + modelUUID);
+        System.out.println("Model Uri: " + modelUri);
+        System.out.println("\n\n");
+        JsonNode targetGraph = mapper.readTree(scidataOutputJSONLD(modelUri))
                                 .get("@graph");
         JsonNode resultGraph = mapper.readTree(response.getBody())
                                 .get("model")
@@ -277,10 +267,11 @@ public class ITBatsModelController {
 
         ArrayNode resultArray = (ArrayNode) resultGraph;
         for (JsonNode jsonNode : resultArray) {
-            String nodeID = jsonNode.get("@id").toString();
-            String msg = "Asserting " + nodeID + " contains " + modelApiUri;
+            String nodeID = jsonNode.get("@id").asText();
+            String msg = "Asserting " + nodeID + " contains " + modelUri;
             System.out.println(msg);
-            assertTrue(nodeID.contains(modelApiUri));
+            String modelPath = getModelUriPartial(datasetUUID, modelUUID);
+            assertTrue(nodeID.contains(modelPath));
             System.out.println("  - assertion true!\n");
         }
     }
@@ -325,9 +316,8 @@ public class ITBatsModelController {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         ObjectMapper mapper = new ObjectMapper();
-        String modelApiUri = getApiModelUri(datasetUUID, modelUUID);
 
-        JsonNode targetGraph = mapper.readTree(scidataOutputJSONLD(modelApiUri))
+        JsonNode targetGraph = mapper.readTree(scidataOutputJSONLD(modelUri))
                                 .get("@graph");
         JsonNode resultGraph = mapper.readTree(response.getBody())
                                 .get("model")
