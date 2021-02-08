@@ -45,20 +45,6 @@ public final class RdfModelWriter {
     }
 
     /**
-     * Writes RDF model to System.out.
-     *
-     * @param g    Apache Jena DatasetGraph that represents the RDF model
-     * @param f    RDF format for the model that we will write out
-     * @param ctx  Context for the RDF model
-    */
-    private static void write(
-        final DatasetGraph g,
-        final RDFFormat f,
-        final Context ctx) {
-        write(System.out, g, f, ctx);
-    }
-
-    /**
      * Returns RDF model as a String.
      *
      * @param g    Apache Jena DatasetGraph that represents the RDF model
