@@ -2,6 +2,8 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -178,7 +180,7 @@ public class BatsModelController {
             newContextNode.add(baseContext);
 
             // Update JSON-LD with modified @context block
-            jsonldNode.put("@context", newContextNode);
+            jsonldNode.set("@context", newContextNode);
 
             // Update JSON-LD with new @id to match @base in @context
             jsonldNode.put("@id", baseUri);
@@ -187,6 +189,51 @@ public class BatsModelController {
         }
 
         return newJsonLd;
+    }
+
+    /**
+     * Converts SciData JSON-LD payload into Bats Model.
+     *
+     * @param jsonldNode  SciData JSON-LD to convert to Bats Model
+     * @param datasetUUID UUID of the Apache Jena Dataset this model belongs to
+     * @param modelUUID   UUID of output model
+     * @param dataset     Bats DataSet this model will belong to
+     * @return            BatsModel of the JSON-LD
+    */
+    private BatsModel jsonldToBatsModel(
+        final JsonNode jsonldNode,
+        final String datasetUUID,
+        final String modelUUID,
+        final DataSet dataset
+    ) throws
+        IOException,
+        NoSuchAlgorithmException,
+        UnsupportedEncodingException {
+        // Check if we have a @graph node, need to move all fields to top-level
+        JsonNode scidataNode = formatGraphNode(jsonldNode);
+
+        // Replace @base in @context block w/ new URI
+        String scidataString = addBaseToContextToJsonLD(
+            scidataNode.toString(),
+            getModelUri(datasetUUID, modelUUID)
+        );
+
+        // Tree -> JSON -> Jena Model
+        LOGGER.info("Uploading model: " + modelUUID);
+        StringReader reader = new StringReader(scidataString);
+        Model model = ModelFactory.createDefaultModel();
+        model.read(reader, null, "JSON-LD");
+
+        // Jena Model -> BATS DataSet
+        try {
+            dataset.updateModel(modelUUID, model);
+            LOGGER.info("Model uploaded!");
+        } catch (Exception e) {
+        LOGGER.error(UPLOAD_MODEL_ERROR, e);
+        }
+
+        Model newModel = dataset.getModel(modelUUID);
+        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
     }
 
     /**
@@ -205,7 +252,11 @@ public class BatsModelController {
     public BatsModel createModel(
         @PathVariable("dataset_uuid") final String datasetUUID,
         @RequestBody final String jsonPayload
-    ) throws Exception {
+    ) throws
+        IOException,
+        NoSuchAlgorithmException,
+        UnsupportedEncodingException {
+
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
@@ -230,31 +281,7 @@ public class BatsModelController {
             JsonNode.class
         );
 
-        // Check if we have a @graph node, need to move all fields to top-level
-        JsonNode scidataNode = formatGraphNode(jsonldNode);
-
-        // Replace @base in @context block w/ new URI
-        String scidataString = addBaseToContextToJsonLD(
-            scidataNode.toString(),
-            getModelUri(datasetUUID, modelUUID)
-        );
-
-        // Tree -> JSON -> Jena Model
-        LOGGER.info("Uploading model: " + modelUUID);
-        StringReader reader = new StringReader(scidataString);
-        Model model = ModelFactory.createDefaultModel();
-        model.read(reader, null, "JSON-LD");
-
-        // Jena Model -> BATS DataSet
-        try {
-            dataset.updateModel(modelUUID, model);
-            LOGGER.info("Model uploaded!");
-        } catch (Exception e) {
-            LOGGER.error(UPLOAD_MODEL_ERROR, e);
-        }
-
-        Model newModel = dataset.getModel(modelUUID);
-        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
+        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset);
     }
 
     /**
@@ -319,7 +346,11 @@ public class BatsModelController {
         @PathVariable("dataset_uuid") final String datasetUUID,
         @PathVariable("model_uuid") final String modelUUID,
         @RequestBody final String jsonPayload
-    ) throws IOException {
+    ) throws
+        IOException,
+        NoSuchAlgorithmException,
+        UnsupportedEncodingException {
+
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
@@ -336,33 +367,9 @@ public class BatsModelController {
         // JSON -> Tree
         LOGGER.info("Extracting JSON-LD -> model");
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode scidataNode = mapper.readTree(jsonPayload);
+        JsonNode jsonldNode = mapper.readTree(jsonPayload);
 
-        // Check if we have a @graph node, need to move all fields to top-level
-        JsonNode newScidataNode = formatGraphNode(scidataNode);
-
-        // Replace @base in @context block w/ new URI
-        String scidataString = addBaseToContextToJsonLD(
-            newScidataNode.toString(),
-            getModelUri(datasetUUID, modelUUID)
-        );
-
-        // Tree -> JSON -> Jena Model
-        LOGGER.info("Uploading model: " + modelUUID);
-        StringReader reader = new StringReader(scidataString);
-        Model model = ModelFactory.createDefaultModel();
-        model.read(reader, null, "JSON-LD");
-
-        // Jena Model -> BATS DataSet
-        try {
-            dataset.updateModel(modelUUID, model);
-            LOGGER.info("Model uploaded!");
-        } catch (Exception e) {
-            LOGGER.error(UPLOAD_MODEL_ERROR, e);
-        }
-
-        Model newModel = dataset.getModel(modelUUID);
-        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
+        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset);
     }
 
     /**
@@ -479,7 +486,6 @@ public class BatsModelController {
 
         // Delete the dataset's model
         LOGGER.info("Deleting model: " + modelUUID);
-        String jsonld = new String();
         try {
             dataset.deleteModel(modelUUID);
         } catch (Exception e) {
