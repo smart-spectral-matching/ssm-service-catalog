@@ -237,12 +237,32 @@
                 <includeTestSourceDirectory>true</includeTestSourceDirectory>
                 <consoleOutput>true</consoleOutput>
                 <suppressionsLocation>src/main/resources/checkstyle-suppressions.xml</suppressionsLocation>
+                <configLocation>src/main/resources/checkstyle.xml</configLocation>
                 <failsOnError>true</failsOnError>
                 <failOnViolation>true</failOnViolation>
                 <violationSeverity>warning</violationSeverity>
               </configuration>
              </execution>
            </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <version>3.14.0</version>
+            <executions>
+              <execution>
+                <id>pmd-validation</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>check</goal>
+                  <goal>cpd-check</goal>
+                </goals>
+                <configuration>
+                    <failOnViolation>true</failOnViolation>
+                    <printFailingErrors>true</printFailingErrors>
+                </configuration>
+              </execution>
+            </executions>
         </plugin>
       </plugins>
 
