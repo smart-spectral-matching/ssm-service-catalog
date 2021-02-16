@@ -32,6 +32,16 @@ build-ssm-bats-rest-api:
     tags:
         - rse-ssm-builder
 
+lint-ssm-bats-rest-api:
+    stage: build-and-test
+    script:
+        - func_rse_docker_cleanup
+        - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
+        - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test /bin/bash -c "mvn validate"
+        - func_rse_docker_cleanup
+    tags:
+        - rse-ssm-builder
+
 test-ssm-bats-rest-api:
     stage: build-and-test
     script:
@@ -42,3 +52,12 @@ test-ssm-bats-rest-api:
     tags:
         - rse-ssm-builder
 
+coverage-ssm-bats-rest-api:
+    stage: build-and-test
+    script:
+        - func_rse_docker_cleanup
+        - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
+        - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test /bin/bash -c "awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; print 100*covered/instructions, \"% covered\" }' target-host/site/jacoco/jacoco.csv"
+        - func_rse_docker_cleanup
+    tags:
+        - rse-ssm-builder
