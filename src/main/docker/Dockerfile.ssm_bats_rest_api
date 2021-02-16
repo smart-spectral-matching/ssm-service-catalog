@@ -1,7 +1,7 @@
 FROM maven:3.6-jdk-11
 ARG APP_DIR="/home/app"
 WORKDIR ${APP_DIR}
-COPY pom.xml ${APP_DIR}/pom.xml
+COPY pom.xml checkstyle.xml checkstyle-suppressions.xml ${APP_DIR}/
 RUN mvn -f ${APP_DIR}/pom.xml verify clean --fail-never
 COPY src ${APP_DIR}/src
 CMD ["mvn", "clean", "docker:build", "verify"]
