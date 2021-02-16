@@ -274,7 +274,7 @@ public class BatsModelController {
         String modelUUID = UUIDGenerator.generateUUID();
 
         // JSON -> Tree
-        LOGGER.info("Extracting JSON-LD -> model");
+        LOGGER.info("createModel: Extracting JSON-LD -> model");
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonldNode = mapper.readValue(
             jsonPayload,
@@ -365,7 +365,7 @@ public class BatsModelController {
         }
 
         // JSON -> Tree
-        LOGGER.info("Extracting JSON-LD -> model");
+        LOGGER.info("updateModelReplace: Extracting JSON-LD -> model");
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonldNode = mapper.readTree(jsonPayload);
 
@@ -422,7 +422,7 @@ public class BatsModelController {
         JsonNode modelNode = mapper.readTree(modelJSONLD);
         LOGGER.info("Pulled model: " + modelUUID);
 
-        LOGGER.info("Extracting JSON-LD from body data");
+        LOGGER.info("updateModelPartial: Extracting JSON-LD from body data");
         // JSON -> Tree
         JsonNode payloadNode = mapper.readTree(jsonPayload);
 
