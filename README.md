@@ -18,15 +18,14 @@ After the REST API and Fuseki server are running,
 you can seed datasets from the test resources directory to upload via POST by running:
 
 ```
-cd src/test/resources/
-bash post-seed-data.sh
+bash bin/post-seed-data.sh
 ```
 
 This will upload the files to `localhost:8080`.
 If you would like to change the server IP:port,
 you can also pass in a different one via the command line:
 ```
-bash post-seed-data.sh <server:port>
+bash bin/post-seed-data.sh <server:port>
 ```
 
 The files uploaded are hard-coded into the script.
