@@ -71,6 +71,8 @@
   <!-- Checks for Size Violations.                    -->
   <!-- See https://checkstyle.org/config_sizes.html -->
   <module name="FileLength"/>
+    <property name="fileExtensions" value="java"/>
+  </module>
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>
   </module>
