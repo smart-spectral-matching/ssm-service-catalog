@@ -149,7 +149,14 @@
     <module name="NoWhitespaceBefore"/>
     <module name="OperatorWrap"/>
     <module name="ParenPad"/>
-    <module name="SeparatorWrap"/>
+    <module name="SeparatorWrap">
+      <property name="tokens" value="DOT,ELLIPSIS,AT,METHOD_REF"/>
+      <property name="option" value="nl"/>
+    </module>
+    <module name="SeparatorWrap">
+      <property name="tokens" value="COMMA,SEMI,LPAREN"/>
+      <property name="option" value="eol"/>
+    </module>
     <module name="TypecastParenPad"/>
     <module name="WhitespaceAfter"/>
     <module name="WhitespaceAround"/>

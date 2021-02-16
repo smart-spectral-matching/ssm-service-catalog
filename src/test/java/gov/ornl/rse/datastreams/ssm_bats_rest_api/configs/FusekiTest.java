@@ -56,10 +56,10 @@ class FusekiTest {
         applicationContextRunner
             .withPropertyValues("fuseki.port=" + PORT)
             .run(
-                context ->
-                    Assertions.assertThat(
-                            context.getBean(Fuseki.class).getPort()
-                        ).isEqualTo(PORT));
+                context -> Assertions.assertThat(
+                    context.getBean(Fuseki.class)
+                           .getPort()
+                ).isEqualTo(PORT));
     }
 
 }
