@@ -20,7 +20,7 @@ build-fuseki:
     tags:
         - rse-ssm-builder
 
-build-ssm-bats-rest-api:
+build:
     stage: build-and-test
     script:
         - func_rse_docker_cleanup
@@ -32,7 +32,7 @@ build-ssm-bats-rest-api:
     tags:
         - rse-ssm-builder
 
-lint-ssm-bats-rest-api:
+lint:
     stage: build-and-test
     script:
         - func_rse_docker_cleanup
@@ -42,7 +42,7 @@ lint-ssm-bats-rest-api:
     tags:
         - rse-ssm-builder
 
-test-ssm-bats-rest-api:
+test:
     stage: build-and-test
     script:
         - func_rse_docker_cleanup
@@ -52,12 +52,12 @@ test-ssm-bats-rest-api:
     tags:
         - rse-ssm-builder
 
-coverage-ssm-bats-rest-api:
+coverage:
     stage: build-and-test
     script:
         - func_rse_docker_cleanup
         - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
-        - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test /bin/bash -c "mvn clean site; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; print 100*covered/instructions, \"% covered\" }' target-host/site/jacoco/jacoco.csv"
+        - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test /bin/bash -c "mvn clean docker:build verify; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; print 100*covered/instructions, \"% covered\" }' target/site/jacoco/jacoco.csv"
         - func_rse_docker_cleanup
     tags:
         - rse-ssm-builder
