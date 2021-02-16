@@ -236,8 +236,8 @@
               <configuration>
                 <includeTestSourceDirectory>true</includeTestSourceDirectory>
                 <consoleOutput>true</consoleOutput>
-                <suppressionsLocation>src/main/resources/checkstyle-suppressions.xml</suppressionsLocation>
-                <configLocation>src/main/resources/checkstyle.xml</configLocation>
+                <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                <configLocation>checkstyle.xml</configLocation>
                 <failsOnError>true</failsOnError>
                 <failOnViolation>true</failOnViolation>
                 <violationSeverity>warning</violationSeverity>
