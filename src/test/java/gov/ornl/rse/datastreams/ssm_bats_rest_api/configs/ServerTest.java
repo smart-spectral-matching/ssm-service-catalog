@@ -1,11 +1,10 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class ServerTest {
 
@@ -37,7 +36,8 @@ class ServerTest {
     void serverBeanExists() {
         applicationContextRunner
             .run(
-                context -> assertThat(context).hasSingleBean(Server.class));
+                context -> Assertions.assertThat(context)
+                                     .hasSingleBean(Server.class));
     }
 
     @Test
@@ -46,8 +46,9 @@ class ServerTest {
             .withPropertyValues("apiserver.hostname=" + HOSTNAME)
             .run(
                 context ->
-                    assertThat(context.getBean(Server.class).getHostname())
-                      .isEqualTo(HOSTNAME));
+                    Assertions.assertThat(
+                            context.getBean(Server.class).getHostname()
+                        ).isEqualTo(HOSTNAME));
     }
 
     @Test
@@ -56,7 +57,8 @@ class ServerTest {
             .withPropertyValues("apiserver.port=" + PORT)
             .run(
                 context ->
-                    assertThat(context.getBean(Server.class).getPort())
-                      .isEqualTo(PORT));
+                    Assertions.assertThat(
+                            context.getBean(Server.class).getPort()
+                        ).isEqualTo(PORT));
     }
 }

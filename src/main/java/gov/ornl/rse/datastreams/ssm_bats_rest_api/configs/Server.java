@@ -1,10 +1,9 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @ConfigurationProperties(prefix = "apiserver")
 @ConstructorBinding

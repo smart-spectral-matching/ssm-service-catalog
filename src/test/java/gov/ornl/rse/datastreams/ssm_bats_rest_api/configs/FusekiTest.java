@@ -1,11 +1,10 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class FusekiTest {
 
@@ -37,7 +36,8 @@ class FusekiTest {
     void serverBeanExists() {
         applicationContextRunner
             .run(
-                context -> assertThat(context).hasSingleBean(Fuseki.class));
+                context -> Assertions.assertThat(context)
+                                     .hasSingleBean(Fuseki.class));
     }
 
     @Test
@@ -46,8 +46,9 @@ class FusekiTest {
             .withPropertyValues("fuseki.hostname=" + HOSTNAME)
             .run(
                 context ->
-                    assertThat(context.getBean(Fuseki.class).getHostname())
-                      .isEqualTo(HOSTNAME));
+                    Assertions.assertThat(
+                            context.getBean(Fuseki.class).getHostname()
+                        ).isEqualTo(HOSTNAME));
     }
 
     @Test
@@ -56,8 +57,9 @@ class FusekiTest {
             .withPropertyValues("fuseki.port=" + PORT)
             .run(
                 context ->
-                    assertThat(context.getBean(Fuseki.class).getPort())
-                      .isEqualTo(PORT));
+                    Assertions.assertThat(
+                            context.getBean(Fuseki.class).getPort()
+                        ).isEqualTo(PORT));
     }
 
 }
