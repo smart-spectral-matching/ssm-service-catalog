@@ -4,6 +4,9 @@
 input_ip=$1
 server_ip="${input_ip:=http://localhost:8080}"
 
+# Go to the directory the files are located
+cd "src/test/resources" || exit 1
+
 # Create the map to hold key=fileanmes value=dataset urls
 declare -A datasets
 
@@ -15,6 +18,19 @@ do
     name=$(echo ${jsonld} | cut -d'.' -f 1)
     datasets["${name}"]="${server_ip}/datasets/${dataset_uuid}/models/${model_uuid}"
 done
+
+# Error check the UUIDs
+if [ -z $dataset_uuid ]
+then
+    echo "ERROR: No dataset UUID, maybe unable to upload?"
+    exit 1
+fi
+
+if [ -z $model_uuid ]
+then
+    echo "ERROR: No model UUID, maybe unable to upload?"
+    exit 1
+fi
 
 # Print out the results
 for name in "${!datasets[@]}"
