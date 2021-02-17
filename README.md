@@ -7,6 +7,7 @@ This is a Spring Boot REST Web Service for [BATS](https://github.com/jayjaybilli
 The fastest way to spin up a working setup is to use docker-compose top-level file:
 
 ```
+docker login code.ornl.gov:4567
 docker-compose up
 ```
 
@@ -66,6 +67,7 @@ target/site/jacoco/index.html
 To build the image with `<image_name>` set to `ssm-bats-rest-api` for example below, use:
 
 ```
+docker login code.ornl.gov:4567
 docker build -t ssm-bats-rest-api .
 ```
 
@@ -82,6 +84,7 @@ Then, the web service is up and running at `localhost:8080`
 You can use docker compose to spin up a container for both services (REST API + Fuseki server):
 
 ```
+docker login code.ornl.gov:4567
 docker-compose up
 ```
 
@@ -90,6 +93,7 @@ docker-compose up
 To run tests, use:
 
 ```
+docker login code.ornl.gov:4567
 docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
 docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
 ```
