@@ -5,7 +5,7 @@ input_ip=$1
 server_ip="${input_ip:=http://localhost:8080}"
 
 # Go to the directory the files are located
-cd "src/test/resources" || exit 1
+cd $(dirname "$0")/../src/test/resources || exit 1
 
 # Create the map to hold key=fileanmes value=dataset urls
 declare -A datasets
@@ -36,5 +36,5 @@ fi
 for name in "${!datasets[@]}"
 do
     printf "%s url:\n" "$name"
-    printf "    %s\n" "${datasets[$name]}"
+    printf "    %s\n\n" "${datasets[$name]}"
 done
