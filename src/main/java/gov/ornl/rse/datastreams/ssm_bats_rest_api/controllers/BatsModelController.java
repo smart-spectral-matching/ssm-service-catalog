@@ -2,17 +2,13 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
 import java.io.IOException;
 import java.io.StringReader;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,10 +19,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
@@ -178,7 +175,7 @@ public class BatsModelController {
             newContextNode.add(baseContext);
 
             // Update JSON-LD with modified @context block
-            jsonldNode.put("@context", newContextNode);
+            jsonldNode.set("@context", newContextNode);
 
             // Update JSON-LD with new @id to match @base in @context
             jsonldNode.put("@id", baseUri);
@@ -190,46 +187,23 @@ public class BatsModelController {
     }
 
     /**
-     * CREATE a new Model in the Dataset collection.
+     * Converts SciData JSON-LD payload into Bats Model.
      *
-     * @param datasetUUID UUID for Dataset collection to add the new Model
-     * @param jsonPayload JSON-LD of new Model
-     * @return            BatsModel for created Model in the Dataset
+     * @param jsonldNode  SciData JSON-LD to convert to Bats Model
+     * @param datasetUUID UUID of the Apache Jena Dataset this model belongs to
+     * @param modelUUID   UUID of output model
+     * @param dataset     Bats DataSet this model will belong to
+     * @return            BatsModel of the JSON-LD
     */
-    @RequestMapping(
-        value = "/{dataset_uuid}/models",
-        method = RequestMethod.POST
-    )
-    @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
-    public BatsModel createModel(
-        @PathVariable("dataset_uuid") final String datasetUUID,
-        @RequestBody final String jsonPayload
-    ) throws Exception {
-        // Initialize dataset
-        DataSet dataset = new DataSet();
-        dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
-
-        // Check if dataset exists
-        if (!doesDataSetExist(dataset)) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Dataset " + datasetUUID + " NOT FOUND!");
-        }
-
-        // Create Model UUID
-        String modelUUID = UUIDGenerator.generateUUID();
-
-        // JSON -> Tree
-        LOGGER.info("Extracting JSON-LD -> model");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonldNode = mapper.readValue(
-            jsonPayload,
-            JsonNode.class
-        );
-
+    private BatsModel jsonldToBatsModel(
+        final JsonNode jsonldNode,
+        final String datasetUUID,
+        final String modelUUID,
+        final DataSet dataset
+    ) throws
+        IOException,
+        NoSuchAlgorithmException,
+        UnsupportedEncodingException {
         // Check if we have a @graph node, need to move all fields to top-level
         JsonNode scidataNode = formatGraphNode(jsonldNode);
 
@@ -250,11 +224,59 @@ public class BatsModelController {
             dataset.updateModel(modelUUID, model);
             LOGGER.info("Model uploaded!");
         } catch (Exception e) {
-            LOGGER.error(UPLOAD_MODEL_ERROR, e);
+        LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
 
         Model newModel = dataset.getModel(modelUUID);
         return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
+    }
+
+    /**
+     * CREATE a new Model in the Dataset collection.
+     *
+     * @param datasetUUID UUID for Dataset collection to add the new Model
+     * @param jsonPayload JSON-LD of new Model
+     * @return            BatsModel for created Model in the Dataset
+    */
+    @RequestMapping(
+        value = "/{dataset_uuid}/models",
+        method = RequestMethod.POST
+    )
+    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseBody
+    public BatsModel createModel(
+        @PathVariable("dataset_uuid") final String datasetUUID,
+        @RequestBody final String jsonPayload
+    ) throws
+        IOException,
+        NoSuchAlgorithmException,
+        UnsupportedEncodingException {
+
+        // Initialize dataset
+        DataSet dataset = new DataSet();
+        dataset.setName(datasetUUID);
+        dataset.setHost(fusekiConfig.getHostname());
+        dataset.setPort(fusekiConfig.getPort());
+
+        // Check if dataset exists
+        if (!doesDataSetExist(dataset)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Dataset " + datasetUUID + " NOT FOUND!");
+        }
+
+        // Create Model UUID
+        String modelUUID = UUIDGenerator.generateUUID();
+
+        // JSON -> Tree
+        LOGGER.info("createModel: Extracting JSON-LD -> model");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonldNode = mapper.readValue(
+            jsonPayload,
+            JsonNode.class
+        );
+
+        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset);
     }
 
     /**
@@ -319,7 +341,11 @@ public class BatsModelController {
         @PathVariable("dataset_uuid") final String datasetUUID,
         @PathVariable("model_uuid") final String modelUUID,
         @RequestBody final String jsonPayload
-    ) throws IOException {
+    ) throws
+        IOException,
+        NoSuchAlgorithmException,
+        UnsupportedEncodingException {
+
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
@@ -334,35 +360,11 @@ public class BatsModelController {
         }
 
         // JSON -> Tree
-        LOGGER.info("Extracting JSON-LD -> model");
+        LOGGER.info("updateModelReplace: Extracting JSON-LD -> model");
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode scidataNode = mapper.readTree(jsonPayload);
+        JsonNode jsonldNode = mapper.readTree(jsonPayload);
 
-        // Check if we have a @graph node, need to move all fields to top-level
-        JsonNode newScidataNode = formatGraphNode(scidataNode);
-
-        // Replace @base in @context block w/ new URI
-        String scidataString = addBaseToContextToJsonLD(
-            newScidataNode.toString(),
-            getModelUri(datasetUUID, modelUUID)
-        );
-
-        // Tree -> JSON -> Jena Model
-        LOGGER.info("Uploading model: " + modelUUID);
-        StringReader reader = new StringReader(scidataString);
-        Model model = ModelFactory.createDefaultModel();
-        model.read(reader, null, "JSON-LD");
-
-        // Jena Model -> BATS DataSet
-        try {
-            dataset.updateModel(modelUUID, model);
-            LOGGER.info("Model uploaded!");
-        } catch (Exception e) {
-            LOGGER.error(UPLOAD_MODEL_ERROR, e);
-        }
-
-        Model newModel = dataset.getModel(modelUUID);
-        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
+        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset);
     }
 
     /**
@@ -415,7 +417,7 @@ public class BatsModelController {
         JsonNode modelNode = mapper.readTree(modelJSONLD);
         LOGGER.info("Pulled model: " + modelUUID);
 
-        LOGGER.info("Extracting JSON-LD from body data");
+        LOGGER.info("updateModelPartial: Extracting JSON-LD from body data");
         // JSON -> Tree
         JsonNode payloadNode = mapper.readTree(jsonPayload);
 
@@ -479,7 +481,6 @@ public class BatsModelController {
 
         // Delete the dataset's model
         LOGGER.info("Deleting model: " + modelUUID);
-        String jsonld = new String();
         try {
             dataset.deleteModel(modelUUID);
         } catch (Exception e) {

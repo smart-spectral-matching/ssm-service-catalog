@@ -30,6 +30,13 @@ bash bin/post-seed-data.sh <server:port>
 
 The files uploaded are hard-coded into the script.
 
+### Linting
+
+To lint the code via [checkstyle](https://checkstyle.sourceforge.io/), run:
+```
+mvn validate
+```
+
 ### Testing
 
 You can run the full test suite via:
@@ -39,6 +46,19 @@ mvn clean docker:build verify
 ```
 
 The `docker:build` is necessary to build the Fuseki docker container for integration tests
+
+### Coverage Report
+
+To generate a coverage report using [jacoco](https://www.jacoco.org/jacoco/) run:
+
+```
+mvn site
+```
+
+Then, the report will be available via the HTML file:
+```
+target/site/jacoco/index.html
+```
 
 ### Using Docker
 
@@ -99,7 +119,7 @@ curl -X POST "http://localhost:8080/datasets
 Given a JSON-LD file, you can upload this as a model to the dataset.
 With the returned dataset UUID, you can then upload a model to this dataset:
 ```
-curl -X POST "http://localhost:8080/datasets/<dataset uuid>/models" -H "Content-Type: text/xml" -d "@ph.jsonld"
+curl -X POST "http://localhost:8080/datasets/<dataset uuid>/models" -H "Content-Type: application/json" -d "@ph.jsonld"
 ```
 
 With the returned model UUID, you can retrieve the model via:
@@ -113,7 +133,7 @@ curl -X GET "http://localhost:8080/datasets/<dataset uuid>/models/<model uuid>"
 
 To access the documentation, after spinning up the application, navigate to:
 ```
-<url>:8080/swagger-ui.html
+<url>:8080/swagger-ui/
 ```
 #### Theia IDE
 

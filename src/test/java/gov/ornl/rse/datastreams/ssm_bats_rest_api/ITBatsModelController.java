@@ -3,16 +3,8 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -23,6 +15,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsModelController {
@@ -223,10 +219,10 @@ public class ITBatsModelController {
                 makeBody(MediaType.APPLICATION_JSON, simpleInputJSONLD()),
                 String.class);
 
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals(
+        Assertions.assertEquals(
             mapper.readTree(simpleOutputJSONLD()),
             mapper.readTree(response.getBody()).get("model")
         );
@@ -244,7 +240,7 @@ public class ITBatsModelController {
                 makeBody(MediaType.APPLICATION_JSON, scidataInputJSONLD()),
                 String.class);
 
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         ObjectMapper mapper = new ObjectMapper();
         String modelUUID = mapper.readTree(response.getBody())
@@ -263,7 +259,7 @@ public class ITBatsModelController {
                                 .get("model")
                                 .get("@graph");
 
-        assertEquals(targetGraph.size(), resultGraph.size());
+        Assertions.assertEquals(targetGraph.size(), resultGraph.size());
 
         ArrayNode resultArray = (ArrayNode) resultGraph;
         for (JsonNode jsonNode : resultArray) {
@@ -271,7 +267,7 @@ public class ITBatsModelController {
             String msg = "Asserting " + nodeID + " contains " + modelUri;
             System.out.println(msg);
             String modelPath = getModelUriPartial(datasetUUID, modelUUID);
-            assertTrue(nodeID.contains(modelPath));
+            Assertions.assertTrue(nodeID.contains(modelPath));
             System.out.println("  - assertion true!\n");
         }
     }
@@ -290,10 +286,10 @@ public class ITBatsModelController {
             String.class
         );
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals(
+        Assertions.assertEquals(
             mapper.readTree(simpleOutputJSONLD()),
             mapper.readTree(response.getBody()).get("model")
         );
@@ -313,7 +309,7 @@ public class ITBatsModelController {
             String.class
         );
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -323,7 +319,7 @@ public class ITBatsModelController {
                                 .get("model")
                                 .get("@graph");
 
-        assertEquals(targetGraph.size(), resultGraph.size());
+        Assertions.assertEquals(targetGraph.size(), resultGraph.size());
     }
 
     /**
@@ -333,7 +329,7 @@ public class ITBatsModelController {
     public void testGetModelNotFound() throws Exception {
         String datasetUUID = createDataset();
 
-        assertEquals(
+        Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
                 getModelUri(datasetUUID, "1"),
@@ -372,10 +368,10 @@ public class ITBatsModelController {
         );
 
         // Check the status code
-        assertEquals(response.getStatusCode(), HttpStatus.OK);
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.OK);
 
         // Ensure the update modified the data
-        assertEquals(
+        Assertions.assertEquals(
             jsonldPayload,
             mapper.readTree(response.getBody()).get("model")
         );
@@ -405,7 +401,7 @@ public class ITBatsModelController {
         );
 
         // Check the status code
-        assertEquals(response.getStatusCode(), HttpStatus.OK);
+        Assertions.assertEquals(response.getStatusCode(), HttpStatus.OK);
 
         // Merge payload with model for target we verify against
         JsonNode originalJson = mapper.readTree(simpleOutputJSONLD());
@@ -414,7 +410,10 @@ public class ITBatsModelController {
                                 .readValue(newNameJson);
 
         // Ensure the update modified the data
-        assertEquals(target, mapper.readTree(response.getBody()).get("model"));
+        Assertions.assertEquals(
+            target,
+            mapper.readTree(response.getBody()).get("model")
+        );
     }
 
     /**
@@ -426,7 +425,7 @@ public class ITBatsModelController {
         String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
 
         // Make sure model exists
-        assertEquals(
+        Assertions.assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
                 getModelUri(datasetUUID, modelUUID),
@@ -435,7 +434,7 @@ public class ITBatsModelController {
         );
 
         // Ensure we return correct code for delete
-        assertEquals(
+        Assertions.assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
                 getModelUri(datasetUUID, modelUUID),
@@ -446,7 +445,7 @@ public class ITBatsModelController {
         );
 
         // Make sure model does not exists
-        assertEquals(
+        Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
                 getModelUri(datasetUUID, modelUUID),

@@ -1,11 +1,7 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -13,6 +9,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsDatasetController {
@@ -66,7 +63,7 @@ public class ITBatsDatasetController {
     public void testGetDataset() throws Exception {
         String uuid = createDataset();
 
-        assertEquals(
+        Assertions.assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
                 createUrl("/datasets/" + uuid),
@@ -79,7 +76,7 @@ public class ITBatsDatasetController {
                 String.class
             ).getBody();
 
-        assertTrue(json.contains("\"uuid\":\"" + uuid + "\""));
+        Assertions.assertTrue(json.contains("\"uuid\":\"" + uuid + "\""));
     }
 
     /**
@@ -87,7 +84,7 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testGetDataSetNotFound() throws Exception {
-        assertEquals(
+        Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
                 createUrl("/datasets/1"),
@@ -101,7 +98,7 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testCreateDataSet() throws Exception {
-        assertEquals(
+        Assertions.assertEquals(
             HttpStatus.CREATED,
             restTemplate.postForEntity(
                 createUrl("/datasets"),
@@ -115,7 +112,7 @@ public class ITBatsDatasetController {
                 HttpEntity.EMPTY,
                 String.class
             ).getBody();
-        assertTrue(json.contains("\"uuid\":"));
+        Assertions.assertTrue(json.contains("\"uuid\":"));
     }
 
     /**
@@ -124,7 +121,7 @@ public class ITBatsDatasetController {
     @Test
     public void testDeleteDataSet() throws Exception {
         String uuid = createDataset();
-        assertEquals(
+        Assertions.assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
                 createUrl("/datasets/" + uuid),

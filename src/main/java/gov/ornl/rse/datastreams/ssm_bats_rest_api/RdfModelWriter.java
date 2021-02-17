@@ -3,12 +3,11 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.riot.JsonLDWriteContext;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriter;
-import org.apache.jena.riot.JsonLDWriteContext;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.util.Context;
 
@@ -42,20 +41,6 @@ public final class RdfModelWriter {
             .context(ctx)
             .build();
         w.output(out);
-    }
-
-    /**
-     * Writes RDF model to System.out.
-     *
-     * @param g    Apache Jena DatasetGraph that represents the RDF model
-     * @param f    RDF format for the model that we will write out
-     * @param ctx  Context for the RDF model
-    */
-    private static void write(
-        final DatasetGraph g,
-        final RDFFormat f,
-        final Context ctx) {
-        write(System.out, g, f, ctx);
     }
 
     /**
