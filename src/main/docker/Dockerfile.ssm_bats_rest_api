@@ -4,5 +4,6 @@ WORKDIR ${APP_DIR}
 COPY pom.xml checkstyle.xml checkstyle-suppressions.xml ${APP_DIR}/
 RUN mvn -f ${APP_DIR}/pom.xml verify clean --fail-never
 COPY src ${APP_DIR}/src
+EXPOSE 8080
 CMD ["mvn", "clean", "docker:build", "verify"]
 

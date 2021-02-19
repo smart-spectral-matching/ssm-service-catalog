@@ -43,10 +43,10 @@ public class ITBatsModelController {
     /**
      * Returns full base url w/ port.
      *
-     * @return Base URI:port as string
+     * @return Base URI:port + servlet root context as string
     */
     private String baseUri() {
-        return BASE_URI + ":" + port;
+        return BASE_URI + ":" + port + "/api";
     }
 
     /**

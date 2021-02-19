@@ -117,18 +117,18 @@ wget https://raw.githubusercontent.com/stuchalk/scidata/master/examples/ph.jsonl
 
 Once running, you can create a dataset:
 ```
-curl -X POST "http://localhost:8080/datasets
+curl -X POST "http://localhost:8080/api/datasets
 ```
 
 Given a JSON-LD file, you can upload this as a model to the dataset.
 With the returned dataset UUID, you can then upload a model to this dataset:
 ```
-curl -X POST "http://localhost:8080/datasets/<dataset uuid>/models" -H "Content-Type: application/json" -d "@ph.jsonld"
+curl -X POST "http://localhost:8080/api/datasets/<dataset uuid>/models" -H "Content-Type: application/json" -d "@ph.jsonld"
 ```
 
 With the returned model UUID, you can retrieve the model via:
 ```
-curl -X GET "http://localhost:8080/datasets/<dataset uuid>/models/<model uuid>"
+curl -X GET "http://localhost:8080/api/datasets/<dataset uuid>/models/<model uuid>"
 ```
 
 ### Swagger Docs of REST API
@@ -137,8 +137,14 @@ curl -X GET "http://localhost:8080/datasets/<dataset uuid>/models/<model uuid>"
 
 To access the documentation, after spinning up the application, navigate to:
 ```
-<url>:8080/swagger-ui/
+<url>:<port>/api/swagger-ui/
 ```
+
+If you would like to access the machine-readable API docs:
+```
+<url>:<port>/api/v3/api-docs
+```
+
 #### Theia IDE
 
 If running remotely, you can use [Theia IDE](https://theia-ide.org/) via a Docker container by running the following
