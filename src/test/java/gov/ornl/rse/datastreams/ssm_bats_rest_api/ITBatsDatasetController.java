@@ -35,10 +35,10 @@ public class ITBatsDatasetController {
      * Create url using base url.
      *
      * @param path Path of URL to append to base url
-     * @return     Concatenated base url and path
+     * @return     Concatenated base url, servlet root context, and path
     */
     private String createUrl(final String path) {
-        return BASE_URL + ":" + port + path;
+        return BASE_URL + ":" + port + "/api" + path;
     }
 
     /**
