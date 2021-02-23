@@ -1,4 +1,4 @@
-FROM code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/maven:3.6-jdk-11 AS build
+FROM code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/maven:3.6-openjdk-11-slim AS build
 ARG APP_DIR="/home/app"
 WORKDIR ${APP_DIR}
 COPY pom.xml checkstyle.xml checkstyle-suppressions.xml ${APP_DIR}/
