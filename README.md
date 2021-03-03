@@ -131,6 +131,16 @@ With the returned model UUID, you can retrieve the model via:
 curl -X GET "http://localhost:8080/api/datasets/<dataset uuid>/models/<model uuid>"
 ```
 
+In order to get a full list of dataset UUIDs, run:
+```
+curl -X GET "http://localhost:8080/api/datasets/all"
+```
+
+In order to get a full list of model UUIDs within a given dataset, run:
+```
+curl -X GET "http://localhost:8080/api/datasets/<dataset uuid>/models/uuids"
+```
+
 ### Swagger Docs of REST API
 
 [Swagger](https://swagger.io/) is used to document the REST API
