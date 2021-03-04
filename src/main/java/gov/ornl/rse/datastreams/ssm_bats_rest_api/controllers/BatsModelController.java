@@ -381,8 +381,11 @@ public class BatsModelController {
             //Return the JSON representation
             return new ObjectMapper().writeValueAsString(response);
         } catch (JsonProcessingException e) {
-            //TODO Create error message scheme rather than empty JSON
-            return "{}";
+            LOGGER.error(READ_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                READ_MODEL_ERROR
+            );
         }
     }
 
