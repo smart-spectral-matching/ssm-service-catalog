@@ -53,6 +53,12 @@ public class BatsDatasetController {
     }
 
     /**
+     * Error message for reading datasets.
+    */
+    private static final String READ_DATASETS_ERROR =
+        "Unable to read dataset(s) on the remote Fuseki server.";
+
+    /**
      * CREATE a new Dataset collection for Models.
      *
      * @return BatsDataset for newly created Dataset in Fuseki
@@ -72,13 +78,13 @@ public class BatsDatasetController {
     }
 
     /**
-     * READ a list of all dataset names.
+     * READ A list of all dataset UUIDs.
      *
      * @return A JSON formatted list of every dataset's UUID.
      */
-    @RequestMapping(value = "/all", method = RequestMethod.GET)
+    @RequestMapping(value = "/uuids", method = RequestMethod.GET)
     @ResponseBody
-    public String getAll() {
+    public String getUUIDS() {
 
         //Read the Fuseki dataset list endpoint
         ObjectMapper mapper = new ObjectMapper();
@@ -114,19 +120,23 @@ public class BatsDatasetController {
             //Read out only the name field of each dataset and add it to the
             //response
             while (datasetIterator.hasNext()) {
-                response.add(datasetIterator.next().get("ds.name").asText());
+                response.add(
+                    datasetIterator.next()
+                                   .get("ds.name")
+                                   .asText()
+                                   .replaceAll("/", "")
+                );
             }
 
             //Return the JSON representation
             return mapper.writeValueAsString(response);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            LOGGER.error(READ_DATASETS_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                READ_DATASETS_ERROR
+            );
         }
-
-        //TODO Define better failure message
-        //Return nothing on failure
-        return null;
-
     }
 
     /**
