@@ -241,7 +241,7 @@ public class BatsModelController {
             dataset.updateModel(modelUUID, model);
             LOGGER.info("Model uploaded!");
         } catch (Exception e) {
-        LOGGER.error(UPLOAD_MODEL_ERROR, e);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
 
         Model newModel = dataset.getModel(modelUUID);
