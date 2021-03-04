@@ -2,6 +2,15 @@
 
 This is a Spring Boot REST Web Service for [BATS](https://github.com/jayjaybillings/bats)(Basic Artifact Tracking System).
 
+
+| Branch | Build |
+|--------|-------|
+| DEV    | [![DEV](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/dev/pipeline.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/pipelines/dev/latest) |
+| QA    | [![DEV](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/qa/pipeline.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/pipelines/qa/latest) |
+| PROD    | [![DEV](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/master/pipeline.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/pipelines/master/latest) |
+
+
+
 ## Getting Started
 
 The fastest way to spin up a working setup is to use docker-compose top-level file:
