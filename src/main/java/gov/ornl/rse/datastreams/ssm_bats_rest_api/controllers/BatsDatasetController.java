@@ -83,6 +83,7 @@ public class BatsDatasetController {
      * @return A JSON formatted list of every dataset's UUID.
      */
     @RequestMapping(value = "/uuids", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public String getUUIDS() {
 
@@ -146,6 +147,7 @@ public class BatsDatasetController {
      * @return BatsDataset for given Dataset UUID
     */
     @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsDataset  getDataSet(@PathVariable("uuid") final String uuid)
         throws
