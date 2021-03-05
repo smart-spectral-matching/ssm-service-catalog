@@ -241,7 +241,7 @@ public class BatsModelController {
             dataset.updateModel(modelUUID, model);
             LOGGER.info("Model uploaded!");
         } catch (Exception e) {
-        LOGGER.error(UPLOAD_MODEL_ERROR, e);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
 
         Model newModel = dataset.getModel(modelUUID);
@@ -381,8 +381,11 @@ public class BatsModelController {
             //Return the JSON representation
             return new ObjectMapper().writeValueAsString(response);
         } catch (JsonProcessingException e) {
-            //TODO Create error message scheme rather than empty JSON
-            return "{}";
+            LOGGER.error(READ_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                READ_MODEL_ERROR
+            );
         }
     }
 

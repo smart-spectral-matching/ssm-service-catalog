@@ -142,7 +142,7 @@ curl -X GET "http://localhost:8080/api/datasets/<dataset uuid>/models/<model uui
 
 In order to get a full list of dataset UUIDs, run:
 ```
-curl -X GET "http://localhost:8080/api/datasets/all"
+curl -X GET "http://localhost:8080/api/datasets/uuids"
 ```
 
 In order to get a full list of model UUIDs within a given dataset, run:
