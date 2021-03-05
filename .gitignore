@@ -76,15 +76,6 @@ local.properties
 
 .sts4-cache/
 
-### Intellij ###
-.idea/
-
-# CMake
-cmake-build-*/
-
-# File-based project format
-*.iws
-
 ### Java ###
 # Compiled class file
 *.class
@@ -130,6 +121,12 @@ buildNumber.properties
 ### IntelliJ ###
 .idea/
 out/
+
+# CMake
+cmake-build-*/
+
+# File-based project format
+*.iws
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
