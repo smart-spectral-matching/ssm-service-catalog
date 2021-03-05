@@ -75,14 +75,14 @@ build-dev:
     only:
         - dev
 
-build-dev:
+build-qa:
     extends: .build
     variables:
         PROFILE: "docker,qa"
     only:
         - qa
 
-build-dev:
+build-prod:
     extends: .build
     variables:
         PROFILE: "docker,prod"
@@ -96,4 +96,4 @@ build-others:
     except:
         - dev
         - qa
-        - prod
+        - master
