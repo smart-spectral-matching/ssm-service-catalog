@@ -5,8 +5,15 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,16 +26,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Fuseki;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Server;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 
 @RestController
@@ -43,16 +53,16 @@ public class BatsModelController {
     );
 
     /**
-     * Setup REST API server config.
+     * Configuration from properties.
     */
     @Autowired
-    private Server serverConfig;
+    private ApplicationConfig appConfig;
 
     /**
-     * Setup Fuseki config.
+     * Configuration utilities.
     */
     @Autowired
-    private Fuseki fusekiConfig;
+    private ConfigUtils configUtils;
 
     /**
      * Error message for uploading model.
@@ -72,6 +82,13 @@ public class BatsModelController {
     private static final String DELETE_MODEL_ERROR =
         "Unable to delete model on the remote Fuseki server.";
 
+
+    /**
+     * @return shorthand for the Fuseki configuration
+     */
+    private Fuseki fuseki() {
+        return appConfig.getFuseki();
+    }
 
     /**
      * Return if given Apache Jena Dataset exists in Fuseki database.
@@ -102,7 +119,7 @@ public class BatsModelController {
         final String datasetUUID,
         final String modelUUID
     ) {
-        String baseUri = serverConfig.getFullHost();
+        String baseUri = configUtils.getBasePath();
         String datasetUri = baseUri + "/datasets/" + datasetUUID;
         String modelUri = datasetUri + "/models/" + modelUUID + "/";
         return modelUri.replace("\"", "");
@@ -255,8 +272,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {
@@ -299,8 +316,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {
@@ -320,6 +337,52 @@ public class BatsModelController {
                 HttpStatus.NOT_FOUND,
                 "Model Not Found"
             );
+        }
+    }
+
+    /**
+     * READ A list of all UUIDs for models belonging to the given dataset.
+     *
+     * @param datasetUUID The UUID of the dataset to find models for.
+     * @return A JSON list of all UUIDs
+     */
+    @RequestMapping("/{dataset_uuid}/models/uuids")
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public String getUUIDs(@PathVariable("dataset_uuid")
+            final String datasetUUID) {
+        //SPARQL query to find all unique graphs
+        ParameterizedSparqlString sparql = new ParameterizedSparqlString();
+        sparql.append("SELECT DISTINCT ?model");
+        sparql.append(" {");
+        sparql.append("GRAPH ?model { ?x ?y ?z }");
+        sparql.append("}");
+
+        //Execute the query against the given dataset
+        Query query = sparql.asQuery();
+        String endpointURL = fuseki().getHostname() + ":"
+                + fuseki().getPort()
+                + "/" + datasetUUID;
+        QueryExecution execution =
+                QueryExecutionFactory.sparqlService(endpointURL, query);
+        ResultSet results = execution.execSelect();
+
+        //The JSON response being built
+        ArrayNode response = new ArrayNode(new JsonNodeFactory(false));
+
+        //Add each found model to the response
+        while (results.hasNext()) {
+            QuerySolution solution = results.next();
+            RDFNode node = solution.get("?model");
+            response.add(node.toString());
+        }
+
+        try {
+            //Return the JSON representation
+            return new ObjectMapper().writeValueAsString(response);
+        } catch (JsonProcessingException e) {
+            //TODO Create error message scheme rather than empty JSON
+            return "{}";
         }
     }
 
@@ -349,8 +412,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {
@@ -389,8 +452,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {
@@ -469,8 +532,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {

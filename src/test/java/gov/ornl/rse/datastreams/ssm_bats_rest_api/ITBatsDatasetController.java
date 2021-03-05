@@ -1,5 +1,7 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
+import javax.servlet.ServletContext;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +11,17 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsDatasetController {
+
+    /**
+     * Java servlet context.
+     */
+    @Autowired
+    private ServletContext servletContext;
 
     /**
      * Setup test rest template.
@@ -38,7 +47,8 @@ public class ITBatsDatasetController {
      * @return     Concatenated base url, servlet root context, and path
     */
     private String createUrl(final String path) {
-        return BASE_URL + ":" + port + "/api" + path;
+        return BASE_URL + ":" + port
+          + servletContext.getContextPath() + path;
     }
 
     /**

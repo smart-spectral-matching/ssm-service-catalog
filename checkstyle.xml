@@ -51,8 +51,7 @@
 
   <!-- https://checkstyle.org/config_filters.html#SuppressionFilter -->
   <module name="SuppressionFilter">
-    <property name="file" value="${org.checkstyle.sun.suppressionfilter.config}"
-              default="checkstyle-suppressions.xml" />
+    <property name="file" value="${org.checkstyle.sun.suppressionfilter.config}" default="checkstyle-suppressions.xml" />
     <property name="optional" value="true"/>
   </module>
 
@@ -124,9 +123,10 @@
     <!-- See https://checkstyle.org/config_imports.html -->
     <module name="AvoidStarImport"/>
     <module name="AvoidStaticImport"/>
-    <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
+    <!-- defaults to sun.* packages -->
+    <module name="IllegalImport"/>
     <module name="RedundantImport"/>
-    <module name="ImportOrder" >
+    <module name="ImportOrder">
       <property name="groups" value="/^java\./,javax,org,com"/>
       <property name="ordered" value="true"/>
       <property name="option" value="above"/>
@@ -178,7 +178,10 @@
     <!-- See https://checkstyle.org/config_coding.html -->
     <module name="EmptyStatement"/>
     <module name="EqualsHashCode"/>
-    <module name="HiddenField"/>
+    <module name="HiddenField">
+      <property name="ignoreSetter" value="true" />
+      <property name="ignoreConstructorParameter" value="true" />
+    </module>
     <module name="IllegalInstantiation"/>
     <module name="InnerAssignment"/>
     <module name="MagicNumber"/>
@@ -203,8 +206,7 @@
 
     <!-- https://checkstyle.org/config_filters.html#SuppressionXpathFilter -->
     <module name="SuppressionXpathFilter">
-      <property name="file" value="${org.checkstyle.sun.suppressionxpathfilter.config}"
-                default="checkstyle-xpath-suppressions.xml" />
+      <property name="file" value="${org.checkstyle.sun.suppressionxpathfilter.config}" default="checkstyle-xpath-suppressions.xml" />
       <property name="optional" value="true"/>
     </module>
 
