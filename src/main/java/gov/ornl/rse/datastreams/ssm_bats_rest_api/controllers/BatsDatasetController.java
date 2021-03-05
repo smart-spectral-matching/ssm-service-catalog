@@ -24,7 +24,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Fuseki;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 
 @RestController
@@ -39,10 +40,17 @@ public class BatsDatasetController {
     );
 
     /**
-     * Setup Fuseki config.
-    */
+     * Setup Application config.
+     */
     @Autowired
-    private Fuseki fusekiConfig;
+    private ApplicationConfig appConfig;
+
+    /**
+     * @return the Fuseki configuration.
+     */
+    private Fuseki fuseki() {
+        return appConfig.getFuseki();
+    }
 
     /**
      * CREATE a new Dataset collection for Models.
@@ -56,8 +64,8 @@ public class BatsDatasetController {
         String uuid = UUIDGenerator.generateUUID();
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
         dataset.create();
         LOGGER.info("Created datatset: " + uuid);
         return new BatsDataset(uuid);
@@ -78,8 +86,8 @@ public class BatsDatasetController {
         URL url = null;
 
         try {
-            url = new URL(fusekiConfig.getHostname() + ":"
-                    + fusekiConfig.getPort() + "/$/datasets");
+            url = new URL(fuseki().getHostname() + ":"
+                    + fuseki().getPort() + "/$/datasets");
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -134,8 +142,8 @@ public class BatsDatasetController {
             ResponseStatusException {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         Dataset contents = dataset.getJenaDataset();
         if (contents == null) {
@@ -160,8 +168,8 @@ public class BatsDatasetController {
             Exception {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
         dataset.delete();
         LOGGER.info("Deleted dataset: " + uuid);
     }

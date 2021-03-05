@@ -5,10 +5,6 @@
   "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 
 <suppressions>
-  <suppress checks="HideUtilityClassConstructor"
-             files="SSMBatsRestApiApplication.java"
-             lines="1-9999"/>
-  <suppress
-    message="separation in import"
-  />
+  <suppress checks="HideUtilityClassConstructor" files="SSMBatsRestApiApplication.java" lines="1-9999"/>
+  <suppress message="separation in import" />
 </suppressions>

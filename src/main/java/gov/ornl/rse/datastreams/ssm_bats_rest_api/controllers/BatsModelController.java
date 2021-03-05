@@ -36,8 +36,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 
 @RestController
@@ -52,13 +53,13 @@ public class BatsModelController {
     );
 
     /**
-     * Setup Fuseki config.
+     * Configuration from properties.
     */
     @Autowired
-    private Fuseki fusekiConfig;
+    private ApplicationConfig appConfig;
 
     /**
-     * Get API information.
+     * Configuration utilities.
     */
     @Autowired
     private ConfigUtils configUtils;
@@ -81,6 +82,13 @@ public class BatsModelController {
     private static final String DELETE_MODEL_ERROR =
         "Unable to delete model on the remote Fuseki server.";
 
+
+    /**
+     * @return shorthand for the Fuseki configuration
+     */
+    private Fuseki fuseki() {
+        return appConfig.getFuseki();
+    }
 
     /**
      * Return if given Apache Jena Dataset exists in Fuseki database.
@@ -264,8 +272,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {
@@ -308,8 +316,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {
@@ -352,8 +360,8 @@ public class BatsModelController {
 
         //Execute the query against the given dataset
         Query query = sparql.asQuery();
-        String endpointURL = fusekiConfig.getHostname() + ":"
-                + fusekiConfig.getPort()
+        String endpointURL = fuseki().getHostname() + ":"
+                + fuseki().getPort()
                 + "/" + datasetUUID;
         QueryExecution execution =
                 QueryExecutionFactory.sparqlService(endpointURL, query);
@@ -404,8 +412,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {
@@ -444,8 +452,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {
@@ -524,8 +532,8 @@ public class BatsModelController {
         // Initialize dataset
         DataSet dataset = new DataSet();
         dataset.setName(datasetUUID);
-        dataset.setHost(fusekiConfig.getHostname());
-        dataset.setPort(fusekiConfig.getPort());
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
 
         // Check if dataset exists
         if (!doesDataSetExist(dataset)) {

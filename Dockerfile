@@ -4,7 +4,7 @@ ARG APP_DIR="/home/app"
 ARG PROFILE="docker"
 WORKDIR ${APP_DIR}
 COPY *.xml ${APP_DIR}/
-RUN mvn -f ${APP_DIR}/pom.xml -P ${PROFILE} verify clean --fail-never
+RUN mvn -f ${APP_DIR}/pom.xml verify clean --fail-never
 COPY src ${APP_DIR}/src
 RUN mvn -f ${APP_DIR}/pom.xml -P ${PROFILE} package -Dmaven.test.skip=true
 

@@ -2,7 +2,6 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
 import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
 
@@ -38,10 +37,10 @@ public class ConfigUtils {
     private ServletContext servletContext;
 
     /**
-     * BATS server config.
+     * Application config.
      */
     @Autowired
-    private Server serverConfig;
+    private ApplicationConfig config;
 
     /**
      * @return complete array of strings
@@ -65,15 +64,15 @@ public class ConfigUtils {
     public boolean isConfigurationError() {
         return Arrays.stream(getActiveProfiles())
             .filter(p -> DEPLOYMENT_PROFILES.contains(p))
-            .collect(Collectors.toSet())
-            .size() > 1;
+            .toArray(String[]::new)
+            .length > 1;
     }
 
     /**
      * @return host path from configuration + the base context path
      */
     public String getBasePath() {
-        return serverConfig.getHost() + servletContext.getContextPath();
+        return config.getHost() + servletContext.getContextPath();
     }
 
 }

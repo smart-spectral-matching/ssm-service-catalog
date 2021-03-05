@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 
@@ -15,7 +14,6 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
  * Main class for Spring App - BATS REST API.
  */
 @SpringBootApplication
-@ConfigurationPropertiesScan("gov.ornl.rse.datastreams.ssm_bats_rest_api")
 public class SSMBatsRestApiApplication {
 
     /**
