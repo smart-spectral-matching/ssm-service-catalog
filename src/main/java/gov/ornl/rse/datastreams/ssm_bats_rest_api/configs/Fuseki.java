@@ -3,7 +3,6 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 @ConfigurationProperties(prefix = "fuseki")
 @ConstructorBinding
@@ -15,13 +14,25 @@ public class Fuseki {
 
     /**
      * Hostname for Fuseki server.
-     *
-     * @return Current Fuseki server hostname
-    */
-    @Getter private String hostname;
+     */
+    private String hostname;
+
+    /**
+     * @return Fuseki server hostname
+     */
+    public String getHostname() {
+        return hostname;
+    }
 
     /**
      * Port for Fuseki server.
     */
-    @Getter private int port;
+    private int port;
+
+    /**
+     * @return Fuseki server port
+     */
+    public int getPort() {
+        return port;
+    }
 }

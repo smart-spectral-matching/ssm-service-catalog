@@ -9,14 +9,9 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 class ServerTest {
 
     /**
-     * Target port for test results.
+     * Target host for test results.
     */
-    private static final int PORT = 8888;
-
-    /**
-     * Target hostname for test results.
-    */
-    private static final String HOSTNAME = "localhost";
+    private static final String HOST = "localhost:8888";
 
     /**
      * Application context runner.
@@ -43,22 +38,12 @@ class ServerTest {
     @Test
     void hostnameSetByPropertyValue() {
         applicationContextRunner
-            .withPropertyValues("apiserver.hostname=" + HOSTNAME)
+            .withPropertyValues("apiserver.host=" + HOST)
             .run(
                 context ->
                     Assertions.assertThat(
-                            context.getBean(Server.class).getHostname()
-                        ).isEqualTo(HOSTNAME));
+                            context.getBean(Server.class).getHost()
+                        ).isEqualTo(HOST));
     }
 
-    @Test
-    void portSetByPropertyValue() {
-        applicationContextRunner
-            .withPropertyValues("apiserver.port=" + PORT)
-            .run(
-                context ->
-                    Assertions.assertThat(
-                            context.getBean(Server.class).getPort()
-                        ).isEqualTo(PORT));
-    }
 }

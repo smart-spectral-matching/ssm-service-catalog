@@ -36,8 +36,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Fuseki;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.Server;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 
 @RestController
@@ -52,16 +52,16 @@ public class BatsModelController {
     );
 
     /**
-     * Setup REST API server config.
-    */
-    @Autowired
-    private Server serverConfig;
-
-    /**
      * Setup Fuseki config.
     */
     @Autowired
     private Fuseki fusekiConfig;
+
+    /**
+     * Get API information.
+    */
+    @Autowired
+    private ConfigUtils configUtils;
 
     /**
      * Error message for uploading model.
@@ -111,7 +111,7 @@ public class BatsModelController {
         final String datasetUUID,
         final String modelUUID
     ) {
-        String baseUri = serverConfig.getFullHost();
+        String baseUri = configUtils.getBasePath();
         String datasetUri = baseUri + "/datasets/" + datasetUUID;
         String modelUri = datasetUri + "/models/" + modelUUID + "/";
         return modelUri.replace("\"", "");

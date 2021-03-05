@@ -2,36 +2,33 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
+import lombok.AllArgsConstructor;
+
+/**
+ * Represents the REST API server config.
+ */
 @ConfigurationProperties(prefix = "apiserver")
 @ConstructorBinding
 @AllArgsConstructor
-/*
- * Represents the REST API server config.
-*/
 public class Server {
-    /**
-     * Hostname for REST API server.
-     *
-     * @return Hostname for the REST API server
-    */
-    @Getter private final String hostname;
 
     /**
-     * Port for REST API server.
+     * <p>
+     * Hostname + port of the REST api server. Examples:
+     * </p>
      *
-     * @return Port number for the REST API server
+     * <ul>
+     * <li>http://localhost:8080</li>
+     * <li>https://ssm.ornl.gov</li>
+     * </ul>
     */
-    @Getter private final int port;
+    private String host;
 
     /**
-     * Get full hostname REST API server set by properties.
-     *
-     * @return Hostname + port for the REST API server
-    */
-    public final String getFullHost() {
-        return hostname + ":" + String.valueOf(port);
+     * @return host for the REST API server
+     */
+    public String getHost() {
+        return host;
     }
 }

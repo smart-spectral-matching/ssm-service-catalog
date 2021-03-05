@@ -12,6 +12,10 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 
+[*.{java}]
+# note: does not have full editor support
+max_line_length = 80
+
 [*.{xml,json}]
 indent_size = 2
 
