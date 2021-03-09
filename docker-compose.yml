@@ -1,6 +1,6 @@
 version: '3'
 services:
-  fuseki:
+  ssm-fuseki:
     build:
       context: ./src/main/docker
       dockerfile: Dockerfile.fuseki
