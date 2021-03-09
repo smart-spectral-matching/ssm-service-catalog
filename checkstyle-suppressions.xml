@@ -7,4 +7,5 @@
 <suppressions>
   <suppress checks="HideUtilityClassConstructor" files="SSMBatsRestApiApplication.java" lines="1-9999"/>
   <suppress message="separation in import" />
+  <suppress checks="CyclomaticComplexity" files="ControllerExceptionHandler.java" lines="170-220" />
 </suppressions>

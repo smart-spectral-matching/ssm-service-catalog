@@ -71,28 +71,28 @@ build-fuseki:
 build-dev:
     extends: .build
     variables:
-        PROFILE: "docker,dev"
+        PROFILE: "dev"
     only:
         - dev
 
 build-qa:
     extends: .build
     variables:
-        PROFILE: "docker,qa"
+        PROFILE: "qa"
     only:
         - qa
 
 build-prod:
     extends: .build
     variables:
-        PROFILE: "docker,prod"
+        PROFILE: "prod"
     only:
         - master
 
 build-others:
     extends: .build
     variables:
-        PROFILE: "docker"
+        PROFILE: "localdocker"
     except:
         - dev
         - qa

@@ -1,7 +1,8 @@
 FROM code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/maven:3.6-openjdk-11-slim AS build
 ARG APP_DIR="/home/app"
-# provide comma-separated values of profile names. Should include and start with "docker" at minimum (i.e. "docker,dev", but not "dev,docker")
-ARG PROFILE="docker"
+# To see which profiles are activated, look at the profile groups in 'src/main/resources/application.properties'
+# You should only provide one profile to this argument
+ARG PROFILE="localdocker"
 WORKDIR ${APP_DIR}
 COPY *.xml ${APP_DIR}/
 RUN mvn -f ${APP_DIR}/pom.xml verify clean --fail-never

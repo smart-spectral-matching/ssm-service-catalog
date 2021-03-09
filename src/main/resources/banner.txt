@@ -1,0 +1,77 @@
+
+${AnsiColor.YELLOW}                                        .@8t8@8%SX8X8@;8@S@%88%@t888%Xt 8.@X:.
+${AnsiColor.YELLOW}                                    t;:.%t:t%SS;%;%;;X%t%t8;S;t8t;S;%t%;.Xt8S:.:;t.
+${AnsiColor.YELLOW}                                8X888;@8:8;%8%8.X8;8X%8t8St8%8%%8;8;%8t8.%8;888.t.
+${AnsiColor.YELLOW}                                :S:   X;t@;@;%8t@%t8S8tt8t8tt8t8t%8tX;%8%Xt:  ::.S:.
+${AnsiColor.YELLOW}                                .:.t8%%88;;888;t88@XS888@%S88@tS8@S%888S%88@%;%%::.
+${AnsiColor.YELLOW}                                .%tX8:XX@S%S8X%%SX8X%SS8S%@S8XX@X8XS%S8S%SX8X%88;.
+${AnsiColor.YELLOW}                                .::.   .:::  .:..;:::.:;;:.;:;:.::;:.::;:.::..::.
+${AnsiColor.YELLOW}                                ..  %t8%%8%@X.8S;8;8%;8;8St8;8%t8;8%t8t8%t%8..
+${AnsiColor.YELLOW}                                    :::tX8t8%%8%8t%Xt8%%8t8%%@t8%%Xt8t%S;8S..
+${AnsiColor.YELLOW}                                    ...:.@SX:8S;;88X:tX8S;tX@%XtX8SSSX8%.;tS.
+${AnsiColor.YELLOW}                                        :8 t%@8;8;:8%8%:8%8t8X.8%@@:8t@8;@X%.
+${AnsiColor.YELLOW}                                            .St:8S@t%8tSt%@;@S;8S@%t8tXX.SS::
+${AnsiColor.YELLOW}                                            .S88;@;S8%8tS8t8;%8X8tS8tX;S;8;
+${AnsiColor.YELLOW}                                            %S8;tt8@8S%88t:t8@%:8@8;:88SS.
+${AnsiColor.YELLOW}                                            ...S@:8SX%%88@@t888%tSXX;;:@:.
+${AnsiColor.YELLOW}                                            ..t;@S:8;8;:8%8%S8;8tXS.88.
+${AnsiColor.YELLOW}                                            .:.:Xtt8SX;t8t@:;XtXtt@t: .
+${AnsiColor.YELLOW}                                                ..888;%88%%;tS%8:S8;8.
+${AnsiColor.YELLOW}                                                :X;XX88t;8.%%.:;SS8t.
+${AnsiColor.YELLOW}                                                . .;:;;:. .:.....;;.
+${AnsiColor.YELLOW}                                                    .  .  ..  ...
+${AnsiColor.YELLOW}                                                        . .  .
+${AnsiColor.YELLOW}                                                    :%t8@88;88X8;%t:.
+${AnsiColor.YELLOW}                                                    ::;@88SX@S@@@;;:
+${AnsiColor.YELLOW}                                                    tX;88S8.88S@;8@;.
+${AnsiColor.YELLOW}                                                t;8 8X;8 8t%8.8SX:t.
+${AnsiColor.YELLOW}        :::;.:::;.:::;.;:.;.:::;.:::;.::...    .;::St8tt@S8%t8%@t;;:.    . .;.:::;.;:.;.;:.;.;:.;.;::;.:::;:
+${AnsiColor.YELLOW}        :St8;8;%8;8;%8;8:%8;8;%8;8;S8;8;%@%S.   .:.%8tSt8tX;t8 %8t%;:    :%88;8;%8t8;t8t8;t8t8;%8;8:%8;8;%8t8;.
+${AnsiColor.YELLOW}        :SSX8 8tXt 8;X8 8tXt 8tX8 8tX8 8SS@S;.   :;%t@X%X8.8tX8;%%%%..  .;%X88 8tX8 8tX8.8tX8 8tXt 8tS8 8tXS.
+${AnsiColor.YELLOW}        .8888;8@;8%8XS8%8Xt8%8X;8S8S;8X88@Xt..  .......:.t%.@t  :.::.  ...S@X8;8@%@;88@8;@X%@S8X;8S8Xt@;@X;8;
+${AnsiColor.YELLOW}        ;S8X @;8X.8t88.8;@S.8%8S 8t88:8;S8.X%S:   .. .S%XS.Xt:S;.. . ..;S%;t8;8;@8;@;%8:X;@S @t8S 8%@8:@t88;@:
+${AnsiColor.YELLOW}        ::...;. .::..;;;:..:;. .::..;;;:  ..::.      ..:; .  ...      ..::..:;;..::::.::;.. .;. .:;:.:::..%::.
+${AnsiColor.YELLOW}        .S88%@S8@X8Xt8X8S88;8X8@S8S%8S8Xt@X8Xt%8: .   ..           . @t8t@S%8X8Xt8X8X%8@8X;XS8S88;8St8X8XS%St.
+${AnsiColor.YELLOW}        :XXSt.@S8S:8%8S:@%8t:@S8S:8%8S:8t8S:8S:S;St..             :S:;:S8%8t88t8%8;.8t8:.8t8S:X%8t:8t@St8%t@t:
+${AnsiColor.YELLOW}        .:;t8:@8S8;@@t8:@X;8:@@t8:8@t8;88X8:@8t%S::               :::%S88 @8tX:@8:8%88%8;X8t8:@8t8;@8;8:88....
+${AnsiColor.YELLOW}        .Xt8.8%;8 8.:8.8 SS 8t:8 8.;8.8tS8:8;;S8X:.               ..:88:t8%@X 8X;8%8.%8:8:t8tX :8.8St8 8S;:@t.
+${AnsiColor.YELLOW}        .:::%%8%;@%8;;8t8t;XS8;;8t8;;8t8%;X;t:::::                  .  .tt8%:8t@t;8%Xt;@tS;%8tX;;8%8t:8tX:.:..
+${AnsiColor.YELLOW}        . 8;t8%@;8tS8t@;%8%@ %8%@;S8:8%S8%888;..                      8%t8S8.8@%8t@t%8t8%S8t8;%8.8@%8:888;..
+${AnsiColor.YELLOW}            :88S8@tS%88tX;88tXt88;Xt88tS%8X%tXS                         ;88;@8S8%@XX@t@8 8%XXX8t88S8%88%SXS
+${AnsiColor.YELLOW}            .;.@%88;@@88;8X88:8888;8888;@@t;;:                          :;..;88;S@@;.888%:8@@t.8888;S8@8t:
+${AnsiColor.YELLOW}            :S8::8:%8;8:SS:8;S8;8.%8;8.t;S;.                             tt8 8 ;8.8 t8:8 ;8.8 t8t8.t@@8:
+${AnsiColor.YELLOW}            .:t8X8;%8t8SS8@8;t@:8SS@t8%:%:.                            .;;S8@8%S8%8%X8t8%S8S8%S@t88:%%:
+${AnsiColor.YELLOW}                :%t%%8;8.t8X8;S8:8%%88@88;..                             ...X88SX.S8X%8 8%t8:8t%8:8%t::.
+${AnsiColor.YELLOW}                .:8;X@S%Xt8S;S%88%8S888888t.                                .%88X@;%SX@8SXX@8t8t88SXS@..
+${AnsiColor.YELLOW}                ...::.:;;.%8SXS88S%t;;;;;.                                 .:: ;. %:@XS8;X88tt..%t::.
+${AnsiColor.YELLOW}                . ::St@S8;S8tS@t888tt:.                                    .  ;:@8X8S8:X:SXt888;;:.
+${AnsiColor.YELLOW}                    .:...  :%t%:;X:.;:t:                                        %;:;t@;;S;%;   .....
+${AnsiColor.YELLOW}                    .      :t:@8888:....                                       .....tX88S;;;
+${AnsiColor.YELLOW}                            :.X8X8@:.                                              .:X8@Xt:.
+${AnsiColor.YELLOW}                            :::;;:.                                               ..:;::.
+${AnsiColor.YELLOW}                            . .                                                   .
+
+                            ${AnsiColor.RED}        #####  #     #    #    ######  #######
+                            ${AnsiColor.RED}       #     # ##   ##   # #   #     #    #
+                            ${AnsiColor.RED}       #       # # # #  #   #  #     #    #
+                            ${AnsiColor.RED}        #####  #  #  # #     # ######     #
+                            ${AnsiColor.RED}             # #     # ####### #   #      #
+                            ${AnsiColor.RED}       #     # #     # #     # #    #     #
+                            ${AnsiColor.RED}        #####  #     # #     # #     #    #
+
+                            ${AnsiColor.GREEN}  #####  ######  #######  #####  ####### ######     #    #
+                            ${AnsiColor.GREEN} #     # #     # #       #     #    #    #     #   # #   #
+                            ${AnsiColor.GREEN} #       #     # #       #          #    #     #  #   #  #
+                            ${AnsiColor.GREEN}  #####  ######  #####   #          #    ######  #     # #
+                            ${AnsiColor.GREEN}       # #       #       #          #    #   #   ####### #
+                            ${AnsiColor.GREEN} #     # #       #       #     #    #    #    #  #     # #
+                            ${AnsiColor.GREEN}  #####  #       #######  #####     #    #     # #     # #######
+
+                            ${AnsiColor.BLUE} #     #    #    #######  #####  #     # ### #     #  #####
+                            ${AnsiColor.BLUE} ##   ##   # #      #    #     # #     #  #  ##    # #     #
+                            ${AnsiColor.BLUE} # # # #  #   #     #    #       #     #  #  # #   # #
+                            ${AnsiColor.BLUE} #  #  # #     #    #    #       #######  #  #  #  # #  ####
+                            ${AnsiColor.BLUE} #     # #######    #    #       #     #  #  #   # # #     #
+                            ${AnsiColor.BLUE} #     # #     #    #    #     # #     #  #  #    ## #     #
+                            ${AnsiColor.BLUE} #     # #     #    #     #####  #     # ### #     #  #####
+

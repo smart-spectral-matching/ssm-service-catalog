@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +45,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 
 @RestController
 @RequestMapping("/datasets")
+@Validated
 public class BatsModelController {
 
     /**
@@ -248,6 +251,113 @@ public class BatsModelController {
         return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
     }
 
+    // /**
+    //  * FETCH a certain amount of datasets, queried by CREATED_TIME.
+    //  *
+    //  * @param offset page number to start on,
+    //  *    must be 0 or positive (default: 0)
+    //  * @param limit number of results to return,
+    //  *    must be positive (default: 20)
+    //  * @return BatsDatasets
+    //  */
+    // @RequestMapping(
+        //value = "/{dataset_uuid}/models",
+        //method = RequestMethod.GET)
+    // public ResponseEntity<?> queryModels(
+    //     @PathVariable("dataset_uuid") final String datasetUUID,
+    //     @RequestParam(name = "offset", defaultValue = "0")
+    //     @Min(0) final int offset,
+    //     @RequestParam(name = "limit", defaultValue = "20")
+    //     @Min(1) final int limit
+    // ) {
+    //     throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
+    //      "Not implemented");
+
+        //SPARQL query to find all unique graphs
+        // ParameterizedSparqlString sparql = new ParameterizedSparqlString();
+        // sparql.append("SELECT DISTINCT ?model");
+        // sparql.append(" {");
+        // sparql.append("GRAPH ?model { ?x ?y ?z }");
+        // sparql.append("}");
+
+        // //Execute the query against the given dataset
+        // Query query = sparql.asQuery();
+        // String endpointURL = fuseki().getHostname() + ":"
+        //         + fuseki().getPort()
+        //         + "/" + datasetUUID;
+        // QueryExecution execution =
+        //         QueryExecutionFactory.sparqlService(endpointURL, query);
+        // ResultSet results = execution.execSelect();
+
+        // // TODO is there a better way to directly query only what we want?
+        // // compare vs user-provided/default offset
+        // int currentPage = 0;
+        // // compare vs user-provided/default limit
+        // int currentItemOnPage = 0;
+        // // get all defined variables
+        // List<String> resultVars = results.getResultVars();
+        // // JSON value to return, with all of the UUIDs
+        // //List<List<NodeValue>> listNodeValues = new ArrayList<>();
+        // List<List<String>> listNodeKeys = new ArrayList<>();
+        // while (results.hasNext()) {
+        //     if (currentPage > offset) break;
+        //     QuerySolution solution = results.next();
+        //     if (currentPage == offset) {
+        //         // append results to JSON
+        //         //List<NodeValue> nodeValues = new ArrayList<>();
+        //         List<String> nodeKeys = new ArrayList<>();
+        //         for (String var: resultVars) {
+        //             RDFNode rdfNode = solution.get(var);
+        //             if (rdfNode != null) {
+        //                 nodeValues.add(new NodeValueNode(rdfNode.asNode()));
+        //                 nodeKeys.add(rdfNode.toString());
+        //             } else {
+        //                 nodeKeys.add(null);
+        //             }
+        //         }
+        //         listNodeKeys.add(nodeKeys);
+        //     }
+        //     // increment our position on the 'page'
+        //     currentItemOnPage += 1;
+        //     if (currentItemOnPage == limit) {
+        //         currentPage += 1;
+        //         currentItemOnPage = 0;
+        //     }
+        // }
+
+        // Map<String, Object> models = new LinkedHashMap<>();
+        // List<List<BatsModel>> listNodeValues = new ArrayList<>();
+        // for (List<String> listNodeKey: listNodeKeys) {
+        //     List<BatsModel> listNodeValue = new ArrayList<>();
+        //     for (String nodeKey: listNodeKey) {
+        //         // Initialize dataset
+        //         DataSet dataset = new DataSet();
+        //         dataset.setName(datasetUUID);
+        //         dataset.setHost(fuseki().getHostname());
+        //         dataset.setPort(fuseki().getPort());
+
+        //         // Check if dataset exists
+        //         if (!doesDataSetExist(dataset)) {
+        //            listNodeValue.add(null);
+        //         } else {
+        //             // Get the dataset's model
+        //             Model model = dataset.getModel(nodeKey);
+        //             try {
+        //                 listNodeValue.add(new BatsModel(nodeKey,
+        //                  RdfModelWriter.model2jsonld(model)));
+        //             } catch (IOException e) {
+        //                 listNodeValue.add(null);
+        //                  LOGGER.warn("Failed to write model {} in dataset {}"
+        //                  + "due to IOException", nodeKey, datasetUUID);
+        //             }
+        //         }
+        //     }
+        //     listNodeValues.add(listNodeValue);
+        // }
+        // models.put("models", listNodeValues);
+        // return ResponseEntity.ok(models);
+    //}
+
     /**
      * CREATE a new Model in the Dataset collection.
      *
@@ -346,7 +456,10 @@ public class BatsModelController {
      * @param datasetUUID The UUID of the dataset to find models for.
      * @return A JSON list of all UUIDs
      */
-    @RequestMapping("/{dataset_uuid}/models/uuids")
+    @RequestMapping(
+        value = "/{dataset_uuid}/models/uuids",
+        method = RequestMethod.GET
+    )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public String getUUIDs(@PathVariable("dataset_uuid")
@@ -508,7 +621,7 @@ public class BatsModelController {
         // Upload merged model
         try {
             dataset.updateModel(modelUUID, mergedModel);
-            LOGGER.info("Model udated and uploaded!");
+            LOGGER.info("Model updated and uploaded!");
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
