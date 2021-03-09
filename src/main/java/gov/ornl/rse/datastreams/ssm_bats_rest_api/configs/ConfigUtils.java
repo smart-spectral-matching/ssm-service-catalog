@@ -21,7 +21,7 @@ public class ConfigUtils {
      * Immutable sets of strings which represent deployed profiles.
      */
     private static final Set<String> DEPLOYMENT_PROFILES = Set.of(
-        "dev", "qa", "prod"
+        "local", "dev", "qa", "prod"
     );
 
     /**
@@ -64,8 +64,7 @@ public class ConfigUtils {
     public boolean isConfigurationError() {
         return Arrays.stream(getActiveProfiles())
             .filter(p -> DEPLOYMENT_PROFILES.contains(p))
-            .toArray(String[]::new)
-            .length > 1;
+            .count() > 1;
     }
 
     /**

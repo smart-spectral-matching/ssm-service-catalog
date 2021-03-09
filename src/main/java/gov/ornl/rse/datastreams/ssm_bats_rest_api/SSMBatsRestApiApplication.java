@@ -1,5 +1,8 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -34,7 +37,15 @@ public class SSMBatsRestApiApplication {
      * @param args Arguments for SprintApplication run
      */
     public static void main(final String[] args) {
-        SpringApplication.run(SSMBatsRestApiApplication.class, args);
+        SpringApplication app = new SpringApplication(SSMBatsRestApiApplication.class);
+        Map<String, Object> springDefaults = new HashMap<>();
+        /*
+         * activate the local profile if no other profiles are defined
+         * note: this can NOT be set in application.properties
+         */
+        springDefaults.put("spring.profiles.default", "local");
+        app.setDefaultProperties(springDefaults);
+        app.run(args);
     }
 
     /**
@@ -46,7 +57,7 @@ public class SSMBatsRestApiApplication {
     private void init() {
         if (configUtils.isConfigurationError()) {
             LOG.error("ERROR: improper profile configuration.\n"
-              + "Use only one of 'dev', 'qa', or 'prod'.");
+              + "Use only one of 'local', 'dev', 'qa', or 'prod'.");
             System.exit(1);
         }
     }

@@ -14,7 +14,7 @@ indent_size = 4
 
 [*.{java}]
 # note: does not have full editor support
-max_line_length = 80
+max_line_length = 100
 
 [*.{xml,json}]
 indent_size = 2
