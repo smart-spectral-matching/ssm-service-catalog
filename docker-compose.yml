@@ -13,7 +13,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on: 
-       - fuseki
+    depends_on:
+       - ssm-fuseki
     ports:
       - "8080:8080"

@@ -33,6 +33,11 @@ public final class UUIDGenerator {
     private static final int MASK_HEX_ARRAY = 0x0F;
 
     /**
+     * Valid regex for a generated UUID.
+     */
+    public static final String UUID_REGEX = "^[A-F0-9]+$";
+
+    /**
      * Returns the hex for a given set of bytes.
      *
      * @param bytes Bytes to convert to hex
