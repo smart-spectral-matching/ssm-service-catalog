@@ -6,6 +6,8 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.Scanner;
 
+import javax.validation.constraints.Pattern;
+
 import org.apache.jena.query.Dataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,7 +154,8 @@ public class BatsDatasetController {
     @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public BatsDataset  getDataSet(@PathVariable("uuid") final String uuid)
+    public BatsDataset getDataSet(@PathVariable("uuid")
+        @Pattern(regexp = UUIDGenerator.UUID_REGEX) final String uuid)
         throws
             ResponseStatusException {
         DataSet dataset = new DataSet();
@@ -178,9 +181,9 @@ public class BatsDatasetController {
     */
     @RequestMapping(value = "/{uuid}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteDataSet(@PathVariable("uuid") final String uuid)
-        throws
-            Exception {
+    public void deleteDataSet(@PathVariable("uuid")
+        @Pattern(regexp = UUIDGenerator.UUID_REGEX) final String uuid)
+        throws Exception {
         DataSet dataset = new DataSet();
         dataset.setName(uuid);
         dataset.setHost(fuseki().getHostname());

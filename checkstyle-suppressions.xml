@@ -6,6 +6,10 @@
 
 <suppressions>
   <suppress checks="HideUtilityClassConstructor" files="SSMBatsRestApiApplication.java" lines="1-9999"/>
+  <!-- trick to suppress ImportOrder spacing between imports -->
   <suppress message="separation in import" />
+  <!-- suppress this warning for getMaskedTypeName -->
   <suppress checks="CyclomaticComplexity" files="ControllerExceptionHandler.java" lines="170-220" />
+  <!-- suppress this warning for queryModels -->
+  <suppress checks="CyclomaticComplexity" files="BatsModelController.java" lines="270-340" />
 </suppressions>
