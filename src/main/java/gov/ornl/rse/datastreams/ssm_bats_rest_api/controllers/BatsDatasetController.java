@@ -1,6 +1,7 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
@@ -51,6 +52,11 @@ public class BatsDatasetController {
     private ApplicationConfig appConfig;
 
     /**
+     * Class ObjectMapper.
+    */
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
      * @return the Fuseki configuration.
      */
     private Fuseki fuseki() {
@@ -62,6 +68,52 @@ public class BatsDatasetController {
     */
     private static final String READ_DATASETS_ERROR =
         "Unable to read dataset(s) on the remote Fuseki server.";
+
+    /**
+     * Return if given Apache Jena Dataset exists in Fuseki database.
+     *
+     * @param dataset      Dataset to check for existence in Fuseki database
+     * @param fusekiObject Fuseki object that holds the Fuseki database info
+     * @param logger       Logger to output logging information to
+     * @return             Boolean; true if exists, false otherwise
+    */
+    public static boolean doesDataSetExist(
+        final DataSet dataset,
+        final Fuseki fusekiObject,
+        final Logger logger
+    ) {
+        logger.info("Checking dataset: " + dataset.getName());
+
+        // Construct Fuseki API URL for the specific dataset
+        URL url = null;
+
+        try {
+            url = new URL(fusekiObject.getHostname()
+                    + ":"
+                    + fusekiObject.getPort()
+                    + "/$/datasets/"
+                    + dataset.getName());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        // Get response code for dataset to determine if it exists
+        int code = HttpStatus.I_AM_A_TEAPOT.value();
+        try {
+            HttpURLConnection http = (HttpURLConnection) url.openConnection();
+            code = http.getResponseCode();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (code == HttpStatus.OK.value()) {
+            logger.info("Dataset " + dataset.getName() + " exists!");
+            return true;
+        } else {
+            logger.info("Dataset " + dataset.getName() + " NOT FOUND!");
+            return false;
+        }
+    }
 
     /**
      * CREATE a new Dataset collection for Models.
@@ -93,7 +145,6 @@ public class BatsDatasetController {
     public String getUUIDS() {
 
         //Read the Fuseki dataset list endpoint
-        ObjectMapper mapper = new ObjectMapper();
 
         URL url = null;
 
@@ -113,7 +164,7 @@ public class BatsDatasetController {
         }
 
         try {
-            JsonNode fusekiResponse = mapper.readTree(
+            JsonNode fusekiResponse = MAPPER.readTree(
                     scanner.useDelimiter("\\A").next());
 
             //Get the node containing the list of datasets
@@ -135,7 +186,7 @@ public class BatsDatasetController {
             }
 
             //Return the JSON representation
-            return mapper.writeValueAsString(response);
+            return MAPPER.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             LOGGER.error(READ_DATASETS_ERROR, e);
             throw new ResponseStatusException(
