@@ -13,6 +13,6 @@
   <!-- suppress this warning for queryModels -->
   <suppress checks="CyclomaticComplexity" files="BatsModelController.java" lines="270-340" />
   <!-- suppress these warnings for formatGraphNode -->
-  <suppress checks="SeparatorWrap" files="BatsModelController.java" lines="193-210" />
-  <suppress checks="FinalParameters" files="BatsModelController.java" lines="193-210" />
+  <suppress checks="SeparatorWrap" files="BatsModelController.java" lines="174-191" />
+  <suppress checks="FinalParameters" files="BatsModelController.java" lines="174-191" />
 </suppressions>
