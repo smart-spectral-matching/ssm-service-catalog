@@ -76,6 +76,12 @@ public class BatsModelController {
     @Autowired
     private ConfigUtils configUtils;
 
+
+    /**
+     * Class ObjectMapper.
+    */
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     /**
      * Error message for uploading model.
     */
@@ -184,26 +190,23 @@ public class BatsModelController {
      * @param jsonldNode  JSON-LD to modify if it has @graph
      * @return            Modified JSON-LD
     */
-    private JsonNode formatGraphNode(final JsonNode jsonldNode)
+    private JsonNode formatGraphNode(JsonNode jsonldNode)
     throws IOException {
-        ObjectNode newJsonldNode = (ObjectNode) jsonldNode.deepCopy();
-
         LOGGER.info("Checking for @graph in model...");
-        JsonNode isGraphNode = newJsonldNode.get("@graph");
+        JsonNode isGraphNode = jsonldNode.get("@graph");
         if (isGraphNode != null) {
 
             // Merge @graph node into top-level and remove duplicate @id node
             LOGGER.info("Moving @graph to top-level of model...");
-            JsonNode graphNode = newJsonldNode.remove("@graph");
-            newJsonldNode.remove("@id");
+            JsonNode graphNode = ((ObjectNode) jsonldNode).remove("@graph");
+            ((ObjectNode) jsonldNode).remove("@id");
 
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectReader objectReader = mapper.readerForUpdating(
-                newJsonldNode
+            ObjectReader objectReader = MAPPER.readerForUpdating(
+                jsonldNode
             );
-            newJsonldNode = objectReader.readValue(graphNode);
+            jsonldNode = objectReader.readValue(graphNode);
         }
-        return (JsonNode) newJsonldNode;
+        return (JsonNode) jsonldNode;
     }
 
     /**
@@ -224,15 +227,14 @@ public class BatsModelController {
         String newJsonLd = jsonld;
 
         // Get the @context block of the input JSON-LD
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode jsonldNode = mapper.readValue(jsonld, ObjectNode.class);
+        ObjectNode jsonldNode = MAPPER.readValue(jsonld, ObjectNode.class);
         JsonNode contextNode = jsonldNode.get("@context");
 
         // If @context is array, replace/add @base entry with input base uri
         if (contextNode.isArray()) {
 
             // Re-create @context block while leaving out pre-existing @base
-            ArrayNode newContextNode = mapper.createArrayNode();
+            ArrayNode newContextNode = MAPPER.createArrayNode();
             for (final JsonNode elementNode: contextNode) {
                 if (!elementNode.has("@base")) {
                     newContextNode.add(elementNode);
@@ -240,7 +242,7 @@ public class BatsModelController {
             }
 
             // Add new @base to @context block
-            ObjectNode baseContext = mapper.createObjectNode();
+            ObjectNode baseContext = MAPPER.createObjectNode();
             baseContext.put("@base", baseUri);
             newContextNode.add(baseContext);
 
@@ -412,8 +414,7 @@ public class BatsModelController {
 
         // JSON -> Tree
         LOGGER.info("createModel: Extracting JSON-LD -> model");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonldNode = mapper.readValue(
+        JsonNode jsonldNode = MAPPER.readValue(
             jsonPayload,
             JsonNode.class
         );
@@ -501,7 +502,7 @@ public class BatsModelController {
 
         try {
             //Return the JSON representation
-            return ResponseEntity.ok(new ObjectMapper().writeValueAsString(response));
+            return ResponseEntity.ok(MAPPER.writeValueAsString(response));
         } catch (JsonProcessingException e) {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
@@ -548,8 +549,7 @@ public class BatsModelController {
 
         // JSON -> Tree
         LOGGER.info("updateModelReplace: Extracting JSON-LD -> model");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonldNode = mapper.readTree(jsonPayload);
+        JsonNode jsonldNode = MAPPER.readTree(jsonPayload);
 
         return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset);
     }
@@ -599,16 +599,15 @@ public class BatsModelController {
             );
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode modelNode = mapper.readTree(modelJSONLD);
+        JsonNode modelNode = MAPPER.readTree(modelJSONLD);
         LOGGER.info("Pulled model: " + modelUUID);
 
         LOGGER.info("updateModelPartial: Extracting JSON-LD from body data");
         // JSON -> Tree
-        JsonNode payloadNode = mapper.readTree(jsonPayload);
+        JsonNode payloadNode = MAPPER.readTree(jsonPayload);
 
         // Merge payload with model
-        JsonNode mergedModelNode = mapper.readerForUpdating(modelNode)
+        JsonNode mergedModelNode = MAPPER.readerForUpdating(modelNode)
                                          .readValue(payloadNode);
 
         // Check if we have a @graph node, need to move all fields to top-level
