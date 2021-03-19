@@ -11,7 +11,6 @@ import java.util.List;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryException;
@@ -122,24 +121,6 @@ public class BatsModelController {
     }
 
     /**
-     * Return if given Apache Jena Dataset exists in Fuseki database.
-     *
-     * @param dataset Dataset to check for existence in Fuseki database
-     * @return        Boolean; true if exists, false otherwise
-    */
-    private boolean doesDataSetExist(final DataSet dataset) {
-        LOGGER.info("Pulling dataset: " + dataset.getName());
-        Dataset contents = dataset.getJenaDataset();
-        if (contents == null) {
-            LOGGER.info("Dataset " + dataset.getName() + " NOT FOUND!");
-            return false;
-        } else {
-            LOGGER.info("Dataset " + dataset.getName() + " exists!");
-            return true;
-        }
-    }
-
-    /**
      * Returns Model API URI given the Dataset and Model UUID.
      *
      * @param datasetUUID UUID for the Dataset the model belongs to
@@ -193,8 +174,8 @@ public class BatsModelController {
     private JsonNode formatGraphNode(JsonNode jsonldNode)
     throws IOException {
         LOGGER.info("Checking for @graph in model...");
-        JsonNode isGraphNode = jsonldNode.get("@graph");
-        if (isGraphNode != null) {
+
+        if (jsonldNode.has("@graph")) {
 
             // Merge @graph node into top-level and remove duplicate @id node
             LOGGER.info("Moving @graph to top-level of model...");
@@ -403,7 +384,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        if (!doesDataSetExist(dataset)) {
+        if (!BatsDatasetController.doesDataSetExist(dataset, fuseki(), LOGGER)) {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Dataset " + datasetUUID + " NOT FOUND!");
@@ -445,7 +426,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        if (!doesDataSetExist(dataset)) {
+        if (!BatsDatasetController.doesDataSetExist(dataset, fuseki(), LOGGER)) {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Dataset " + datasetUUID + " NOT FOUND!");
@@ -541,7 +522,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        if (!doesDataSetExist(dataset)) {
+        if (!BatsDatasetController.doesDataSetExist(dataset, fuseki(), LOGGER)) {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Dataset " + datasetUUID + " NOT FOUND!");
@@ -579,7 +560,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        if (!doesDataSetExist(dataset)) {
+        if (!BatsDatasetController.doesDataSetExist(dataset, fuseki(), LOGGER)) {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Dataset " + datasetUUID + " NOT FOUND!");
@@ -657,7 +638,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        if (!doesDataSetExist(dataset)) {
+        if (!BatsDatasetController.doesDataSetExist(dataset, fuseki(), LOGGER)) {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Dataset " + datasetUUID + " NOT FOUND!");
