@@ -70,6 +70,18 @@ public class BatsDatasetController {
         "Unable to read dataset(s) on the remote Fuseki server.";
 
     /**
+     * Error message for malformed URL.
+    */
+    private static final String BAD_URL_ERROR =
+        "Error forming URL to Fuseki dataset asset";
+
+    /**
+     * Error message for URL and connection IO issues to Fuseki.
+    */
+    private static final String URL_ACCESS_ERROR =
+        "Fuseki URL / connection access error for dataset";
+
+    /**
      * Return if given Apache Jena Dataset exists in Fuseki database.
      *
      * @param dataset      Dataset to check for existence in Fuseki database
@@ -94,7 +106,8 @@ public class BatsDatasetController {
                     + "/$/datasets/"
                     + dataset.getName());
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            logger.error(BAD_URL_ERROR);
+            return false;
         }
 
         // Get response code for dataset to determine if it exists
@@ -103,7 +116,8 @@ public class BatsDatasetController {
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             code = http.getResponseCode();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(URL_ACCESS_ERROR, e);
+            return false;
         }
 
         if (code == HttpStatus.OK.value()) {
@@ -149,10 +163,16 @@ public class BatsDatasetController {
         URL url = null;
 
         try {
-            url = new URL(fuseki().getHostname() + ":"
-                    + fuseki().getPort() + "/$/datasets");
+            url = new URL(fuseki().getHostname()
+                    + ":"
+                    + fuseki().getPort()
+                    + "/$/datasets");
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOGGER.error(BAD_URL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                BAD_URL_ERROR
+            );
         }
 
         Scanner scanner = null;
@@ -160,7 +180,7 @@ public class BatsDatasetController {
         try {
             scanner = new Scanner(url.openStream(), "UTF-8");
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(URL_ACCESS_ERROR, e);
         }
 
         try {
