@@ -57,6 +57,35 @@ public class BatsDatasetController {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
+     * Status from checking if Fuseki Dataset exists.
+     * {@link #EXISTS}
+     * {@link #DOES_NOT_EXIST}
+     * {@link #BAD_URL}
+     * {@link #BAD_CONNECTION}
+    */
+    public enum DataSetQueryStatus {
+        /**
+         * Dataset exists in Fuseki.
+        */
+        EXISTS,
+
+        /**
+         * Dataset does not exist in Fuseki.
+        */
+        DOES_NOT_EXIST,
+
+        /**
+         * Malformed URL for Fuseki Dataset.
+        */
+        BAD_URL,
+
+        /**
+         * Bad connection to Fuseki Dataset URL.
+        */
+        BAD_CONNECTION
+    }
+
+    /**
      * @return the Fuseki configuration.
      */
     private Fuseki fuseki() {
@@ -86,15 +115,12 @@ public class BatsDatasetController {
      *
      * @param dataset      Dataset to check for existence in Fuseki database
      * @param fusekiObject Fuseki object that holds the Fuseki database info
-     * @param logger       Logger to output logging information to
-     * @return             Boolean; true if exists, false otherwise
+     * @return             DataSetQueryStatus; dataset status
     */
-    public static boolean doesDataSetExist(
+    public static DataSetQueryStatus doesDataSetExist(
         final DataSet dataset,
-        final Fuseki fusekiObject,
-        final Logger logger
+        final Fuseki fusekiObject
     ) {
-        logger.info("Checking dataset: " + dataset.getName());
 
         // Construct Fuseki API URL for the specific dataset
         URL url = null;
@@ -106,8 +132,7 @@ public class BatsDatasetController {
                     + "/$/datasets/"
                     + dataset.getName());
         } catch (MalformedURLException e) {
-            logger.error(BAD_URL_ERROR);
-            return false;
+            return DataSetQueryStatus.BAD_URL;
         }
 
         // Get response code for dataset to determine if it exists
@@ -116,16 +141,13 @@ public class BatsDatasetController {
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             code = http.getResponseCode();
         } catch (IOException e) {
-            logger.error(URL_ACCESS_ERROR, e);
-            return false;
+            return DataSetQueryStatus.BAD_CONNECTION;
         }
 
         if (code == HttpStatus.OK.value()) {
-            logger.info("Dataset " + dataset.getName() + " exists!");
-            return true;
+            return DataSetQueryStatus.EXISTS;
         } else {
-            logger.info("Dataset " + dataset.getName() + " NOT FOUND!");
-            return false;
+            return DataSetQueryStatus.DOES_NOT_EXIST;
         }
     }
 
