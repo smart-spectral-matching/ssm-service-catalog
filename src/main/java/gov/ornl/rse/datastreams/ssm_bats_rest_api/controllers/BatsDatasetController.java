@@ -1,6 +1,7 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
@@ -51,6 +52,40 @@ public class BatsDatasetController {
     private ApplicationConfig appConfig;
 
     /**
+     * Class ObjectMapper.
+    */
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
+     * Status from checking if Fuseki Dataset exists.
+     * {@link #EXISTS}
+     * {@link #DOES_NOT_EXIST}
+     * {@link #BAD_URL}
+     * {@link #BAD_CONNECTION}
+    */
+    public enum DataSetQueryStatus {
+        /**
+         * Dataset exists in Fuseki.
+        */
+        EXISTS,
+
+        /**
+         * Dataset does not exist in Fuseki.
+        */
+        DOES_NOT_EXIST,
+
+        /**
+         * Malformed URL for Fuseki Dataset.
+        */
+        BAD_URL,
+
+        /**
+         * Bad connection to Fuseki Dataset URL.
+        */
+        BAD_CONNECTION
+    }
+
+    /**
      * @return the Fuseki configuration.
      */
     private Fuseki fuseki() {
@@ -62,6 +97,59 @@ public class BatsDatasetController {
     */
     private static final String READ_DATASETS_ERROR =
         "Unable to read dataset(s) on the remote Fuseki server.";
+
+    /**
+     * Error message for malformed URL.
+    */
+    private static final String BAD_URL_ERROR =
+        "Error forming URL to Fuseki dataset asset";
+
+    /**
+     * Error message for URL and connection IO issues to Fuseki.
+    */
+    private static final String URL_ACCESS_ERROR =
+        "Fuseki URL / connection access error for dataset";
+
+    /**
+     * Return if given Apache Jena Dataset exists in Fuseki database.
+     *
+     * @param dataset      Dataset to check for existence in Fuseki database
+     * @param fusekiObject Fuseki object that holds the Fuseki database info
+     * @return             DataSetQueryStatus; dataset status
+    */
+    public static DataSetQueryStatus doesDataSetExist(
+        final DataSet dataset,
+        final Fuseki fusekiObject
+    ) {
+
+        // Construct Fuseki API URL for the specific dataset
+        URL url = null;
+
+        try {
+            url = new URL(fusekiObject.getHostname()
+                    + ":"
+                    + fusekiObject.getPort()
+                    + "/$/datasets/"
+                    + dataset.getName());
+        } catch (MalformedURLException e) {
+            return DataSetQueryStatus.BAD_URL;
+        }
+
+        // Get response code for dataset to determine if it exists
+        int code = HttpStatus.I_AM_A_TEAPOT.value();
+        try {
+            HttpURLConnection http = (HttpURLConnection) url.openConnection();
+            code = http.getResponseCode();
+        } catch (IOException e) {
+            return DataSetQueryStatus.BAD_CONNECTION;
+        }
+
+        if (code == HttpStatus.OK.value()) {
+            return DataSetQueryStatus.EXISTS;
+        } else {
+            return DataSetQueryStatus.DOES_NOT_EXIST;
+        }
+    }
 
     /**
      * CREATE a new Dataset collection for Models.
@@ -93,15 +181,20 @@ public class BatsDatasetController {
     public String getUUIDS() {
 
         //Read the Fuseki dataset list endpoint
-        ObjectMapper mapper = new ObjectMapper();
 
         URL url = null;
 
         try {
-            url = new URL(fuseki().getHostname() + ":"
-                    + fuseki().getPort() + "/$/datasets");
+            url = new URL(fuseki().getHostname()
+                    + ":"
+                    + fuseki().getPort()
+                    + "/$/datasets");
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOGGER.error(BAD_URL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                BAD_URL_ERROR
+            );
         }
 
         Scanner scanner = null;
@@ -109,11 +202,11 @@ public class BatsDatasetController {
         try {
             scanner = new Scanner(url.openStream(), "UTF-8");
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(URL_ACCESS_ERROR, e);
         }
 
         try {
-            JsonNode fusekiResponse = mapper.readTree(
+            JsonNode fusekiResponse = MAPPER.readTree(
                     scanner.useDelimiter("\\A").next());
 
             //Get the node containing the list of datasets
@@ -135,7 +228,7 @@ public class BatsDatasetController {
             }
 
             //Return the JSON representation
-            return mapper.writeValueAsString(response);
+            return MAPPER.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             LOGGER.error(READ_DATASETS_ERROR, e);
             throw new ResponseStatusException(
