@@ -10,7 +10,6 @@ COPY src ${APP_DIR}/src
 RUN mvn -f ${APP_DIR}/pom.xml -P ${PROFILE} package -Dmaven.test.skip=true
 
 FROM code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/openjdk:11-jre-slim
-VOLUME /tmp
 COPY --from=build /home/app/target/*.jar app.jar
 EXPOSE 8080
 CMD ["java","-jar","/app.jar"]
