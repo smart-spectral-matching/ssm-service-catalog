@@ -299,11 +299,12 @@ public class BatsModelController {
 
         // Tree -> JSON -> Jena Model
         LOGGER.info("Uploading model: " + modelUUID);
-        StringReader reader = new StringReader(scidataString);
+        StringReader reader = new StringReader(scidataString); //NOPMD
         Model model = ModelFactory.createDefaultModel();
         // TODO try to use Model.read(InputStream, String) here instead,
         // to avoid possible character encoding issues
         model.read(reader, null, "JSON-LD");
+        reader.close();
         // add metadata information
         final String now = DateUtils.now();
         model.createResource(appConfig.getHost() + "/schemas/metadata")
@@ -351,6 +352,8 @@ public class BatsModelController {
             results = execution.execSelect();
         } catch (QueryException ex) {
             return ResponseEntity.ok(Collections.EMPTY_LIST);
+        } finally {
+            execution.close();
         }
 
         // TODO is there a better way to directly query only what we want?
@@ -384,9 +387,9 @@ public class BatsModelController {
         List<BatsModel> body = new ArrayList<>();
         DataSet dataset = initDataset(datasetUUID);
         for (String uuid: modelUUIDs) {
-            Model model = dataset.getModel(uuid);
+            Model model = dataset.getModel(uuid); //NOPMD
             try {
-                body.add(new BatsModel(uuid, RdfModelWriter.model2jsonld(model)));
+                body.add(new BatsModel(uuid, RdfModelWriter.model2jsonld(model))); //NOPMD
             } catch (IOException e) {
                 // should really not fail here
                 LOGGER.error("Unable to parse JSONLD from model {} dataset {}", uuid, datasetUUID);
@@ -499,6 +502,8 @@ public class BatsModelController {
             results = execution.execSelect();
         } catch (QueryException ex) {
             return ResponseEntity.ok(Collections.EMPTY_LIST);
+        } finally {
+            execution.close();
         }
 
         //The JSON response being built
@@ -644,9 +649,10 @@ public class BatsModelController {
         );
 
         // Merged Tree -> Merged JSON -> Jena Model
-        StringReader reader = new StringReader(scidataString);
+        StringReader reader = new StringReader(scidataString); //NOPMD
         Model mergedModel = ModelFactory.createDefaultModel();
         mergedModel.read(reader, null, "JSON-LD");
+        reader.close();
         // add metadata information
         final String now = DateUtils.now();
         mergedModel.createResource(appConfig.getHost() + "/schemas/metadata")

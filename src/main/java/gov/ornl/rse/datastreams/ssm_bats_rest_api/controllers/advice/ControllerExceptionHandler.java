@@ -2,6 +2,7 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers.advice;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -171,7 +172,7 @@ public class ControllerExceptionHandler implements ProblemHandling
      * @return masked type name
      */
     private String getMaskedTypeName(final String name) {
-        switch (name.toLowerCase()) {
+        switch (name.toLowerCase(Locale.getDefault())) {
             // don't directly use byte or short as request parameters
             // because these are not supported by the OpenAPI spec
             case "int":
@@ -185,7 +186,7 @@ public class ControllerExceptionHandler implements ProblemHandling
             case "set":
                 return "array";
             default:
-                return name.toLowerCase();
+                return name.toLowerCase(Locale.getDefault());
         }
     }
 

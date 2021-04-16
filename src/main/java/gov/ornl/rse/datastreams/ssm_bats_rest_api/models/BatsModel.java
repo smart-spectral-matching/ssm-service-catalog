@@ -66,7 +66,7 @@ public class BatsModel {
      *
      * @param modelString New Model to set for BatsModel
     */
-    public void setModel(final String modelString) throws IOException {
+    public final void setModel(final String modelString) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         this.model = mapper.readTree(modelString);
     }

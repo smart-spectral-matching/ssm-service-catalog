@@ -58,7 +58,7 @@ public class SSMBatsRestApiApplication {
         if (configUtils.isConfigurationError()) {
             LOG.error("ERROR: improper profile configuration.\n"
               + "Use only one of 'local', 'dev', 'qa', or 'prod'.");
-            System.exit(1);
+            System.exit(1); //NOPMD
         }
     }
 

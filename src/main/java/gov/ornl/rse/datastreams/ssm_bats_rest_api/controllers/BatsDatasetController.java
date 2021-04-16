@@ -203,6 +203,10 @@ public class BatsDatasetController {
             scanner = new Scanner(url.openStream(), "UTF-8");
         } catch (IOException e) {
             LOGGER.error(URL_ACCESS_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                READ_DATASETS_ERROR
+            );
         }
 
         try {
@@ -235,6 +239,8 @@ public class BatsDatasetController {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 READ_DATASETS_ERROR
             );
+        } finally {
+            scanner.close();
         }
     }
 
