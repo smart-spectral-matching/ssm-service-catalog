@@ -286,9 +286,16 @@ public class ITBatsModelController {
 
         Assertions.assertEquals(targetGraph.size(), resultGraph.size());
 
+        // Check the URIs match in the @id part of each object in the @graph array
         ArrayNode resultArray = (ArrayNode) resultGraph;
         for (JsonNode jsonNode : resultArray) {
             String nodeID = jsonNode.get("@id").asText();
+
+            // Skip the "schemas/metadata" for "created" and "modified"
+            if (nodeID.contains("schemas/metadata")) {
+                continue;
+            }
+
             String msg = "Asserting " + nodeID + " contains " + modelUri;
             System.out.println(msg);
             String modelPath = getModelUriPartial(datasetUUID, modelUUID);
