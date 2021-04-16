@@ -123,7 +123,10 @@
     <!-- Checks for imports                              -->
     <!-- See https://checkstyle.org/config_imports.html -->
     <module name="AvoidStarImport"/>
-    <module name="AvoidStaticImport"/>
+    <!-- Ideally static imports would only be allowed in test classes, but configuring Checkstyle for this is way too much work. -->
+    <!--
+    <module name="AvoidStaticImport" />
+    -->
     <!-- defaults to sun.* packages -->
     <module name="IllegalImport"/>
     <module name="RedundantImport"/>
@@ -155,7 +158,7 @@
       <property name="option" value="nl"/>
     </module>
     <module name="SeparatorWrap">
-      <property name="tokens" value="COMMA,SEMI,LPAREN"/>
+      <property name="tokens" value="COMMA,SEMI"/>
       <property name="option" value="eol"/>
     </module>
     <module name="TypecastParenPad"/>

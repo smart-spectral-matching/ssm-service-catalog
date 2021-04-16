@@ -21,6 +21,7 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
 
 @RestController
 @RequestMapping("/datasets")
@@ -273,13 +275,15 @@ public class BatsModelController {
      * @param datasetUUID UUID of the Apache Jena Dataset this model belongs to
      * @param modelUUID   UUID of output model
      * @param dataset     Bats DataSet this model will belong to
+     * @param priorCreatedTime get value from prior model if updating, null if creating
      * @return            BatsModel of the JSON-LD
     */
     private BatsModel jsonldToBatsModel(
         final JsonNode jsonldNode,
         final String datasetUUID,
         final String modelUUID,
-        final DataSet dataset
+        final DataSet dataset,
+        final String priorCreatedTime
     ) throws
         IOException,
         NoSuchAlgorithmException,
@@ -297,7 +301,14 @@ public class BatsModelController {
         LOGGER.info("Uploading model: " + modelUUID);
         StringReader reader = new StringReader(scidataString);
         Model model = ModelFactory.createDefaultModel();
+        // TODO try to use Model.read(InputStream, String) here instead,
+        // to avoid possible character encoding issues
         model.read(reader, null, "JSON-LD");
+        // add metadata information
+        final String now = DateUtils.now();
+        model.createResource(appConfig.getHost() + "/schemas/metadata")
+            .addProperty(DCTerms.created, priorCreatedTime == null ? now : priorCreatedTime)
+            .addProperty(DCTerms.modified, now);
 
         // Jena Model -> BATS DataSet
         try {
@@ -423,7 +434,7 @@ public class BatsModelController {
             JsonNode.class
         );
 
-        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset);
+        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset, null);
     }
 
     /**
@@ -460,7 +471,7 @@ public class BatsModelController {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
-                "Model Not Found"
+                "Model " + modelUUID + " Not Found"
             );
         }
     }
@@ -547,7 +558,28 @@ public class BatsModelController {
         LOGGER.info("updateModelReplace: Extracting JSON-LD -> model");
         JsonNode jsonldNode = MAPPER.readTree(jsonPayload);
 
-        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset);
+        /*
+        Get the dataset's model. We want to extract the created timestamp,
+        instead of updating it from user params or deleting it.
+        */
+        LOGGER.info("Pulling model: " + modelUUID);
+        String modelJSONLD;
+        try {
+            Model model = dataset.getModel(modelUUID);
+            modelJSONLD = RdfModelWriter.model2jsonld(model);
+        } catch (Exception e) {
+            LOGGER.error(READ_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Model " + modelUUID + " Not Found"
+            );
+        }
+
+        JsonNode createdTimeNode = MAPPER
+            .readTree(modelJSONLD)
+            .path(DCTerms.created.getLocalName());
+        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID,
+            dataset, createdTimeNode.textValue());
     }
 
     /**
@@ -579,7 +611,7 @@ public class BatsModelController {
 
         // Get the dataset's model
         LOGGER.info("Pulling model: " + modelUUID);
-        String modelJSONLD = new String();
+        String modelJSONLD;
         try {
             Model model = dataset.getModel(modelUUID);
             modelJSONLD = RdfModelWriter.model2jsonld(model);
@@ -587,7 +619,7 @@ public class BatsModelController {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
-                "Model Not Found"
+                "Model " + modelUUID + " Not Found"
             );
         }
 
@@ -615,6 +647,10 @@ public class BatsModelController {
         StringReader reader = new StringReader(scidataString);
         Model mergedModel = ModelFactory.createDefaultModel();
         mergedModel.read(reader, null, "JSON-LD");
+        // add metadata information
+        final String now = DateUtils.now();
+        mergedModel.createResource(appConfig.getHost() + "/schemas/metadata")
+            .addProperty(DCTerms.modified, now);
 
         // Upload merged model
         try {
