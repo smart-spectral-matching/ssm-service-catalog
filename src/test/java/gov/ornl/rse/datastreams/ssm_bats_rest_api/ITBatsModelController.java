@@ -437,7 +437,14 @@ public class ITBatsModelController {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode newNameNode = mapper.createObjectNode();
         newNameNode.put("name", "Ringo Starr");
-        String newName = mapper.writeValueAsString(newNameNode);
+
+        ArrayNode newGraphArray = mapper.createArrayNode();
+        newGraphArray.add(newNameNode);
+
+        ObjectNode newGraphNode = mapper.createObjectNode();
+        newGraphNode.set("@graph", newGraphArray);
+
+        String newName = mapper.writeValueAsString(newGraphNode);
 
         // Send the update
         ResponseEntity<String> response = restTemplate.exchange(
@@ -446,6 +453,7 @@ public class ITBatsModelController {
             makeBody(MediaType.APPLICATION_JSON, newName),
             String.class
         );
+
 
         // Check the status code
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
