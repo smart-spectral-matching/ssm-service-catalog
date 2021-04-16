@@ -377,7 +377,7 @@ public class ITBatsModelController {
         );
 
         // Check the status code
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.OK);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
         // Ensure the update modified the data
         Assertions.assertEquals(
@@ -410,7 +410,7 @@ public class ITBatsModelController {
         );
 
         // Check the status code
-        Assertions.assertEquals(response.getStatusCode(), HttpStatus.OK);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
         // Merge payload with model for target we verify against
         JsonNode originalJson = mapper.readTree(simpleOutputJSONLD());
