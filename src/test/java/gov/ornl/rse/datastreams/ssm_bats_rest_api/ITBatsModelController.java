@@ -231,10 +231,26 @@ public class ITBatsModelController {
         Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         ObjectMapper mapper = new ObjectMapper();
+
+        // Check the @context sections match
         Assertions.assertEquals(
-            mapper.readTree(simpleOutputJSONLD()),
-            mapper.readTree(response.getBody()).get("model")
+            mapper.readTree(simpleOutputJSONLD()).get("@context"),
+            mapper.readTree(response.getBody()).get("model").get("@context")
         );
+
+        // Check that part of the @graph sections match
+        // Certain fields ("created", "modified") cannot match
+        Assertions.assertEquals(
+            mapper.readTree(simpleOutputJSONLD())
+                    .get("@graph")
+                    .get(0),
+            mapper.readTree(response.getBody())
+                    .get("model")
+                    .get("@graph")
+                    .get(0)
+        );
+
+
     }
 
     /**
@@ -298,10 +314,25 @@ public class ITBatsModelController {
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
         ObjectMapper mapper = new ObjectMapper();
+
+        // Check the @context sections match
         Assertions.assertEquals(
-            mapper.readTree(simpleOutputJSONLD()),
-            mapper.readTree(response.getBody()).get("model")
+            mapper.readTree(simpleOutputJSONLD()).get("@context"),
+            mapper.readTree(response.getBody()).get("model").get("@context")
         );
+
+        // Check that part of the @graph sections match
+        // Certain fields ("created", "modified") cannot match
+        Assertions.assertEquals(
+            mapper.readTree(simpleOutputJSONLD())
+                    .get("@graph")
+                    .get(0),
+            mapper.readTree(response.getBody())
+                    .get("model")
+                    .get("@graph")
+                    .get(0)
+        );
+
     }
 
     /**

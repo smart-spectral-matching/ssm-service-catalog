@@ -247,6 +247,10 @@
 		"discipline": "w3i:Chemistry",
 		"hasSystemFacet": ["https://stuchalk.github.io/scidata/examples/nmr/substance/1/", "https://stuchalk.github.io/scidata/examples/nmr/compound/1/", "https://stuchalk.github.io/scidata/examples/nmr/compound/2/"],
 		"subdiscipline": "w3i:AnalyticalChemistry"
+    }, {
+	    "@id": "https://stuchalk.github.io/scidata/examples/nmr/schemas/metadata",
+	    "created": "XXXX-XX-XX XX:XX:XX",
+	    "modified": "XXXX-XX-XX XX:XX:XX"
 	}],
 	"@context": {
 		"number": {

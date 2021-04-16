@@ -1,22 +1,32 @@
 {
-  "@id": "http://dbpedia.org/resource/John_Lennon",
-  "birthDate": "1940-10-09",
-  "spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
-  "name": "John Lennon",
-  "@context": {
-    "birthDate": {
-        "@id": "http://schema.org/birthDate",
-        "@type": "http://www.w3.org/2001/XMLSchema#date"
-
-    },
-    "spouse": {
-        "@id": "http://schema.org/spouse",
-        "@type": "@id"
-
-    },
-    "name": {
-        "@id": "http://xmlns.com/foaf/0.1/name"
-    },
-    "xsd": "http://www.w3.org/2001/XMLSchema#"
-  }
+	"@graph": [{
+		"@id": "http://dbpedia.org/resource/John_Lennon",
+		"birthDate": "1940-10-09",
+		"spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
+		"name": "John Lennon"
+	}, {
+		"@id": "http://localhost:8080/schemas/metadata",
+		"created": "XXX-XX-XX XX:XX:XX",
+		"modified": "XXX-XX-XX XX:XX:XX"
+	}],
+	"@context": {
+		"birthDate": {
+			"@id": "http://schema.org/birthDate",
+			"@type": "http://www.w3.org/2001/XMLSchema#date"
+		},
+		"spouse": {
+			"@id": "http://schema.org/spouse",
+			"@type": "@id"
+		},
+		"name": {
+			"@id": "http://xmlns.com/foaf/0.1/name"
+		},
+		"created": {
+			"@id": "http://purl.org/dc/terms/created"
+		},
+		"modified": {
+			"@id": "http://purl.org/dc/terms/modified"
+		},
+		"xsd": "http://www.w3.org/2001/XMLSchema#"
+	}
 }
