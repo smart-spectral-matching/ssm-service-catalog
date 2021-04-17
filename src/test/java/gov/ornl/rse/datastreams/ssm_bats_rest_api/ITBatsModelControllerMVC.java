@@ -4,11 +4,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Iterator;
+import java.util.stream.StreamSupport;
 
 import javax.servlet.ServletContext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +27,13 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -34,6 +45,11 @@ public class ITBatsModelControllerMVC {
      * Object mapper.
      */
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
+     * Factory for creating new JSON objects.
+     */
+    private static final JsonNodeFactory FACTORY = new JsonNodeFactory(false);
 
     /**
      * The mock agent used to make requests to endpoints.
@@ -51,6 +67,48 @@ public class ITBatsModelControllerMVC {
      */
     @Autowired
     private ServletContext servletContext;
+
+    /**
+     * This class is used to store information from the POST request
+     * (which can remain agnostic about specific data fields)
+     * so they can be used in any PUT/PATCH functions
+     * (which cannot remain agnostic about specific data fields)
+     *
+     * All fields are immutable.
+     */
+    private static final class TestData {
+        /**
+         * Made-up "far past" timestamp as String, for JSON.
+         */
+        private final String dummyTimeStr;
+        /**
+         * Made-up "far past" timestamp, for comparison.
+         */
+        private final LocalDateTime dummyTime;
+        /**
+         * Created timestamp from initial POST request.
+         */
+        private final LocalDateTime createdTime;
+        /**
+         * URL to the created Model. Includes the UUID.
+         */
+        private final String modelUri;
+
+        /**
+         *
+         * @param dummyTimeStr Made-up "far past" timestamp as String, for JSON.
+         * @param dummyTime Made-up "far past" timestamp, for comparison.
+         * @param createdTime Created timestamp from initial POST request.
+         * @param modelUri URL to the created Model. Includes the UUID.
+         */
+        private TestData(final String dummyTimeStr, final LocalDateTime dummyTime,
+            final LocalDateTime createdTime, final String modelUri) {
+                this.dummyTimeStr = dummyTimeStr;
+                this.dummyTime = dummyTime;
+                this.createdTime = createdTime;
+                this.modelUri = modelUri;
+        }
+    }
 
     /**
      * Non-static method run before each @Test. Define the MockMVC agent.
@@ -90,67 +148,231 @@ public class ITBatsModelControllerMVC {
         );
     }
 
+    /**
+     *
+     * @param json Json node (directly from response)
+     * @return the JSON node with the metadata. This will always have an @id
+     *     with our metadata URI.
+     * @throws Exception
+     */
+    private JsonNode getMetadataNode(final JsonNode json) throws Exception {
+        Iterator<JsonNode> graphIter = json
+            .get("model")
+            .get("@graph")
+            .elements();
+        Iterable<JsonNode> iterable = () -> graphIter;
+        return StreamSupport.stream(iterable.spliterator(), false)
+            .filter(node -> node.get("@id").textValue().equals(JsonUtils.METADATA_URI))
+            .findFirst()
+            .get();
+    }
 
+    /**
+     *
+     * The base function for creating a model for all of the timestamp tests.
+     *
+     * This function can afford to be agnostic about which sample data file you read in.
+     *
+     * @param userIncludesTimestamps true to test timestamp submission,
+     *      false to test "normal" submission
+     * @param jsonld name of jsonld file in src/test/resources
+     * @return relevant test data for the update method, as a TestData object
+     * @throws Exception
+     */
+    private TestData timestampTestBasePost(final boolean userIncludesTimestamps,
+        final String jsonld) throws Exception {
+        // String representation of timestamp - use any value in the far past here
+        final String dummyTimestampStr = "1945-07-09 11:02:00";
+        // timestamp
+        final LocalDateTime dummyTimestamp = LocalDateTime.parse(
+            dummyTimestampStr.replace(' ', 'T'));
+
+        // create dataset and make model URI
+        String response = mockMvc.perform(post(getDatasetUri()))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+        final String datasetUUID = MAPPER.readTree(response).get("uuid").asText();
+        final String modelUri = getModelUri(datasetUUID);
+
+        // create model with POST
+        String sampleJson = getFileDataFromTestResources(jsonld);
+        if (userIncludesTimestamps) {
+            sampleJson = MAPPER.readValue(sampleJson, ObjectNode.class)
+                .put("created", dummyTimestampStr)
+                .put("modified", dummyTimestampStr)
+                .toString();
+        }
+        response = mockMvc.perform(post(modelUri)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(sampleJson))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+        JsonNode json = MAPPER.readTree(response);
+        final String modelUpdateUri = modelUri + json.get("uuid").asText();
+
+        // get last element of @graph node, this is the metadata node we want
+        json = getMetadataNode(json);
+        // get the created timestamp from the response
+        final LocalDateTime createdTime = LocalDateTime.parse(
+            json
+            .get("created")
+            .asText()
+            .replace(' ', 'T')
+        );
+        // get the updated timestamp from the response
+        LocalDateTime modifiedTime = LocalDateTime.parse(
+            json
+            .get("modified")
+            .asText()
+            .replace(' ', 'T')
+        );
+        // createdTime and updatedTime should always be the same after a POST
+        assertEquals(createdTime, modifiedTime);
+        // today should be after the "far past" time we defined
+        assertTrue(createdTime.isAfter(dummyTimestamp));
+
+        return new TestData(dummyTimestampStr, dummyTimestamp, createdTime, modelUpdateUri);
+    }
+
+    /**
+     *
+     * Main method for testing updates to the Scidata-formatted file.
+     *
+     * If you want to test a file with a different format, you'll need a new method.
+     *
+     * @param userIncludesTimestamps true to test timestamp submission,
+     *      false to test "normal" submission
+     * @param jsonld name of jsonld file in src/test/resources
+     * @param data TestData object containing relevant data from generic POST request
+     * @throws Exception
+     */
+    private void timestampTestScidataUpdate(final boolean userIncludesTimestamps,
+        final String jsonld, final TestData data) throws Exception {
+        /////////// update model with PUT ////////////////
+        final String updateKey = "publisher";
+        String updateValue = "Norton I, Emperor of the United States";
+
+        String sampleJson = getFileDataFromTestResources(jsonld);
+        ObjectNode node = MAPPER.readValue(sampleJson, ObjectNode.class);
+        ((ObjectNode) node.get("@graph")).put(updateKey, updateValue);
+        if (userIncludesTimestamps) {
+            node.put("created", data.dummyTimeStr)
+                .put("modified", data.dummyTimeStr);
+        }
+        sampleJson = node.toString();
+
+        // wait a second before making the request
+        Thread.sleep(1000);
+
+        String response = mockMvc.perform(put(data.modelUri)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(sampleJson))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        System.out.println(response);
+        JsonNode json = MAPPER.readTree(response);
+
+        // get last element of @graph node, this is the metadata node we want
+        json = getMetadataNode(json);
+        // get the created timestamp from the response
+        LocalDateTime createdTime = LocalDateTime.parse(
+            json
+            .get("created")
+            .asText()
+            .replace(' ', 'T')
+        );
+        assertTrue(createdTime.equals(data.createdTime));
+        assertTrue(createdTime.isAfter(data.dummyTime));
+        // get the updated timestamp from the response
+        LocalDateTime modifiedTime = LocalDateTime.parse(
+            json
+            .get("modified")
+            .asText()
+            .replace(' ', 'T')
+        );
+        assertTrue(modifiedTime.isAfter(data.createdTime));
+
+        ///////////// update model with PATCH ////////////////
+        updateValue = "Screaming Lord Sutch";
+
+        sampleJson = getFileDataFromTestResources(jsonld);
+        node = MAPPER.createObjectNode();
+        node.set("@graph", FACTORY.objectNode());
+        ((ObjectNode) node.get("@graph")).put(updateKey, updateValue);
+        if (userIncludesTimestamps) {
+            node.put("created", data.dummyTimeStr)
+                .put("modified", data.dummyTimeStr);
+        }
+        sampleJson = node.toString();
+
+        // wait a second before making the request
+        Thread.sleep(1000);
+
+        response = mockMvc.perform(patch(data.modelUri)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(sampleJson))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        json = MAPPER.readTree(response);
+
+        // get last element of @graph node, this is the metadata node we want
+        json = getMetadataNode(json);
+        // get the created timestamp from the response
+        createdTime = LocalDateTime.parse(
+            json
+            .get("created")
+            .asText()
+            .replace(' ', 'T')
+        );
+        assertTrue(createdTime.equals(data.createdTime));
+        assertTrue(createdTime.isAfter(data.dummyTime));
+        // get the updated timestamp from the response
+        modifiedTime = LocalDateTime.parse(
+            json
+            .get("modified")
+            .asText()
+            .replace(' ', 'T')
+        );
+        assertTrue(modifiedTime.isAfter(data.createdTime));
+    }
 
     /**
      *
      * Full suite test:
      *
-     * 1. Test that "created" and "modified" are added when POSTing model.
-     * 2. Test that if the user tries to POST JSON with "created" and "modified" properties,
-     *    they are ignored.
-     * 3. Test that "created" IS NOT updated, but "modified" IS updated
+     * 1. Test that if the user tries to POST JSON with "created" and "modified" properties,
+     *    they are ignored in favor of the API's handling.
+     * 2. Test that "created" IS NOT updated, but "modified" IS updated
      *    when making a PUT or PATCH request. If the user includes these properties
      *    in their request, the user's values should be ignored.
      *
      * @throws Exception
      */
     @Test
+    public void testTimestampFromUserIgnored() throws Exception {
+        final boolean userIncludesTimestamps = true;
+        final String jsonld = "scidata_nmr_abbreviated.input.jsonld";
+        final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
+        timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
+    }
+
+    /**
+     *
+     * Full suite test:
+     *
+     * 1. Test that "created" and "modified" are added to response when POSTing model,
+     *    even when they are not included by the user.
+     * 2. Test that "created" IS NOT updated, but "modified" IS updated
+     *    when making a PUT or PATCH request. This should happen automatically
+     *
+     * @throws Exception
+     */
+    @Test
     public void testTimestampChanges() throws Exception {
-        // create dataset and make model URI
-        String response = mockMvc.perform(post(getDatasetUri()))
-            .andExpect(status().isCreated())
-            .andReturn().getResponse().getContentAsString();
-        final String datasetUUID = MAPPER.readTree(response).path("uuid").asText();
-        final String modelUri = getModelUri(datasetUUID);
-
-        // create model with POST
-        String sampleJson = getFileDataFromTestResources("simple.input.jsonld");
-        response = mockMvc.perform(post(modelUri)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(sampleJson))
-            .andExpect(status().isCreated())
-            .andReturn().getResponse().getContentAsString();
-
-        // get the created timestamp from the response
-        final LocalDateTime createdTime = LocalDateTime.parse(
-            MAPPER.readTree(response)
-                .get("model")
-                .get("@graph")
-                .get(1)
-                .get("created")
-            .asText()
-            .replace(' ', 'T')
-            );
-        // get the updated timestamp from the response
-        LocalDateTime updatedTime = LocalDateTime.parse(
-            MAPPER.readTree(response)
-                .get("model")
-                .get("@graph")
-                .get(1)
-                .get("modified")
-            .asText()
-            .replace(' ', 'T')
-            );
-        assertEquals(createdTime, updatedTime);
-
-        // PUT - do not submit timestamps
-
-        // PUT - submit timestamps
-
-        // PATCH - do not submit timestamps
-
-        // PATCH - submit timestamps
+        final boolean userIncludesTimestamps = false;
+        final String jsonld = "scidata_nmr_abbreviated.input.jsonld";
+        final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
+        timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
     }
 
 }

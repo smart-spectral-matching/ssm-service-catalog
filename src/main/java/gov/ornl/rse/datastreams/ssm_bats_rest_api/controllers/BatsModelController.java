@@ -52,6 +52,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuse
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 
 @RestController
 @RequestMapping("/datasets")
@@ -290,6 +291,9 @@ public class BatsModelController {
         UnsupportedEncodingException {
         // Check if we have a @graph node, need to move all fields to top-level
         JsonNode scidataNode = formatGraphNode(jsonldNode);
+        // TODO this needs to be tested with enormous datasets,
+        // and verify that memory leaks won't happen here.
+        scidataNode = JsonUtils.clearTimestamps(scidataNode);
 
         // Replace @base in @context block w/ new URI
         String scidataString = addBaseToContextToJsonLD(
@@ -307,7 +311,7 @@ public class BatsModelController {
         reader.close();
         // add metadata information
         final String now = DateUtils.now();
-        model.createResource(appConfig.getHost() + "/schemas/metadata")
+        model.createResource(JsonUtils.METADATA_URI)
             .addProperty(DCTerms.created, priorCreatedTime == null ? now : priorCreatedTime)
             .addProperty(DCTerms.modified, now);
 
@@ -580,9 +584,11 @@ public class BatsModelController {
             );
         }
 
+        // Get saved "created" value, assume it exists exactly once
         JsonNode createdTimeNode = MAPPER
             .readTree(modelJSONLD)
-            .path(DCTerms.created.getLocalName());
+            .findValue(DCTerms.created.getLocalName());
+
         return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID,
             dataset, createdTimeNode.textValue());
     }
@@ -655,7 +661,7 @@ public class BatsModelController {
         reader.close();
         // add metadata information
         final String now = DateUtils.now();
-        mergedModel.createResource(appConfig.getHost() + "/schemas/metadata")
+        mergedModel.createResource(JsonUtils.METADATA_URI)
             .addProperty(DCTerms.modified, now);
 
         // Upload merged model
