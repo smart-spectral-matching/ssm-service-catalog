@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -82,7 +83,8 @@ public class BatsModelController {
     /**
      * Class ObjectMapper.
     */
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+        .disable(MapperFeature.IGNORE_MERGE_FOR_UNMERGEABLE);
 
     /**
      * Error message for uploading model.
@@ -638,14 +640,19 @@ public class BatsModelController {
 
         JsonNode modelNode = MAPPER.readTree(modelJSONLD);
         LOGGER.info("Pulled model: " + modelUUID);
+        // Get saved "created" value, assume it exists exactly once
+        JsonNode createdTimeNode = MAPPER
+        .readTree(modelJSONLD)
+        .findValue(DCTerms.created.getLocalName());
 
         LOGGER.info("updateModelPartial: Extracting JSON-LD from body data");
         // JSON -> Tree
         JsonNode payloadNode = MAPPER.readTree(jsonPayload);
+        // get rid of user submitted timestamps here
+        JsonUtils.clearTimestamps(payloadNode);
 
         // Merge payload with model
-        JsonNode mergedModelNode = MAPPER.readerForUpdating(modelNode)
-                                         .readValue(payloadNode);
+        JsonNode mergedModelNode = JsonUtils.merge(modelNode, payloadNode);
 
         // Check if we have a @graph node, need to move all fields to top-level
         JsonNode scidataNode = formatGraphNode(mergedModelNode);
@@ -664,6 +671,7 @@ public class BatsModelController {
         // add metadata information
         final String now = DateUtils.now();
         mergedModel.createResource(JsonUtils.METADATA_URI)
+            .addProperty(DCTerms.created, createdTimeNode.textValue())
             .addProperty(DCTerms.modified, now);
 
         // Upload merged model
