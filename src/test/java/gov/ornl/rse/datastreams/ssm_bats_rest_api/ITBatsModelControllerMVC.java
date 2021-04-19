@@ -348,6 +348,7 @@ public class ITBatsModelControllerMVC {
      * 2. Test that "created" IS NOT updated, but "modified" IS updated
      *    when making a PUT or PATCH request. If the user includes these properties
      *    in their request, the user's values should be ignored.
+     * 3. Uses the SciData JSON-LD input file
      *
      * @throws Exception
      */
@@ -367,6 +368,7 @@ public class ITBatsModelControllerMVC {
      *    even when they are not included by the user.
      * 2. Test that "created" IS NOT updated, but "modified" IS updated
      *    when making a PUT or PATCH request. This should happen automatically
+     * 3. Uses the SciData JSON-LD input file
      *
      * @throws Exception
      */
@@ -378,6 +380,19 @@ public class ITBatsModelControllerMVC {
         timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
     }
 
+     /**
+     *
+     * Full suite test:
+     *
+     * 1. Test that if the user tries to POST JSON with "created" and "modified" properties,
+     *    they are ignored in favor of the API's handling.
+     * 2. Test that "created" IS NOT updated, but "modified" IS updated
+     *    when making a PUT or PATCH request. If the user includes these properties
+     *    in their request, the user's values should be ignored.
+     * 3. Uses the simple format JSON-LD input file
+     *
+     * @throws Exception
+     */
     @Test
     public void testTimestampFromUserSimple() throws Exception {
         final boolean userIncludesTimestamps = true;
@@ -386,6 +401,18 @@ public class ITBatsModelControllerMVC {
         timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
     }
 
+    /**
+     *
+     * Full suite test:
+     *
+     * 1. Test that "created" and "modified" are added to response when POSTing model,
+     *    even when they are not included by the user.
+     * 2. Test that "created" IS NOT updated, but "modified" IS updated
+     *    when making a PUT or PATCH request. This should happen automatically
+     * 3. Uses the simple format JSON-LD input file
+     *
+     * @throws Exception
+     */
     @Test
     public void testTimestampNotProvidedSimple() throws Exception {
         final boolean userIncludesTimestamps = false;
