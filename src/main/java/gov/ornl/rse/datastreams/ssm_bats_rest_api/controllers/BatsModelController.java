@@ -355,9 +355,8 @@ public class BatsModelController {
         try {
             results = execution.execSelect();
         } catch (QueryException ex) {
-            return ResponseEntity.ok(Collections.EMPTY_LIST);
-        } finally {
             execution.close();
+            return ResponseEntity.ok(Collections.EMPTY_LIST);
         }
 
         // TODO is there a better way to directly query only what we want?
@@ -386,6 +385,7 @@ public class BatsModelController {
                 currentItemOnPage = 0;
             }
         }
+        execution.close();
 
         // for each UUID, retrieve the full model
         List<BatsModel> body = new ArrayList<>();
@@ -505,9 +505,8 @@ public class BatsModelController {
         try {
             results = execution.execSelect();
         } catch (QueryException ex) {
-            return ResponseEntity.ok(Collections.EMPTY_LIST);
-        } finally {
             execution.close();
+            return ResponseEntity.ok(Collections.EMPTY_LIST);
         }
 
         //The JSON response being built
@@ -519,6 +518,7 @@ public class BatsModelController {
             RDFNode node = solution.get("?model");
             response.add(node.toString());
         }
+        execution.close();
 
         try {
             //Return the JSON representation

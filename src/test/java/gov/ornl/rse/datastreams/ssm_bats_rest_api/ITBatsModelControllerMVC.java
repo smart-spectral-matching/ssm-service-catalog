@@ -269,7 +269,6 @@ public class ITBatsModelControllerMVC {
             .content(sampleJson))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
-        System.out.println(response);
         JsonNode json = MAPPER.readTree(response);
 
         // get last element of @graph node, this is the metadata node we want
@@ -281,6 +280,7 @@ public class ITBatsModelControllerMVC {
             .asText()
             .replace(' ', 'T')
         );
+        // ASSERT: created time is exactly the same from the POST request
         assertTrue(createdTime.equals(data.createdTime));
         assertTrue(createdTime.isAfter(data.dummyTime));
         // get the updated timestamp from the response
@@ -290,6 +290,7 @@ public class ITBatsModelControllerMVC {
             .asText()
             .replace(' ', 'T')
         );
+        // ASSERT: modified time is after the POST request timestamp
         assertTrue(modifiedTime.isAfter(data.createdTime));
 
         ///////////// update model with PATCH ////////////////
@@ -324,16 +325,18 @@ public class ITBatsModelControllerMVC {
             .asText()
             .replace(' ', 'T')
         );
+        // ASSERT: the created timestamp still has not changed
         assertTrue(createdTime.equals(data.createdTime));
         assertTrue(createdTime.isAfter(data.dummyTime));
         // get the updated timestamp from the response
-        modifiedTime = LocalDateTime.parse(
+        LocalDateTime modifiedTime2 = LocalDateTime.parse(
             json
             .get("modified")
             .asText()
             .replace(' ', 'T')
         );
-        assertTrue(modifiedTime.isAfter(data.createdTime));
+        // ASSERT: the newest modified timestamp is after the last modified timestamp
+        assertTrue(modifiedTime2.isAfter(modifiedTime));
     }
 
     /**
