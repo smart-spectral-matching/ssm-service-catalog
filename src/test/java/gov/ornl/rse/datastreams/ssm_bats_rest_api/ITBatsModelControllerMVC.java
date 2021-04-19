@@ -352,7 +352,7 @@ public class ITBatsModelControllerMVC {
      * @throws Exception
      */
     @Test
-    public void testTimestampFromUserIgnored() throws Exception {
+    public void testTimestampFromUserScidata() throws Exception {
         final boolean userIncludesTimestamps = true;
         final String jsonld = "scidata_nmr_abbreviated.input.jsonld";
         final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
@@ -371,9 +371,25 @@ public class ITBatsModelControllerMVC {
      * @throws Exception
      */
     @Test
-    public void testTimestampChanges() throws Exception {
+    public void testTimestampNotProvidedScidata() throws Exception {
         final boolean userIncludesTimestamps = false;
         final String jsonld = "scidata_nmr_abbreviated.input.jsonld";
+        final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
+        timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
+    }
+
+    @Test
+    public void testTimestampFromUserSimple() throws Exception {
+        final boolean userIncludesTimestamps = true;
+        final String jsonld = "simple.input.jsonld";
+        final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
+        timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
+    }
+
+    @Test
+    public void testTimestampNotProvidedSimple() throws Exception {
+        final boolean userIncludesTimestamps = false;
+        final String jsonld = "simple.input.jsonld";
         final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
         timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
     }
