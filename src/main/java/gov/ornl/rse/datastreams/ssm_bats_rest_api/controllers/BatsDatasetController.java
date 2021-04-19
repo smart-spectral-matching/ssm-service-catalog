@@ -1,7 +1,6 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
@@ -9,7 +8,6 @@ import java.util.Scanner;
 
 import javax.validation.constraints.Pattern;
 
-import org.apache.jena.query.Dataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +30,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 
 @RestController
 @RequestMapping("/datasets")
@@ -57,35 +56,6 @@ public class BatsDatasetController {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
-     * Status from checking if Fuseki Dataset exists.
-     * {@link #EXISTS}
-     * {@link #DOES_NOT_EXIST}
-     * {@link #BAD_URL}
-     * {@link #BAD_CONNECTION}
-    */
-    public enum DataSetQueryStatus {
-        /**
-         * Dataset exists in Fuseki.
-        */
-        EXISTS,
-
-        /**
-         * Dataset does not exist in Fuseki.
-        */
-        DOES_NOT_EXIST,
-
-        /**
-         * Malformed URL for Fuseki Dataset.
-        */
-        BAD_URL,
-
-        /**
-         * Bad connection to Fuseki Dataset URL.
-        */
-        BAD_CONNECTION
-    }
-
-    /**
      * @return the Fuseki configuration.
      */
     private Fuseki fuseki() {
@@ -109,47 +79,6 @@ public class BatsDatasetController {
     */
     private static final String URL_ACCESS_ERROR =
         "Fuseki URL / connection access error for dataset";
-
-    /**
-     * Return if given Apache Jena Dataset exists in Fuseki database.
-     *
-     * @param dataset      Dataset to check for existence in Fuseki database
-     * @param fusekiObject Fuseki object that holds the Fuseki database info
-     * @return             DataSetQueryStatus; dataset status
-    */
-    public static DataSetQueryStatus doesDataSetExist(
-        final DataSet dataset,
-        final Fuseki fusekiObject
-    ) {
-
-        // Construct Fuseki API URL for the specific dataset
-        URL url = null;
-
-        try {
-            url = new URL(fusekiObject.getHostname()
-                    + ":"
-                    + fusekiObject.getPort()
-                    + "/$/datasets/"
-                    + dataset.getName());
-        } catch (MalformedURLException e) {
-            return DataSetQueryStatus.BAD_URL;
-        }
-
-        // Get response code for dataset to determine if it exists
-        int code = HttpStatus.I_AM_A_TEAPOT.value();
-        try {
-            HttpURLConnection http = (HttpURLConnection) url.openConnection();
-            code = http.getResponseCode();
-        } catch (IOException e) {
-            return DataSetQueryStatus.BAD_CONNECTION;
-        }
-
-        if (code == HttpStatus.OK.value()) {
-            return DataSetQueryStatus.EXISTS;
-        } else {
-            return DataSetQueryStatus.DOES_NOT_EXIST;
-        }
-    }
 
     /**
      * CREATE a new Dataset collection for Models.
@@ -262,14 +191,8 @@ public class BatsDatasetController {
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
 
-        Dataset contents = dataset.getJenaDataset();
-        if (contents == null) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "DataSet Not Found"
-            );
-        }
-        LOGGER.info("Pulled dataset: " + uuid);
+        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
+
         return new BatsDataset(uuid);
     }
 

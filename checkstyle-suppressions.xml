@@ -15,5 +15,5 @@
     <!-- suppress this warning for clearTimestamps (recursive method) -->
   <suppress checks="CyclomaticComplexity" files="JsonUtils.java" lines="32-64" />
   <!-- suppress these warnings for formatGraphNode -->
-  <suppress checks="FinalParameters" files="BatsModelController.java" lines="200-217" />
+  <suppress checks="FinalParameters" files="BatsModelController.java" lines="178-195" />
 </suppressions>

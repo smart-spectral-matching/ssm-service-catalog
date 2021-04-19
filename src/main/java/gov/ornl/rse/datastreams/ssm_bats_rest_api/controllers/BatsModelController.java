@@ -52,6 +52,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 
@@ -123,33 +124,6 @@ public class BatsModelController {
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
         return dataset;
-    }
-
-    /**
-     * Checks if Apache Jena Dataset exists in Fuseki database.
-     *
-     * @param dataset      Dataset to check for existence in Fuseki database
-     * @param fusekiObject Fuseki object that holds the Fuseki database info
-    */
-    private void checkDataSetExists(
-        final DataSet dataset,
-        final Fuseki fusekiObject
-    ) {
-        LOGGER.info("Checking dataset: " + dataset.getName());
-        BatsDatasetController.DataSetQueryStatus code =
-            BatsDatasetController.doesDataSetExist(dataset, fusekiObject);
-        if (code == BatsDatasetController.DataSetQueryStatus.DOES_NOT_EXIST) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Dataset " + dataset.getName() + " NOT FOUND!");
-        } else if (
-            code == BatsDatasetController.DataSetQueryStatus.BAD_CONNECTION
-            || code == BatsDatasetController.DataSetQueryStatus.BAD_URL) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
-                "Error accessing dataset " + dataset.getName() + "!");
-        }
-        LOGGER.info("Dataset " + dataset.getName() + " exists!");
     }
 
     /**
@@ -432,7 +406,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        checkDataSetExists(dataset, fuseki());
+        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // Create Model UUID
         String modelUUID = UUIDGenerator.generateUUID();
@@ -470,7 +444,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        checkDataSetExists(dataset, fuseki());
+        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // Get the dataset's model
         LOGGER.info("Pulling model: " + modelUUID);
@@ -565,7 +539,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        checkDataSetExists(dataset, fuseki());
+        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // JSON -> Tree
         LOGGER.info("updateModelReplace: Extracting JSON-LD -> model");
@@ -622,7 +596,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        checkDataSetExists(dataset, fuseki());
+        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // Get the dataset's model
         LOGGER.info("Pulling model: " + modelUUID);
@@ -707,7 +681,7 @@ public class BatsModelController {
         DataSet dataset = initDataset(datasetUUID);
 
         // Check if dataset exists
-        checkDataSetExists(dataset, fuseki());
+        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // Delete the dataset's model
         LOGGER.info("Deleting model: " + modelUUID);
