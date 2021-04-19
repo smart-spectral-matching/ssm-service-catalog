@@ -62,10 +62,11 @@ public final class JsonUtils {
     }
 
     /**
+     * Merge two JsonNodes together.
      *
      * @param mainNode
      * @param updateNode
-     * @return
+     * @return the JsonNode result of merging mainNode and updateNode
      */
     public static JsonNode merge(final JsonNode mainNode,
         final JsonNode updateNode) {
