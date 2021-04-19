@@ -348,7 +348,8 @@ public class BatsModelController {
         @RequestParam(name = "limit", defaultValue = "5")
         @Min(1) final int limit
     ) {
-        QueryExecution execution = prepareModelUUIDQuery(datasetUUID);
+        // pmd does not recognize that this will always be closed
+        QueryExecution execution = prepareModelUUIDQuery(datasetUUID); //NOPMD
 
         // immediately return 200 if the query was not valid
         ResultSet results;
@@ -498,7 +499,8 @@ public class BatsModelController {
     public ResponseEntity<?> getUUIDs(@PathVariable("dataset_uuid")
         @Pattern(regexp = UUIDGenerator.UUID_REGEX) final String datasetUUID) {
 
-        QueryExecution execution = prepareModelUUIDQuery(datasetUUID);
+        // pmd does not recognize that this is always being closed
+        QueryExecution execution = prepareModelUUIDQuery(datasetUUID); // NOPMD
 
         // immediately return 200 if the query was not valid
         ResultSet results;
