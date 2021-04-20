@@ -5,7 +5,7 @@
 		"spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
 		"name": "John Lennon"
 	}, {
-		"@id": "http://localhost:8080/schemas/metadata",
+		"@id": "http://purl.org/dc/terms/",
 		"created": "XXXX-XX-XX XX:XX:XX",
 		"modified": "XXXX-XX-XX XX:XX:XX"
 	}],
