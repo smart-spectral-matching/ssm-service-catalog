@@ -341,6 +341,111 @@ public class ITBatsModelControllerMVC {
 
     /**
      *
+     * Main method for testing updates to the simple file.
+     *
+     * If you want to test a file with a different format, you'll need a new method.
+     *
+     * @param userIncludesTimestamps true to test timestamp submission,
+     *      false to test "normal" submission
+     * @param jsonld name of jsonld file in src/test/resources
+     * @param data TestData object containing relevant data from generic POST request
+     * @throws Exception
+     */
+    private void timestampTestSimpleUpdate(final boolean userIncludesTimestamps,
+        final String jsonld, final TestData data) throws Exception {
+        /////////// update model with PUT ////////////////
+        final String updateKey = "name";
+        String updateValue = "Norton I, Emperor of the United States";
+
+        String sampleJson = getFileDataFromTestResources(jsonld);
+        ObjectNode node = MAPPER.readValue(sampleJson, ObjectNode.class);
+        // the file does not have an @graph, so we don't have to add it
+        node.put(updateKey, updateValue);
+        if (userIncludesTimestamps) {
+            node.put("created", data.dummyTimeStr)
+                .put("modified", data.dummyTimeStr);
+        }
+        sampleJson = node.toString();
+
+        // wait a second before making the request
+        Thread.sleep(1000);
+
+        String response = mockMvc.perform(put(data.modelUri)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(sampleJson))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        JsonNode json = MAPPER.readTree(response);
+
+        // get last element of @graph node, this is the metadata node we want
+        json = getMetadataNode(json);
+        // get the created timestamp from the response
+        LocalDateTime createdTime = LocalDateTime.parse(
+            json
+            .get("created")
+            .asText()
+            .replace(' ', 'T')
+        );
+        // ASSERT: created time is exactly the same from the POST request
+        assertTrue(createdTime.equals(data.createdTime));
+        assertTrue(createdTime.isAfter(data.dummyTime));
+        // get the updated timestamp from the response
+        LocalDateTime modifiedTime = LocalDateTime.parse(
+            json
+            .get("modified")
+            .asText()
+            .replace(' ', 'T')
+        );
+        // ASSERT: modified time is after the POST request timestamp
+        assertTrue(modifiedTime.isAfter(data.createdTime));
+
+        ///////////// update model with PATCH ////////////////
+        updateValue = "Screaming Lord Sutch";
+
+        sampleJson = getFileDataFromTestResources(jsonld);
+        node = MAPPER.createObjectNode();
+        node.put(updateKey, updateValue);
+        if (userIncludesTimestamps) {
+            node.put("created", data.dummyTimeStr)
+                .put("modified", data.dummyTimeStr);
+        }
+        sampleJson = node.toString();
+
+        // wait a second before making the request
+        Thread.sleep(1000);
+
+        response = mockMvc.perform(patch(data.modelUri)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(sampleJson))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        json = MAPPER.readTree(response);
+
+        // get last element of @graph node, this is the metadata node we want
+        json = getMetadataNode(json);
+        // get the created timestamp from the response
+        createdTime = LocalDateTime.parse(
+            json
+            .get("created")
+            .asText()
+            .replace(' ', 'T')
+        );
+        // ASSERT: the created timestamp still has not changed
+        assertTrue(createdTime.equals(data.createdTime));
+        assertTrue(createdTime.isAfter(data.dummyTime));
+        // get the updated timestamp from the response
+        LocalDateTime modifiedTime2 = LocalDateTime.parse(
+            json
+            .get("modified")
+            .asText()
+            .replace(' ', 'T')
+        );
+        // ASSERT: the newest modified timestamp is after the last modified timestamp
+        assertTrue(modifiedTime2.isAfter(modifiedTime));
+    }
+
+    /**
+     *
      * Full suite test:
      *
      * 1. Test that if the user tries to POST JSON with "created" and "modified" properties,
@@ -398,7 +503,7 @@ public class ITBatsModelControllerMVC {
         final boolean userIncludesTimestamps = true;
         final String jsonld = "simple.input.jsonld";
         final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
-        timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
+        timestampTestSimpleUpdate(userIncludesTimestamps, jsonld, data);
     }
 
     /**
@@ -418,7 +523,7 @@ public class ITBatsModelControllerMVC {
         final boolean userIncludesTimestamps = false;
         final String jsonld = "simple.input.jsonld";
         final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
-        timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
+        timestampTestSimpleUpdate(userIncludesTimestamps, jsonld, data);
     }
 
 }

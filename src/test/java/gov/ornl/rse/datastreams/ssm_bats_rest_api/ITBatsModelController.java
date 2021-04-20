@@ -18,6 +18,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -25,6 +28,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsModelController {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
      * Java servlet context.
@@ -192,8 +197,7 @@ public class ITBatsModelController {
             baseUri() + "/datasets",
             HttpEntity.EMPTY,
             String.class).getBody();
-        ObjectMapper mapper = new ObjectMapper();
-        String datasetUUID  = mapper.readTree(jsonString)
+        String datasetUUID  = MAPPER.readTree(jsonString)
                                     .get("uuid")
                                     .asText();
         return datasetUUID;
@@ -212,8 +216,7 @@ public class ITBatsModelController {
             getDatasetUri(datasetUUID) + "/models",
             makeBody(MediaType.APPLICATION_JSON, jsonld),
             String.class).getBody();
-        ObjectMapper mapper = new ObjectMapper();
-        String modelUUID  = mapper.readTree(jsonString).get("uuid").asText();
+        String modelUUID  = MAPPER.readTree(jsonString).get("uuid").asText();
         return modelUUID;
     }
 
@@ -230,21 +233,19 @@ public class ITBatsModelController {
 
         Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
-        ObjectMapper mapper = new ObjectMapper();
-
         // Check the @context sections match
         Assertions.assertEquals(
-            mapper.readTree(simpleOutputJSONLD()).get("@context"),
-            mapper.readTree(response.getBody()).get("model").get("@context")
+            MAPPER.readTree(simpleOutputJSONLD()).get("@context"),
+            MAPPER.readTree(response.getBody()).get("model").get("@context")
         );
 
         // Check that part of the @graph sections match
         // Certain fields ("created", "modified") cannot match
         Assertions.assertEquals(
-            mapper.readTree(simpleOutputJSONLD())
+            MAPPER.readTree(simpleOutputJSONLD())
                     .get("@graph")
                     .get(0),
-            mapper.readTree(response.getBody())
+            MAPPER.readTree(response.getBody())
                     .get("model")
                     .get("@graph")
                     .get(0)
@@ -267,8 +268,7 @@ public class ITBatsModelController {
 
         Assertions.assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
-        ObjectMapper mapper = new ObjectMapper();
-        String modelUUID = mapper.readTree(response.getBody())
+        String modelUUID = MAPPER.readTree(response.getBody())
                                  .get("uuid")
                                  .asText();
         String modelUri = getModelUri(datasetUUID, modelUUID);
@@ -278,9 +278,9 @@ public class ITBatsModelController {
         System.out.println("Model Uuid: " + modelUUID);
         System.out.println("Model Uri: " + modelUri);
         System.out.println("\n\n");
-        JsonNode targetGraph = mapper.readTree(scidataOutputJSONLD(modelUri))
+        JsonNode targetGraph = MAPPER.readTree(scidataOutputJSONLD(modelUri))
                                 .get("@graph");
-        JsonNode resultGraph = mapper.readTree(response.getBody())
+        JsonNode resultGraph = MAPPER.readTree(response.getBody())
                                 .get("model")
                                 .get("@graph");
 
@@ -291,8 +291,9 @@ public class ITBatsModelController {
         for (JsonNode jsonNode : resultArray) {
             String nodeID = jsonNode.get("@id").asText();
 
-            // Skip the "schemas/metadata" for "created" and "modified"
-            if (nodeID.contains("schemas/metadata")) {
+            // Skip the "metadata" node which contains
+            // "created" and "modified"
+            if (nodeID.contains(JsonUtils.METADATA_URI)) {
                 continue;
             }
 
@@ -320,21 +321,19 @@ public class ITBatsModelController {
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        ObjectMapper mapper = new ObjectMapper();
-
         // Check the @context sections match
         Assertions.assertEquals(
-            mapper.readTree(simpleOutputJSONLD()).get("@context"),
-            mapper.readTree(response.getBody()).get("model").get("@context")
+            MAPPER.readTree(simpleOutputJSONLD()).get("@context"),
+            MAPPER.readTree(response.getBody()).get("model").get("@context")
         );
 
         // Check that part of the @graph sections match
         // Certain fields ("created", "modified") cannot match
         Assertions.assertEquals(
-            mapper.readTree(simpleOutputJSONLD())
+            MAPPER.readTree(simpleOutputJSONLD())
                     .get("@graph")
                     .get(0),
-            mapper.readTree(response.getBody())
+            MAPPER.readTree(response.getBody())
                     .get("model")
                     .get("@graph")
                     .get(0)
@@ -358,11 +357,9 @@ public class ITBatsModelController {
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        ObjectMapper mapper = new ObjectMapper();
-
-        JsonNode targetGraph = mapper.readTree(scidataOutputJSONLD(modelUri))
+        JsonNode targetGraph = MAPPER.readTree(scidataOutputJSONLD(modelUri))
                                 .get("@graph");
-        JsonNode resultGraph = mapper.readTree(response.getBody())
+        JsonNode resultGraph = MAPPER.readTree(response.getBody())
                                 .get("model")
                                 .get("@graph");
 
@@ -395,21 +392,14 @@ public class ITBatsModelController {
         String modelUri = getModelUri(datasetUUID, modelUUID);
 
         // Create body for our update to the model
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode newNameNode = mapper.createObjectNode();
-        newNameNode.put("name", "Ringo Starr");
-        String newName = mapper.writeValueAsString(newNameNode);
-
-        // Merge payload with model for target we verify against
-        JsonNode originalJson = mapper.readTree(simpleOutputJSONLD());
-        JsonNode newNameJson = mapper.readTree(newName);
-        JsonNode jsonldPayload = mapper.readerForUpdating(originalJson)
-                                       .readValue(newNameJson);
+        ObjectNode jsonLd = (ObjectNode) MAPPER.readTree(simpleInputJSONLD());
+        jsonLd.put("name", "Ringo Starr");
+        String jsonldPayload = MAPPER.writeValueAsString(jsonLd);
 
         // Send the update
         ResponseEntity<String> response = restTemplate.exchange(
             modelUri,
-            HttpMethod.PATCH,
+            HttpMethod.PUT,
             makeBody(MediaType.APPLICATION_JSON, jsonldPayload),
             String.class
         );
@@ -420,7 +410,7 @@ public class ITBatsModelController {
         // Ensure the update modified the data
         Assertions.assertEquals(
             jsonldPayload,
-            mapper.readTree(response.getBody()).get("model")
+            MAPPER.readTree(response.getBody()).get("model")
         );
     }
 
@@ -434,17 +424,16 @@ public class ITBatsModelController {
         String modelUri = getModelUri(datasetUUID, modelUUID);
 
         // Create body for our update to the model
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode newNameNode = mapper.createObjectNode();
+        ObjectNode newNameNode = MAPPER.createObjectNode();
         newNameNode.put("name", "Ringo Starr");
 
-        ArrayNode newGraphArray = mapper.createArrayNode();
+        ArrayNode newGraphArray = MAPPER.createArrayNode();
         newGraphArray.add(newNameNode);
 
-        ObjectNode newGraphNode = mapper.createObjectNode();
+        ObjectNode newGraphNode = MAPPER.createObjectNode();
         newGraphNode.set("@graph", newGraphArray);
 
-        String newName = mapper.writeValueAsString(newGraphNode);
+        String newName = MAPPER.writeValueAsString(newGraphNode);
 
         // Send the update
         ResponseEntity<String> response = restTemplate.exchange(
@@ -459,15 +448,15 @@ public class ITBatsModelController {
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
         // Merge payload with model for target we verify against
-        JsonNode originalJson = mapper.readTree(simpleOutputJSONLD());
-        JsonNode newNameJson = mapper.readTree(newName);
-        JsonNode target = mapper.readerForUpdating(originalJson)
+        JsonNode originalJson = MAPPER.readTree(simpleOutputJSONLD());
+        JsonNode newNameJson = MAPPER.readTree(newName);
+        JsonNode target = MAPPER.readerForUpdating(originalJson)
                                 .readValue(newNameJson);
 
         // Ensure the update modified the data
         Assertions.assertEquals(
             target,
-            mapper.readTree(response.getBody()).get("model")
+            MAPPER.readTree(response.getBody()).get("model")
         );
     }
 
