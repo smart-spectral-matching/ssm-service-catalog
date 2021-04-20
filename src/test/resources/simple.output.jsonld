@@ -6,8 +6,8 @@
 		"name": "John Lennon"
 	}, {
 		"@id": "http://localhost:8080/schemas/metadata",
-		"created": "XXX-XX-XX XX:XX:XX",
-		"modified": "XXX-XX-XX XX:XX:XX"
+		"created": "XXXX-XX-XX XX:XX:XX",
+		"modified": "XXXX-XX-XX XX:XX:XX"
 	}],
 	"@context": {
 		"birthDate": {

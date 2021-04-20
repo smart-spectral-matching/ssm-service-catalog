@@ -591,7 +591,7 @@ public class BatsModelController {
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
         @RequestBody final String jsonPayload
-    ) throws IOException {
+    ) throws IOException, NoSuchAlgorithmException {
         // Initialize dataset
         DataSet dataset = initDataset(datasetUUID);
 
@@ -615,49 +615,17 @@ public class BatsModelController {
         JsonNode modelNode = MAPPER.readTree(modelJSONLD);
         LOGGER.info("Pulled model: " + modelUUID);
         // Get saved "created" value, assume it exists exactly once
-        JsonNode createdTimeNode = MAPPER
-        .readTree(modelJSONLD)
-        .findValue(DCTerms.created.getLocalName());
+        JsonNode createdTimeNode = modelNode.findValue(DCTerms.created.getLocalName());
 
         LOGGER.info("updateModelPartial: Extracting JSON-LD from body data");
         // JSON -> Tree
         JsonNode payloadNode = MAPPER.readTree(jsonPayload);
-        // get rid of user submitted timestamps here
-        JsonUtils.clearTimestamps(payloadNode);
 
         // Merge payload with model
         JsonNode mergedModelNode = JsonUtils.merge(modelNode, payloadNode);
 
-        // Check if we have a @graph node, need to move all fields to top-level
-        JsonNode scidataNode = formatGraphNode(mergedModelNode);
-
-        // Replace @base in @context block w/ new URI
-        String scidataString = addBaseToContextToJsonLD(
-            scidataNode.toString(),
-            getModelUri(datasetUUID, modelUUID)
-        );
-
-        // Merged Tree -> Merged JSON -> Jena Model
-        StringReader reader = new StringReader(scidataString); //NOPMD
-        Model mergedModel = ModelFactory.createDefaultModel();
-        mergedModel.read(reader, null, "JSON-LD");
-        reader.close();
-        // add metadata information
-        final String now = DateUtils.now();
-        mergedModel.createResource(JsonUtils.METADATA_URI)
-            .addProperty(DCTerms.created, createdTimeNode.textValue())
-            .addProperty(DCTerms.modified, now);
-
-        // Upload merged model
-        try {
-            dataset.updateModel(modelUUID, mergedModel);
-            LOGGER.info("Model updated and uploaded!");
-        } catch (Exception e) {
-            LOGGER.error(UPLOAD_MODEL_ERROR, e);
-        }
-
-        Model newModel = dataset.getModel(modelUUID);
-        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
+        return jsonldToBatsModel(mergedModelNode, datasetUUID, modelUUID,
+            dataset, createdTimeNode.textValue());
     }
 
     /**
