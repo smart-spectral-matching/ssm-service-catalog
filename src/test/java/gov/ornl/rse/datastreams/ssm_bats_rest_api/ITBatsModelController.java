@@ -290,14 +290,16 @@ public class ITBatsModelController {
 
         // Check that part of the @graph sections match
         // Certain fields ("created", "modified") cannot match
+        String id = "http://localhost/beatles/member/1";
         Assertions.assertEquals(
-            MAPPER.readTree(simpleOutputJSONLD())
-                    .get("@graph")
-                    .get(0),
-            MAPPER.readTree(response.getBody())
-                    .get("model")
-                    .get("@graph")
-                    .get(0)
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) MAPPER.readTree(simpleOutputJSONLD()).get("@graph")
+            ),
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) MAPPER.readTree(response.getBody()).get("model").get("@graph")
+            )
         );
 
 
@@ -362,14 +364,16 @@ public class ITBatsModelController {
 
         // Check that part of the @graph sections match
         // Certain fields ("created", "modified") cannot match
+        String id = "http://localhost/beatles/member/1";
         Assertions.assertEquals(
-            MAPPER.readTree(simpleOutputJSONLD())
-                    .get("@graph")
-                    .get(0),
-            MAPPER.readTree(response.getBody())
-                    .get("model")
-                    .get("@graph")
-                    .get(0)
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) MAPPER.readTree(simpleOutputJSONLD()).get("@graph")
+            ),
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) MAPPER.readTree(response.getBody()).get("model").get("@graph")
+            )
         );
 
     }
@@ -450,14 +454,16 @@ public class ITBatsModelController {
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
 
         // Ensure the update modified the data
+        String id = "http://localhost/beatles/member/1";
         Assertions.assertEquals(
-            MAPPER.readTree(jsonldPayload)
-                .get("@graph")
-                .get(0),
-            MAPPER.readTree(response.getBody())
-                .get("model")
-                .get("@graph")
-                .get(0)
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) MAPPER.readTree(jsonldPayload).get("@graph")
+            ),
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) MAPPER.readTree(response.getBody()).get("model").get("@graph")
+            )
         );
     }
 
@@ -499,12 +505,16 @@ public class ITBatsModelController {
         JsonNode target = JsonUtils.merge(originalJson, newNameJson);
 
         // Ensure the update modified the data
+        String id = "http://localhost/beatles/member/1";
         Assertions.assertEquals(
-            target.get("@graph")
-                .get(0),
-            MAPPER.readTree(response.getBody()).get("model")
-                .get("@graph")
-                .get(0)
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) target.get("@graph")
+            ),
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) MAPPER.readTree(response.getBody()).get("model").get("@graph")
+            )
         );
     }
 
