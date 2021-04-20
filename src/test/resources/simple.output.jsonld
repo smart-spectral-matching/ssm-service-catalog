@@ -1,6 +1,7 @@
 {
 	"@graph": [{
-		"@id": "http://dbpedia.org/resource/John_Lennon",
+		"@id": "http://localhost/beatles/member/1",
+		"homepage": "http://dbpedia.org/resource/John_Lennon",
 		"birthDate": "1940-10-09",
 		"spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
 		"name": "John Lennon"
@@ -26,6 +27,10 @@
 		},
 		"modified": {
 			"@id": "http://purl.org/dc/terms/modified"
+		},
+		"homepage": {
+			"@id": "http://xmlns.com/foaf/0.1/homepage",
+			"@type": "@id"
 		},
 		"xsd": "http://www.w3.org/2001/XMLSchema#"
 	}
