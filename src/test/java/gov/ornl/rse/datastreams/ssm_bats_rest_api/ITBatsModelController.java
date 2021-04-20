@@ -118,6 +118,52 @@ public class ITBatsModelController {
     }
 
     /**
+     * Returns a JsonNode used for updating the simple JSON-LD model.
+     *
+     * @return JsonNode to use for updating the simple json-ld model
+     */
+    private JsonNode getSimpleUpdateNode() {
+        ObjectNode updateNode = MAPPER.createObjectNode();
+        updateNode.put("@id", "http://localhost/beatles/member/1");
+        updateNode.put("homepage", "https://dbpedia.org/page/Ringo_Starr");
+        updateNode.put("name", "Ringo Starr");
+        updateNode.put("spouse", "https://dbpedia.org/page/Barbara_Bach");
+        updateNode.put("birthDate", "1940-07-07");
+        return updateNode;
+    }
+
+    /**
+    *  Asserts we have matching URIs in @id part of each object in @graph array.
+    *
+    * @param resultGraph Result JsonNode to check the @graph array for
+    * @param datasetUUID The UUID of the dataset for the target model
+    * @param modelUUID   The UUID of the model for the target model
+    */
+    private void assertEqualIDsInGraphArrayNodes(
+        final JsonNode resultGraph,
+        final String datasetUUID,
+        final String modelUUID
+    ) {
+        // Check the URIs match in the @id part of each object in the @graph array
+        ArrayNode resultArray = (ArrayNode) resultGraph;
+        for (JsonNode jsonNode : resultArray) {
+            String nodeID = jsonNode.get("@id").asText();
+
+            // Skip the "metadata" node which contains
+            // "created" and "modified"
+            if (nodeID.contains(JsonUtils.METADATA_URI)) {
+                continue;
+            }
+            String modelUri = getModelUri(datasetUUID, modelUUID);
+            String msg = "Asserting " + nodeID + " contains " + modelUri;
+            System.out.println(msg);
+            String modelPath = getModelUriPartial(datasetUUID, modelUUID);
+            Assertions.assertTrue(nodeID.contains(modelPath));
+            System.out.println("  - assertion true!\n");
+        }
+    }
+
+    /**
      * Constructs an input JSON-LD for creating an example model.
      * Comes from "A Simple Example" at https://json-ld.org/
      * The JSON-LD retrieved after uploading is found in the
@@ -289,23 +335,7 @@ public class ITBatsModelController {
 
         Assertions.assertEquals(targetGraph.size(), resultGraph.size());
 
-        // Check the URIs match in the @id part of each object in the @graph array
-        ArrayNode resultArray = (ArrayNode) resultGraph;
-        for (JsonNode jsonNode : resultArray) {
-            String nodeID = jsonNode.get("@id").asText();
-
-            // Skip the "metadata" node which contains
-            // "created" and "modified"
-            if (nodeID.contains(JsonUtils.METADATA_URI)) {
-                continue;
-            }
-
-            String msg = "Asserting " + nodeID + " contains " + modelUri;
-            System.out.println(msg);
-            String modelPath = getModelUriPartial(datasetUUID, modelUUID);
-            Assertions.assertTrue(nodeID.contains(modelPath));
-            System.out.println("  - assertion true!\n");
-        }
+        assertEqualIDsInGraphArrayNodes(resultGraph, datasetUUID, modelUUID);
     }
 
     /**
@@ -394,10 +424,19 @@ public class ITBatsModelController {
         String modelUUID = createModel(datasetUUID, simpleInputJSONLD());
         String modelUri = getModelUri(datasetUUID, modelUUID);
 
-        // Create body for our update to the model
-        ObjectNode jsonLd = (ObjectNode) MAPPER.readTree(simpleInputJSONLD());
-        jsonLd.put("name", "Ringo Starr");
-        String jsonldPayload = MAPPER.writeValueAsString(jsonLd);
+        // Create @graph node
+        JsonNode updateNode = getSimpleUpdateNode();
+        ArrayNode graphNode = MAPPER.createArrayNode();
+        graphNode.add(updateNode);
+
+        // Create @context node
+        JsonNode contextNode = MAPPER.readTree(simpleOutputJSONLD()).get("@context");
+
+        // Create JSON-LD to replace using @graph and @context nodes
+        ObjectNode jsonld = MAPPER.createObjectNode();
+        jsonld.set("@graph", graphNode);
+        jsonld.set("@context", contextNode);
+        String jsonldPayload = MAPPER.writeValueAsString(jsonld);
 
         // Send the update
         ResponseEntity<String> response = restTemplate.exchange(
@@ -412,8 +451,13 @@ public class ITBatsModelController {
 
         // Ensure the update modified the data
         Assertions.assertEquals(
-            jsonldPayload,
-            MAPPER.readTree(response.getBody()).get("model")
+            MAPPER.readTree(jsonldPayload)
+                .get("@graph")
+                .get(0),
+            MAPPER.readTree(response.getBody())
+                .get("model")
+                .get("@graph")
+                .get(0)
         );
     }
 
@@ -427,8 +471,7 @@ public class ITBatsModelController {
         String modelUri = getModelUri(datasetUUID, modelUUID);
 
         // Create body for our update to the model
-        ObjectNode newNameNode = MAPPER.createObjectNode();
-        newNameNode.put("name", "Ringo Starr");
+        JsonNode newNameNode = getSimpleUpdateNode();
 
         ArrayNode newGraphArray = MAPPER.createArrayNode();
         newGraphArray.add(newNameNode);
@@ -453,13 +496,15 @@ public class ITBatsModelController {
         // Merge payload with model for target we verify against
         JsonNode originalJson = MAPPER.readTree(simpleOutputJSONLD());
         JsonNode newNameJson = MAPPER.readTree(newName);
-        JsonNode target = MAPPER.readerForUpdating(originalJson)
-                                .readValue(newNameJson);
+        JsonNode target = JsonUtils.merge(originalJson, newNameJson);
 
         // Ensure the update modified the data
         Assertions.assertEquals(
-            target,
+            target.get("@graph")
+                .get(0),
             MAPPER.readTree(response.getBody()).get("model")
+                .get("@graph")
+                .get(0)
         );
     }
 
