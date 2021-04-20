@@ -181,8 +181,7 @@ public class BatsModelController {
     throws IOException {
         LOGGER.info("Checking for @graph in model...");
 
-        if (jsonldNode.has("@graph")) {
-
+        if (jsonldNode.has("@graph") && jsonldNode.get("@graph").isObject()) {
             // Merge @graph node into top-level and remove duplicate @id node
             LOGGER.info("Moving @graph to top-level of model...");
             JsonNode graphNode = ((ObjectNode) jsonldNode).remove("@graph");
