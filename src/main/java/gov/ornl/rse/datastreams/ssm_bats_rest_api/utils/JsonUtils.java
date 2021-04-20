@@ -107,4 +107,25 @@ public final class JsonUtils {
         return mainNode;
     }
 
+    /**
+     * Get object of array node matching @id using given id arg.
+     *
+     * @param id        ID used to match @id in each element object
+     * @param arrayNode Array to iterate over to find id
+     * @return          JsonNode for matching object, otherwise null
+     */
+    public static JsonNode getIdFromArrayNode(
+        final String id,
+        final ArrayNode arrayNode
+    ) {
+        for (JsonNode jsonNode : arrayNode) {
+            String nodeId = jsonNode.get("@id").asText();
+            if (nodeId.equals(id)) {
+                return jsonNode;
+            } else {
+                continue;
+            }
+        }
+        return null;
+    }
 }
