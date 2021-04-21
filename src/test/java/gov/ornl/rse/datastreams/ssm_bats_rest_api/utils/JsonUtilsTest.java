@@ -90,4 +90,28 @@ public class JsonUtilsTest {
         );
     }
 
+    /**
+     * Test we get null when @id is not a text node.
+    */
+    @Test
+    public void testGetNullIfIdIsNotTextNode() throws Exception {
+        // Create the node of array
+        ObjectNode nodeId = MAPPER.createObjectNode();
+        nodeId.put("value", "object/id/1");
+
+        ObjectNode node = MAPPER.createObjectNode();
+        node.set("@id", nodeId);
+        node.put("value", "Object Value");
+
+        // Create the array using single node
+        ArrayNode arrayNode = MAPPER.createArrayNode();
+        arrayNode.add(node);
+
+        // Test each node
+        Assertions.assertEquals(
+            null,
+            JsonUtils.getIdFromArrayNode("object/id/1", arrayNode)
+        );
+    }
+
 }
