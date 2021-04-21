@@ -48,4 +48,25 @@ public class JsonUtilsTest {
         );
     }
 
+    /**
+     * Test we get null when @id does not exist.
+    */
+    @Test
+    public void testGetNullIfIdDoesNotExist() throws Exception {
+        // Create the node of array
+        String nodeId = "object/id/1";
+        ObjectNode node = MAPPER.createObjectNode();
+        node.put("@id", nodeId);
+        node.put("value", "Object Value");
+
+        // Create the array using single node
+        ArrayNode arrayNode = MAPPER.createArrayNode();
+        arrayNode.add(node);
+
+        // Test each node
+        Assertions.assertEquals(
+            null,
+            JsonUtils.getIdFromArrayNode("object/id/BADID", arrayNode)
+        );
+    }
 }
