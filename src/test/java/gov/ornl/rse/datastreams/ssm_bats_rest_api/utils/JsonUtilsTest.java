@@ -49,10 +49,10 @@ public class JsonUtilsTest {
     }
 
     /**
-     * Test we get null when @id does not exist.
+     * Test we get null when @id does not match.
     */
     @Test
-    public void testGetNullIfIdDoesNotExist() throws Exception {
+    public void testGetNullIfIdDoesNotMatch() throws Exception {
         // Create the node of array
         String nodeId = "object/id/1";
         ObjectNode node = MAPPER.createObjectNode();
@@ -69,4 +69,25 @@ public class JsonUtilsTest {
             JsonUtils.getIdFromArrayNode("object/id/BADID", arrayNode)
         );
     }
+
+    /**
+     * Test we get null when @id does not exist.
+    */
+    @Test
+    public void testGetNullIfIdDoesNotExist() throws Exception {
+        // Create the node of array
+        ObjectNode node = MAPPER.createObjectNode();
+        node.put("value", "Object Value");
+
+        // Create the array using single node
+        ArrayNode arrayNode = MAPPER.createArrayNode();
+        arrayNode.add(node);
+
+        // Test each node
+        Assertions.assertEquals(
+            null,
+            JsonUtils.getIdFromArrayNode("object/id/1", arrayNode)
+        );
+    }
+
 }
