@@ -119,11 +119,19 @@ public final class JsonUtils {
         final ArrayNode arrayNode
     ) {
         for (JsonNode jsonNode : arrayNode) {
+            // If the @id is not on the node, just continue to next node
+            if (!jsonNode.has("@id")) {
+                continue;
+            }
+
+            // Get @id and compare to our input ID, return object if match
             String nodeId = jsonNode.get("@id").asText();
             if (nodeId.equals(id)) {
                 return jsonNode;
             }
         }
+
+        // Return null if no @id found in array
         return null;
     }
 }
