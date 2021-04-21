@@ -122,8 +122,6 @@ public final class JsonUtils {
             String nodeId = jsonNode.get("@id").asText();
             if (nodeId.equals(id)) {
                 return jsonNode;
-            } else {
-                continue;
             }
         }
         return null;
