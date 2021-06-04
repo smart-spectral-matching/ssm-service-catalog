@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
@@ -153,15 +151,14 @@ public class BatsModelController {
      * </p>
      *
      * @param datasetUUID UUID from the dataset.
+     * @param queryStr literal query to call
      * @return a prepared query, ready to be executed
      */
-    private QueryExecution prepareModelUUIDQuery(final String datasetUUID) {
+    private QueryExecution prepareModelUUIDQuery(final String datasetUUID,
+        final String queryStr) {
         //SPARQL query to find all unique graphs
         ParameterizedSparqlString sparql = new ParameterizedSparqlString();
-        sparql.append("SELECT DISTINCT ?model");
-        sparql.append(" {");
-        sparql.append("GRAPH ?model { ?x ?y ?z }");
-        sparql.append("}");
+        sparql.append(queryStr);
 
         //Prepare to execute the query against the given dataset
         Query query = sparql.asQuery();
@@ -306,10 +303,10 @@ public class BatsModelController {
      * FETCH a certain amount of datasets.
      *
      * @param datasetUUID UUID of the Apache Jena Dataset this model belongs to
-     * @param offset page number to start on,
-     *    must be 0 or positive (default: 0)
-     * @param limit number of results to return,
-     *    must be positive (default: 20)
+     * @param pageNumber page number to start on,
+     *    must be positive (default: 1)
+     * @param pageSize number of results to return,
+     *    must be positive (default: 5)
      * @return BatsDatasets
      */
     @RequestMapping(
@@ -318,13 +315,20 @@ public class BatsModelController {
     public ResponseEntity<?> queryModels(
         @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String datasetUUID,
-        @RequestParam(name = "offset", defaultValue = "0")
-        @Min(0) final int offset,
-        @RequestParam(name = "limit", defaultValue = "5")
-        @Min(1) final int limit
+        @RequestParam(name = "pageNumber", defaultValue = "1")
+        @Min(1) final int pageNumber,
+        @RequestParam(name = "pageSize", defaultValue = "5")
+        @Min(1) final int pageSize
     ) {
         // pmd does not recognize that this will always be closed
-        QueryExecution execution = prepareModelUUIDQuery(datasetUUID); //NOPMD
+        QueryExecution execution = prepareModelUUIDQuery(datasetUUID, //NOPMD
+            "PREFIX dcterms: <http://purl.org/dc/terms/>"
+            + "SELECT DISTINCT ?model ?modified"
+            + "WHERE { GRAPH ?model {?x dcterms:modified ?modified}}"
+            + "ORDER BY DESC(?modified) "
+            + "OFFSET " + (pageNumber * pageSize - pageNumber)
+            + "LIMIT " + pageSize
+        );
 
         // immediately return 200 if the query was not valid
         ResultSet results;
@@ -335,48 +339,18 @@ public class BatsModelController {
             return ResponseEntity.ok(Collections.EMPTY_LIST);
         }
 
-        // TODO is there a better way to directly query only what we want?
-        // compare vs user-provided/default offset
-        int currentPage = 0;
-        // compare vs user-provided/default limit
-        int currentItemOnPage = 0;
-        // the model UUIDs we are querying for
-        List<String> modelUUIDs = new ArrayList<>();
+        //The JSON response being built
+        ArrayNode response = new ArrayNode(new JsonNodeFactory(false));
 
         //Add each found model to the response
         while (results.hasNext()) {
-            if (currentPage > offset) {
-                break;
-            }
             QuerySolution solution = results.next();
-            if (currentPage == offset) {
-                RDFNode node = solution.get("?model");
-                modelUUIDs.add(node.toString());
-            }
-            // increment our position on the 'page'
-            currentItemOnPage += 1;
-            if (currentItemOnPage == limit) {
-                // turn to the next 'page'
-                currentPage += 1;
-                currentItemOnPage = 0;
-            }
+            RDFNode node = solution.get("?model");
+            response.add(MAPPER.valueToTree(node));
         }
         execution.close();
 
-        // for each UUID, retrieve the full model
-        List<BatsModel> body = new ArrayList<>();
-        DataSet dataset = initDataset(datasetUUID);
-        for (String uuid: modelUUIDs) {
-            Model model = dataset.getModel(uuid); //NOPMD
-            try {
-                body.add(new BatsModel(uuid, RdfModelWriter.model2jsonld(model))); //NOPMD
-            } catch (IOException e) {
-                // should really not fail here
-                LOGGER.error("Unable to parse JSONLD from model {} dataset {}", uuid, datasetUUID);
-            }
-        }
-
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -475,7 +449,9 @@ public class BatsModelController {
         @Pattern(regexp = UUIDGenerator.UUID_REGEX) final String datasetUUID) {
 
         // pmd does not recognize that this is always being closed
-        QueryExecution execution = prepareModelUUIDQuery(datasetUUID); // NOPMD
+        QueryExecution execution = prepareModelUUIDQuery(datasetUUID, // NOPMD
+            "SELECT DISTINCT ?model {GRAPH ?model { ?x ?y ?z }}"
+        );
 
         // immediately return 200 if the query was not valid
         ResultSet results;
