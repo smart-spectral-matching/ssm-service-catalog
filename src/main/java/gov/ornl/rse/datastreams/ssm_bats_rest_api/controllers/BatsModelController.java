@@ -322,12 +322,12 @@ public class BatsModelController {
     ) {
         // pmd does not recognize that this will always be closed
         QueryExecution execution = prepareModelUUIDQuery(datasetUUID, //NOPMD
-            "PREFIX dcterms: <http://purl.org/dc/terms/>"
-            + "SELECT DISTINCT ?model ?modified"
-            + "WHERE { GRAPH ?model {?x dcterms:modified ?modified}}"
+            "PREFIX dcterms: <http://purl.org/dc/terms/> "
+            + "SELECT DISTINCT ?model ?modified "
+            + "WHERE { GRAPH ?model {?x dcterms:modified ?modified}} "
             + "ORDER BY DESC(?modified) "
             + "OFFSET " + (pageNumber * pageSize - pageNumber)
-            + "LIMIT " + pageSize
+            + " LIMIT " + pageSize
         );
 
         // immediately return 200 if the query was not valid
