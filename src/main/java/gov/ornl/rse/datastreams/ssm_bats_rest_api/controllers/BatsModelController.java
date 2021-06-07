@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
@@ -339,18 +341,31 @@ public class BatsModelController {
             return ResponseEntity.ok(Collections.EMPTY_LIST);
         }
 
-        //The JSON response being built
-        ArrayNode response = new ArrayNode(new JsonNodeFactory(false));
-
         //Add each found model to the response
+        List<BatsModel> body = new ArrayList<>();
+        DataSet dataset = initDataset(datasetUUID);
         while (results.hasNext()) {
             QuerySolution solution = results.next();
             RDFNode node = solution.get("?model");
-            response.add(MAPPER.valueToTree(node));
+            Model model = dataset.getModel(node.toString());
+            try {
+                body.add(
+                    new BatsModel(//NOPMD
+                        node.toString(),
+                        RdfModelWriter.model2jsonld(model)
+                    )
+                );
+            } catch (IOException e) {
+                LOGGER.error(
+                    "Unable to parse JSONLD from model {} dataset {}",
+                    node.toString(),
+                    datasetUUID
+                );
+            }
         }
         execution.close();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(body);
     }
 
     /**
