@@ -326,7 +326,7 @@ public class BatsModelController {
             + "SELECT DISTINCT ?model ?modified "
             + "WHERE { GRAPH ?model {?x dcterms:modified ?modified}} "
             + "ORDER BY DESC(?modified) "
-            + "OFFSET " + (pageNumber * pageSize - pageNumber)
+            + "OFFSET " + (pageNumber * pageSize - pageSize)
             + " LIMIT " + pageSize
         );
 
