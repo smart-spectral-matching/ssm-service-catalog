@@ -24,7 +24,7 @@ public final class JsonUtils {
     /**
      * URI used for the special metadata field. Can really be anything, as long as it's consistent.
      */
-    public static final String METADATA_URI = "http://purl.org/dc/terms/";
+    public static final String METADATA_URI = "https://purl.org/dc/terms/";
 
     private JsonUtils() {
 
