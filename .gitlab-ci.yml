@@ -28,7 +28,7 @@ test:
         - docker pull ${CI_REGISTRY_IMAGE}/openjdk:11-jre-slim
         - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
         - cd src/main/docker
-        - docker build -f Dockerfile.fuseki -t DELETEME .
+        - docker build -f Dockerfile.fuseki -t deleteme .
         - cd ../../../
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
         - func_rse_docker_cleanup
