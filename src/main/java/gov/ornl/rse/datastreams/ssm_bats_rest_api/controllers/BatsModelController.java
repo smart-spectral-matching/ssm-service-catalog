@@ -6,7 +6,9 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
@@ -302,50 +304,44 @@ public class BatsModelController {
     }
 
     /**
-     * FETCH a certain amount of datasets.
+     * Gets model data based on SPARQL query results.
      *
-     * @param datasetUUID UUID of the Apache Jena Dataset this model belongs to
-     * @param pageNumber page number to start on,
-     *    must be positive (default: 1)
-     * @param pageSize number of results to return,
-     *    must be positive (default: 5)
-     * @return BatsDatasets
-     */
-    @RequestMapping(
-        value = "/{dataset_uuid}/models",
-        method = RequestMethod.GET)
-    public ResponseEntity<?> queryModels(
-        @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String datasetUUID,
-        @RequestParam(name = "pageNumber", defaultValue = "1")
-        @Min(1) final int pageNumber,
-        @RequestParam(name = "pageSize", defaultValue = "5")
-        @Min(1) final int pageSize
+     * @param queryResults Results from previous SPARQL query
+     * @return             List of Maps for model data
+    */
+
+    private List<Map<String, Object>> getModels(
+        final ResultSet queryResults
     ) {
-        // pmd does not recognize that this will always be closed
-        QueryExecution execution = prepareModelUUIDQuery(datasetUUID, //NOPMD
-            "PREFIX dcterms: <http://purl.org/dc/terms/> "
-            + "SELECT DISTINCT ?model ?modified "
-            + "WHERE { GRAPH ?model {?x dcterms:modified ?modified}} "
-            + "ORDER BY DESC(?modified) "
-            + "OFFSET " + (pageNumber * pageSize - pageSize)
-            + " LIMIT " + pageSize
-        );
-
-        // immediately return 200 if the query was not valid
-        ResultSet results;
-        try {
-            results = execution.execSelect();
-        } catch (QueryException ex) {
-            execution.close();
-            return ResponseEntity.ok(Collections.EMPTY_LIST);
+        List<Map<String, Object>> body = new ArrayList<>();
+        while (queryResults.hasNext()) {
+            QuerySolution solution = queryResults.next();
+            Map<String, Object> map = new HashMap<String, Object>(); //NOPMD
+            map.put("uuid", solution.get("?model").toString());
+            map.put("title", solution.get("?title").toString());
+            map.put("url", solution.get("?scidata_url").toString());
+            map.put("created", solution.get("?created").toString());
+            map.put("modified", solution.get("?modified").toString());
+            body.add(map);
         }
+        return body;
+    }
 
-        //Add each found model to the response
+    /**
+     * Gets full models from dataset based on SPARQL query results.
+     *
+     * @param queryResults Results from previous SPARQL query
+     * @param datasetUUID  UUID of the Apache Jena Dataset the models belong to
+     * @return             List of BatsModel for the full models
+    */
+    private List<BatsModel> getFullModels(
+        final String datasetUUID,
+        final ResultSet queryResults
+    ) {
         List<BatsModel> body = new ArrayList<>();
         DataSet dataset = initDataset(datasetUUID);
-        while (results.hasNext()) {
-            QuerySolution solution = results.next();
+        while (queryResults.hasNext()) {
+            QuerySolution solution = queryResults.next();
             RDFNode node = solution.get("?model");
             Model model = dataset.getModel(node.toString());
             try {
@@ -363,9 +359,90 @@ public class BatsModelController {
                 );
             }
         }
-        execution.close();
+        return body;
+    }
 
-        return ResponseEntity.ok(body);
+
+    /**
+     * FETCH a certain amount of datasets.
+     *
+     * @param datasetUUID UUID of the Apache Jena Dataset this model belongs to
+     * @param pageNumber page number to start on,
+     *    must be positive (default: 1)
+     * @param pageSize number of results to return,
+     *    must be positive (default: 5)
+     * @param returnFull boolean for returning full model or not
+     * @return List either BatsModels (full) or List of Map (not full)
+     */
+    @RequestMapping(
+        value = "/{dataset_uuid}/models",
+        method = RequestMethod.GET)
+    public ResponseEntity<?> queryModels(
+        @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
+        final String datasetUUID,
+        @RequestParam(name = "pageNumber", defaultValue = "1")
+        @Min(1) final int pageNumber,
+        @RequestParam(name = "pageSize", defaultValue = "5")
+        @Min(1) final int pageSize,
+        @RequestParam(name = "returnFull", defaultValue = "false")
+        final boolean returnFull
+        //@RequestParam(
+        //    name = "returnProperties",
+        //    defaultValue = ["uuid","title","url","created","modified"]
+        //) final String[] returnProperties
+        // ) @Valid final String[] returnProperties
+    ) {
+        // final PropertyEnum[]
+        // pmd does not recognize that this will always be closed
+        String queryString =
+            "PREFIX dcterm: <http://purl.org/dc/terms/>"
+            + "PREFIX dcterms: <https://purl.org/dc/terms/>"
+            + "PREFIX obo: <http://purl.obolibrary.org/obo/>"
+            + "PREFIX prov: <http://www.w3.org/ns/prov#>"
+            + "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+            + "PREFIX rdfs: <https://www.w3.org/2000/01/rdf-schema#>"
+            + "PREFIX sdo: <https://stuchalk.github.io/scidata/ontology/scidata.owl#>"
+            + "PREFIX url: <http://schema.org/>"
+            + "PREFIX urls: <https://schema.org/>"
+            + "PREFIX xml: <http://www.w3.org/2001/XMLSchema#>"
+            + "PREFIX xmls: <https://www.w3.org/2001/XMLSchema#>"
+            + "SELECT ?model ?title ?scidata_url ?modified ?created "
+            + "WHERE { "
+            + "  GRAPH ?model { "
+            + "    ?node1 dcterms:title ?title . "
+            + "    ?node2 dcterm:modified ?modified . "
+            + "    ?node3 dcterm:created ?created . "
+            + "    ?scidata_url rdf:type sdo:scidataFramework . "
+            + "  } "
+            + "}"
+            + "ORDER BY DESC(?modified) "
+            + "OFFSET " + (pageNumber * pageSize - pageSize) + " "
+            + "LIMIT " + pageSize;
+
+        QueryExecution execution = prepareModelUUIDQuery(//NOPMD
+            datasetUUID, queryString
+        );
+
+        // immediately return 200 if the query was not valid
+        ResultSet results;
+        try {
+            results = execution.execSelect();
+        } catch (QueryException ex) {
+            execution.close();
+            return ResponseEntity.ok(Collections.EMPTY_LIST);
+        }
+
+        //Add each found model to the response
+        if (returnFull) {
+            List<BatsModel> body = getFullModels(datasetUUID, results);
+            execution.close();
+            return ResponseEntity.ok(body);
+        } else {
+            List<Map<String, Object>> body = getModels(results);
+            execution.close();
+            return ResponseEntity.ok(body);
+        }
+
     }
 
     /**
