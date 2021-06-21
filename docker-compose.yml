@@ -1,6 +1,7 @@
 version: '3'
 services:
   ssm-fuseki:
+    # image: code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/fuseki:latest
     build:
       context: ./src/main/docker
       dockerfile: Dockerfile.fuseki
