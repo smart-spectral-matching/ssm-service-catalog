@@ -4,7 +4,6 @@ stages:
 
 variables:
     CONTAINER_API_URL: "${CI_REGISTRY_IMAGE}/ssm-bats-rest-api"
-    CONTAINER_FUSEKI_URL: "${CI_REGISTRY_IMAGE}/fuseki"
 
 include:
     remote: "https://code.ornl.gov/rse-deployment/rse-sharables/-/raw/master/.gitlab-ci-before_script.yml"
@@ -27,9 +26,6 @@ test:
         - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
         - docker pull ${CI_REGISTRY_IMAGE}/openjdk:11-jre-slim
         - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
-        - cd src/main/docker
-        - docker build -f Dockerfile.fuseki -t deleteme .
-        - cd ../../../
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
         - func_rse_docker_cleanup
     tags:
@@ -44,18 +40,6 @@ coverage:
         - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test /bin/bash -c "mvn clean docker:build verify; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; print 100*covered/instructions, \"% covered\" }' target/site/jacoco/jacoco.csv"
         - func_rse_docker_cleanup
-    tags:
-        - rse-ssm-builder
-
-build-fuseki:
-    stage: build
-    script:
-        - func_rse_docker_cleanup
-        - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
-        - docker build -f src/main/docker/Dockerfile.fuseki -t $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA src/main/docker/
-        - docker tag $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:latest
-        - docker push $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
-        - docker push $CONTAINER_FUSEKI_URL/$CI_COMMIT_REF_NAME:latest
     tags:
         - rse-ssm-builder
 
