@@ -470,7 +470,7 @@ public class BatsModelController {
                 + (pageNumber > 1 ? pageNumber - 1 : 1) + "&pageSize="
                 + pageSize + "&returnFull=false");
             body.put("next", modelsURI + "?pageNumber="
-                + (pageNumber < totalPages ? totalPages - pageNumber : totalPages)
+                + (pageNumber < totalPages ? pageNumber + 1 : totalPages)
                 + "&pageSize=" + pageSize + "&returnFull=false");
             body.put("last", modelsURI + "?pageNumber=" + totalPages
                 + "&pageSize=" + pageSize + "&returnFull=false");
