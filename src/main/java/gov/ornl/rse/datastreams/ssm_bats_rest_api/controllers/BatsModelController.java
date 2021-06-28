@@ -431,10 +431,8 @@ public class BatsModelController {
         } else {
             // make an additional query to count total number of models
             String countAllQueryString =
-                QUERY_PREFIX_STRING
-                + "SELECT (count(distinct ?model) as ?count) WHERE {"
-                + "GRAPH ?model { ?x ?y ?z } "
-                + "BIND( xsd:integer(?count) as ?_count) }";
+                "SELECT (count(distinct ?model) as ?count) WHERE {"
+                + "GRAPH ?model { ?x ?y ?z }}";
             QueryExecution countAllExecution = // NOPMD
                 prepareModelUUIDQuery(datasetUUID, countAllQueryString);
             ResultSet countResults;
