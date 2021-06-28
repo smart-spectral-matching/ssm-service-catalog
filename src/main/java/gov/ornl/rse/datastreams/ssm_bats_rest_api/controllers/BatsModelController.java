@@ -442,6 +442,7 @@ public class BatsModelController {
                 countResults = countAllExecution.execSelect();
             } catch (QueryException ex) {
                 countAllExecution.close();
+                execution.close();
                 return ResponseEntity.ok(Collections.EMPTY_MAP);
             }
             int totalResults = 0;
