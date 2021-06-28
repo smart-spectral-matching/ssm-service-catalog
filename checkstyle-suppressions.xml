@@ -11,9 +11,7 @@
   <!-- suppress this warning for getMaskedTypeName -->
   <suppress checks="CyclomaticComplexity" files="ControllerExceptionHandler.java" lines="170-220" />
   <!-- suppress this warning for queryModels -->
-  <suppress checks="CyclomaticComplexity" files="BatsModelController.java" lines="270-340" />
-    <!-- suppress this warning for clearTimestamps (recursive method) -->
+  <suppress checks="CyclomaticComplexity" files="BatsModelController.java" lines="364-464" />
+  <!-- suppress this warning for clearTimestamps (recursive method) -->
   <suppress checks="CyclomaticComplexity" files="JsonUtils.java" lines="32-64,71-108" />
-  <!-- suppress these warnings for formatGraphNode -->
-  <suppress checks="FinalParameters" files="BatsModelController.java" lines="177-193" />
 </suppressions>

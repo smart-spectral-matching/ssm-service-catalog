@@ -74,4 +74,29 @@ public class ConfigUtils {
         return config.getHost() + servletContext.getContextPath();
     }
 
+    /**
+     * Returns dataset API URL given the dataset.
+     *
+     * @param datasetUUID UUID for the Dataset the model belongs to
+     * @return Full URI for the Dataset
+     */
+    public String getDatasetUri(final String datasetUUID) {
+        final String uri = getBasePath() + "/datasets/" + datasetUUID;
+        return uri.replace("\"", "");
+    }
+
+    /**
+     * Returns Model API URI given the Dataset and Model UUID.
+     *
+     * @param datasetUUID UUID for the Dataset the model belongs to
+     * @param modelUUID   UUID for the Model
+     * @return Full URI for the Model
+     */
+    public String getModelUri(final String datasetUUID, final String modelUUID) {
+        String baseUri = getBasePath();
+        String datasetUri = baseUri + "/datasets/" + datasetUUID;
+        String modelUri = datasetUri + "/models/" + modelUUID + "/";
+        return modelUri.replace("\"", "");
+    }
+
 }

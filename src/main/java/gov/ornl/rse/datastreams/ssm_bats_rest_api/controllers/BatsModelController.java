@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -107,6 +107,23 @@ public class BatsModelController {
     private static final String DELETE_MODEL_ERROR =
         "Unable to delete model on the remote Fuseki server.";
 
+    /**
+     * SPARQL Prefix string. This should be included with EVERY query
+     * which needs to get the values of the model properties.
+     */
+    private static final String QUERY_PREFIX_STRING =
+    "PREFIX dcterm: <http://purl.org/dc/terms/>"
+    + "PREFIX dcterms: <https://purl.org/dc/terms/>"
+    + "PREFIX obo: <http://purl.obolibrary.org/obo/>"
+    + "PREFIX prov: <http://www.w3.org/ns/prov#>"
+    + "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+    + "PREFIX rdfs: <https://www.w3.org/2000/01/rdf-schema#>"
+    + "PREFIX sdo: <https://stuchalk.github.io/scidata/ontology/scidata.owl#>"
+    + "PREFIX url: <http://schema.org/>"
+    + "PREFIX urls: <https://schema.org/>"
+    + "PREFIX xml: <http://www.w3.org/2001/XMLSchema#>"
+    + "PREFIX xmls: <https://www.w3.org/2001/XMLSchema#>"
+    + "PREFIX xsd: <https://www.w3.org/2001/XMLSchema#>";
 
     /**
      * @return shorthand for the Fuseki configuration
@@ -126,23 +143,6 @@ public class BatsModelController {
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
         return dataset;
-    }
-
-    /**
-     * Returns Model API URI given the Dataset and Model UUID.
-     *
-     * @param datasetUUID UUID for the Dataset the model belongs to
-     * @param modelUUID   UUID for the Model
-     * @return            Full URI for the Model
-    */
-    private String getModelUri(
-        final String datasetUUID,
-        final String modelUUID
-    ) {
-        String baseUri = configUtils.getBasePath();
-        String datasetUri = baseUri + "/datasets/" + datasetUUID;
-        String modelUri = datasetUri + "/models/" + modelUUID + "/";
-        return modelUri.replace("\"", "");
     }
 
     /**
@@ -178,7 +178,7 @@ public class BatsModelController {
      * @param jsonldNode  JSON-LD to modify if it has @graph
      * @return            Modified JSON-LD
     */
-    private JsonNode formatGraphNode(JsonNode jsonldNode)
+    private JsonNode formatGraphNode(final JsonNode jsonldNode)
     throws IOException {
         LOGGER.info("Checking for @graph in model...");
 
@@ -191,7 +191,7 @@ public class BatsModelController {
             ObjectReader objectReader = MAPPER.readerForUpdating(
                 jsonldNode
             );
-            jsonldNode = objectReader.readValue(graphNode);
+            return objectReader.readValue(graphNode);
         }
         return jsonldNode;
     }
@@ -274,7 +274,7 @@ public class BatsModelController {
         // Replace @base in @context block w/ new URI
         String scidataString = addBaseToContextToJsonLD(
             scidataNode.toString(),
-            getModelUri(datasetUUID, modelUUID)
+            configUtils.getModelUri(datasetUUID, modelUUID)
         );
 
         // Tree -> JSON -> Jena Model
@@ -316,7 +316,7 @@ public class BatsModelController {
         List<Map<String, Object>> body = new ArrayList<>();
         while (queryResults.hasNext()) {
             QuerySolution solution = queryResults.next();
-            Map<String, Object> map = new HashMap<String, Object>(); //NOPMD
+            Map<String, Object> map = new LinkedHashMap<String, Object>(); //NOPMD
             map.put("uuid", solution.get("?model").toString());
             map.put("title", solution.get("?title").toString());
             map.put("url", solution.get("?scidata_url").toString());
@@ -395,17 +395,7 @@ public class BatsModelController {
         // final PropertyEnum[]
         // pmd does not recognize that this will always be closed
         String queryString =
-            "PREFIX dcterm: <http://purl.org/dc/terms/>"
-            + "PREFIX dcterms: <https://purl.org/dc/terms/>"
-            + "PREFIX obo: <http://purl.obolibrary.org/obo/>"
-            + "PREFIX prov: <http://www.w3.org/ns/prov#>"
-            + "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
-            + "PREFIX rdfs: <https://www.w3.org/2000/01/rdf-schema#>"
-            + "PREFIX sdo: <https://stuchalk.github.io/scidata/ontology/scidata.owl#>"
-            + "PREFIX url: <http://schema.org/>"
-            + "PREFIX urls: <https://schema.org/>"
-            + "PREFIX xml: <http://www.w3.org/2001/XMLSchema#>"
-            + "PREFIX xmls: <https://www.w3.org/2001/XMLSchema#>"
+            QUERY_PREFIX_STRING
             + "SELECT ?model ?title ?scidata_url ?modified ?created "
             + "WHERE { "
             + "  GRAPH ?model { "
@@ -430,7 +420,7 @@ public class BatsModelController {
             results = execution.execSelect();
         } catch (QueryException ex) {
             execution.close();
-            return ResponseEntity.ok(Collections.EMPTY_LIST);
+            return ResponseEntity.ok(Collections.EMPTY_MAP);
         }
 
         //Add each found model to the response
@@ -439,7 +429,51 @@ public class BatsModelController {
             execution.close();
             return ResponseEntity.ok(body);
         } else {
-            List<Map<String, Object>> body = getModels(results);
+            // make an additional query to count total number of models
+            String countAllQueryString =
+                QUERY_PREFIX_STRING
+                + "SELECT (count(distinct ?model) as ?count) WHERE {"
+                + "GRAPH ?model { ?x ?y ?z } "
+                + "BIND( xsd:integer(?count) as ?_count) }";
+            QueryExecution countAllExecution = // NOPMD
+                prepareModelUUIDQuery(datasetUUID, countAllQueryString);
+            ResultSet countResults;
+            try {
+                countResults = countAllExecution.execSelect();
+            } catch (QueryException ex) {
+                countAllExecution.close();
+                return ResponseEntity.ok(Collections.EMPTY_MAP);
+            }
+            int totalResults = 0;
+            while (countResults.hasNext()) {
+                QuerySolution countSolution = countResults.next();
+                totalResults = Integer.parseInt(countSolution.get("?count")
+                    .asLiteral()
+                    .getLexicalForm());
+            }
+            countAllExecution.close();
+            final int totalPages = totalResults % pageSize == 0
+                ? totalResults / pageSize
+                : totalResults / pageSize + 1;
+
+            // build the actual body
+            Map<String, Object> body = new LinkedHashMap<>();
+            List<Map<String, Object>> models = getModels(results);
+            // this endpoint
+            String modelsURI = configUtils.getDatasetUri(datasetUUID) + "/models";
+            body.put("data", models);
+
+            // TODO remember to update the values with the full URI once this is changed
+            body.put("first", modelsURI + "?pageNumber=1&pageSize="
+                + pageSize + "&returnFull=false");
+            body.put("previous", modelsURI + "?pageNumber="
+                + (pageNumber > 1 ? pageNumber - 1 : 1) + "&pageSize="
+                + pageSize + "&returnFull=false");
+            body.put("next", modelsURI + "?pageNumber="
+                + (pageNumber < totalPages ? totalPages - pageNumber : totalPages)
+                + "&pageSize=" + pageSize + "&returnFull=false");
+            body.put("last", modelsURI + "?pageNumber=" + totalPages
+                + "&pageSize=" + pageSize + "&returnFull=false");
             execution.close();
             return ResponseEntity.ok(body);
         }
