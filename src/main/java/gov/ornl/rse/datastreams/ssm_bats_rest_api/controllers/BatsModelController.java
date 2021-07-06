@@ -451,9 +451,12 @@ public class BatsModelController {
                     .getLexicalForm());
             }
             countAllExecution.close();
-            final int totalPages = totalResults % pageSize == 0
-                ? totalResults / pageSize
-                : totalResults / pageSize + 1;
+            /*
+            cheeky way to avoid the division twice,
+            compare Option 1 vs Option 2 here:
+            https://stackoverflow.com/a/21830188
+            */
+            final int totalPages = (totalResults + pageSize - 1) / pageSize;
 
             // build the actual body
             Map<String, Object> body = new LinkedHashMap<>();
@@ -473,6 +476,7 @@ public class BatsModelController {
                 + "&pageSize=" + pageSize + "&returnFull=false");
             body.put("last", modelsURI + "?pageNumber=" + totalPages
                 + "&pageSize=" + pageSize + "&returnFull=false");
+            body.put("total", totalResults);
             execution.close();
             return ResponseEntity.ok(body);
         }
