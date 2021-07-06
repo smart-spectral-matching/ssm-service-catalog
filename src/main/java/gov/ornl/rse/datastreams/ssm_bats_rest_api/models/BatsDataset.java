@@ -7,36 +7,42 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
 
 public class BatsDataset {
     /**
-     * UUID for the Dataset.
+     * Title for the Dataset.
     */
-    private String uuid;
+    private String title;
+
+    /**
+     * Default constructor to create a BatsDataset object.
+    */
+    public BatsDataset() {
+    }
 
     /**
      * Constructor class to create a BatsDataset object.
      *
-     * @param datasetUUID UUID for the new Dataset
+     * @param title Title for the new Dataset
     */
-    public BatsDataset(final String datasetUUID) {
+    public BatsDataset(final String title) {
         super();
-        this.uuid = datasetUUID;
+        this.title = title;
     }
 
     /**
-     * Getter for the Dataset's UUID.
+     * Getter for the Dataset's title.
      *
-     * @return UUID for the Dataset
+     * @return Title for the Dataset
     */
-    public String getUUID() {
-        return uuid;
+    public String getTitle() {
+        return title;
     }
 
     /**
      * Setter for the Dataset's UUID.
      *
-     * @param datasetUUID New dataset UUID to set BatsDataset
+     * @param title New dataset title to set BatsDataset
     */
 
-    public void setUUID(final String datasetUUID) {
-        this.uuid = datasetUUID;
+    public void setTitle(final String title) {
+        this.title = title;
     }
 }
