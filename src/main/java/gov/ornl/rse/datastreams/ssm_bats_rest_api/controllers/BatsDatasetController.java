@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -63,6 +64,11 @@ public class BatsDatasetController {
     }
 
     /**
+     * Valid regex for the BatsDataset title.
+    */
+    public static final String TITLE_REGEX = "^[A-za-z]+$";
+
+    /**
      * Error message for reading datasets.
     */
     private static final String READ_DATASETS_ERROR =
@@ -81,22 +87,42 @@ public class BatsDatasetController {
         "Fuseki URL / connection access error for dataset";
 
     /**
+     * Error message for invalid dataset title.
+    */
+    private static final String INVALID_TITLE_ERROR =
+        "Invalid title format provided.";
+
+    /**
      * CREATE a new Dataset collection for Models.
      *
+     * @param batsDataset JSON body for creating a new Dataset
      * @return BatsDataset for newly created Dataset in Fuseki
     */
     @RequestMapping(value = "", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public BatsDataset  createDataSet() throws Exception {
-        String uuid = UUIDGenerator.generateUUID();
+    public BatsDataset  createDataSet(
+        @RequestBody final BatsDataset batsDataset
+    ) throws Exception {
+        String title = batsDataset.getTitle();
+
+        // Format check the dataset title
+        boolean isTitleValid = title.matches(TITLE_REGEX);
+        if (!isTitleValid) {
+            LOGGER.error(INVALID_TITLE_ERROR);
+            throw new ResponseStatusException(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                "Title " + title + " incorrectly formatted: "
+                + TITLE_REGEX
+            );
+        }
         DataSet dataset = new DataSet();
-        dataset.setName(uuid);
+        dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
         dataset.create();
-        LOGGER.info("Created datatset: " + uuid);
-        return new BatsDataset(uuid);
+        LOGGER.info("Created datatset: " + title);
+        return new BatsDataset(title);
     }
 
     /**
