@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import gov.ornl.rse.bats.DataSet;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
@@ -126,14 +125,14 @@ public class BatsDatasetController {
     }
 
     /**
-     * READ A list of all dataset UUIDs.
+     * READ A list of all dataset titles.
      *
-     * @return A JSON formatted list of every dataset's UUID.
+     * @return A JSON formatted list of every dataset's title.
      */
-    @RequestMapping(value = "/uuids", method = RequestMethod.GET)
+    @RequestMapping(value = "", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public String getUUIDS() {
+    public String getTitles() {
 
         //Read the Fuseki dataset list endpoint
 
@@ -200,43 +199,43 @@ public class BatsDatasetController {
     }
 
     /**
-     * READ Dataset collection for given Dataset UUID.
+     * READ Dataset collection for given Dataset title.
      *
-     * @param uuid UUID of Dataset to retrieve
-     * @return BatsDataset for given Dataset UUID
+     * @param title Title of Dataset to retrieve
+     * @return BatsDataset for given Dataset title
     */
-    @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{title}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public BatsDataset getDataSet(@PathVariable("uuid")
-        @Pattern(regexp = UUIDGenerator.UUID_REGEX) final String uuid)
+    public BatsDataset getDataSet(@PathVariable("title")
+        @Pattern(regexp = TITLE_REGEX) final String title)
         throws
             ResponseStatusException {
         DataSet dataset = new DataSet();
-        dataset.setName(uuid);
+        dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
 
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
-        return new BatsDataset(uuid);
+        return new BatsDataset(title);
     }
 
     /**
-     * DELETE Dataset collection for given Dataset UUID.
+     * DELETE Dataset collection for given Dataset title.
      *
-     * @param uuid UUID of Dataset to delete
+     * @param title Title of Dataset to delete
     */
-    @RequestMapping(value = "/{uuid}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{title}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteDataSet(@PathVariable("uuid")
-        @Pattern(regexp = UUIDGenerator.UUID_REGEX) final String uuid)
+    public void deleteDataSet(@PathVariable("title")
+        @Pattern(regexp = TITLE_REGEX) final String title)
         throws Exception {
         DataSet dataset = new DataSet();
-        dataset.setName(uuid);
+        dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
         dataset.delete();
-        LOGGER.info("Deleted dataset: " + uuid);
+        LOGGER.info("Deleted dataset: " + title);
     }
 }
