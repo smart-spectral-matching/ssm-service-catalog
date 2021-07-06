@@ -9,13 +9,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ITBatsDatasetController {
+
+    /**
+     * Object Mapper reused for all tests.
+     */
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
      * Java servlet context.
@@ -52,18 +60,40 @@ public class ITBatsDatasetController {
     }
 
     /**
+     * Helper function to create HTTP body.
+     *
+     * @param mediaType Content Type for the body data
+     * @param body      Data to be posted
+     * @return properly formatted body for post statement (with HTTP headers)
+    */
+    private HttpEntity<Object> makeBody(
+        final MediaType mediaType,
+        final Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(mediaType);
+        return new HttpEntity<>(body, headers);
+    }
+
+    /**
      * Utility function to create a Dataset.
      *
-     * @return UUID of new Dataset
+     * @param title Title for the dataset
+     * @return Title of new Dataset
     */
-    private String createDataset() throws Exception {
+    private String createDataset(final String title) throws Exception {
+        ObjectNode titleObject = MAPPER.createObjectNode();
+        titleObject.put("title", title);
+        String datasetJson = MAPPER.writeValueAsString(titleObject);
+
         String jsonString = restTemplate.postForEntity(
             createUrl("/datasets"),
-            "",
+            makeBody(MediaType.APPLICATION_JSON, datasetJson),
             String.class).getBody();
-        ObjectMapper mapper = new ObjectMapper();
-        String uuid  = mapper.readTree(jsonString).get("uuid").asText();
-        return uuid;
+
+        String datasetTitle  = MAPPER.readTree(jsonString)
+                                     .get("title")
+                                     .asText();
+        return datasetTitle;
     }
 
     /**
@@ -71,22 +101,22 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testGetDataset() throws Exception {
-        String uuid = createDataset();
+        String title = createDataset("testGetDataset");
 
         Assertions.assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
-                createUrl("/datasets/" + uuid),
+                createUrl("/datasets/" + title),
                 String.class
             ).getStatusCode()
         );
 
         String json = restTemplate.getForEntity(
-                createUrl("/datasets/" + uuid),
+                createUrl("/datasets/" + title),
                 String.class
             ).getBody();
 
-        Assertions.assertTrue(json.contains("\"uuid\":\"" + uuid + "\""));
+        Assertions.assertTrue(json.contains("\"title\":\"" + title + "\""));
     }
 
     /**
@@ -108,21 +138,25 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testCreateDataSet() throws Exception {
+        ObjectNode titleObject = MAPPER.createObjectNode();
+        titleObject.put("title", "testCreateDataset");
+        String datasetJson = MAPPER.writeValueAsString(titleObject);
+
         Assertions.assertEquals(
             HttpStatus.CREATED,
             restTemplate.postForEntity(
                 createUrl("/datasets"),
-                HttpEntity.EMPTY,
+                makeBody(MediaType.APPLICATION_JSON, datasetJson),
                 String.class
             ).getStatusCode()
         );
 
         String json = restTemplate.postForEntity(
                 createUrl("/datasets"),
-                HttpEntity.EMPTY,
+                makeBody(MediaType.APPLICATION_JSON, datasetJson),
                 String.class
             ).getBody();
-        Assertions.assertTrue(json.contains("\"uuid\":"));
+        Assertions.assertTrue(json.contains("\"title\":"));
     }
 
     /**
@@ -130,11 +164,11 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testDeleteDataSet() throws Exception {
-        String uuid = createDataset();
+        String title = createDataset("testDeleteDataSet");
         Assertions.assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
-                createUrl("/datasets/" + uuid),
+                createUrl("/datasets/" + title),
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class
