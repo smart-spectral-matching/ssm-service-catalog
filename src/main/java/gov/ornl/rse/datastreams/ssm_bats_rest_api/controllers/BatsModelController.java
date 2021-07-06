@@ -456,7 +456,7 @@ public class BatsModelController {
             compare Option 1 vs Option 2 here:
             https://stackoverflow.com/a/21830188
             */
-            final int totalPages = (totalResults + pageSize - 1) / pageSize;
+            final int totalPages = (totalResults - 1) / pageSize + 1;
 
             // build the actual body
             Map<String, Object> body = new LinkedHashMap<>();
