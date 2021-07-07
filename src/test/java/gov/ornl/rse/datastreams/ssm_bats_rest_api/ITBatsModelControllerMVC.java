@@ -146,6 +146,7 @@ public class ITBatsModelControllerMVC {
         dataset.put("title", title);
         return dataset.toString();
     }
+
     /**
      * Returns string for a file located in test/resources.
      *

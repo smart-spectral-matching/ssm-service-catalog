@@ -75,16 +75,26 @@ public class ITBatsDatasetController {
     }
 
     /**
+     * Returns string with dataset JSON for POST to create new dataset.
+     *
+     * @param title title for the new dataset
+     * @return      JSON as string for new dataset, used for POST
+    */
+    private String getDatasetData(final String title) {
+        ObjectNode dataset = MAPPER.createObjectNode();
+        dataset.put("title", title);
+        return dataset.toString();
+    }
+
+
+    /**
      * Utility function to create a Dataset.
      *
      * @param title Title for the dataset
      * @return Title of new Dataset
     */
     private String createDataset(final String title) throws Exception {
-        ObjectNode titleObject = MAPPER.createObjectNode();
-        titleObject.put("title", title);
-        String datasetJson = MAPPER.writeValueAsString(titleObject);
-
+        String datasetJson = getDatasetData(title);
         String jsonString = restTemplate.postForEntity(
             createUrl("/datasets"),
             makeBody(MediaType.APPLICATION_JSON, datasetJson),
@@ -138,10 +148,7 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testCreateDataSet() throws Exception {
-        ObjectNode titleObject = MAPPER.createObjectNode();
-        titleObject.put("title", "testCreateDataset");
-        String datasetJson = MAPPER.writeValueAsString(titleObject);
-
+        String datasetJson = getDatasetData("testCreateDataset");
         Assertions.assertEquals(
             HttpStatus.CREATED,
             restTemplate.postForEntity(
@@ -157,6 +164,43 @@ public class ITBatsDatasetController {
                 String.class
             ).getBody();
         Assertions.assertTrue(json.contains("\"title\":"));
+    }
+
+    /**
+     * Test we return correct response for invalid Dataset title.
+    */
+    @Test
+    public void testForInvalidDatasetTitle() throws Exception {
+        String datasetJson = getDatasetData("testForInvalidDatasetTitle-9999");
+        Assertions.assertEquals(
+            HttpStatus.BAD_REQUEST,
+            restTemplate.postForEntity(
+                createUrl("/datasets"),
+                makeBody(MediaType.APPLICATION_JSON, datasetJson),
+                String.class
+            ).getStatusCode()
+        );
+
+
+    }
+
+    /**
+     * Test we cannot re-create two Datasets with same title.
+    */
+    @Test
+    public void testTwoDatasetsCannotHaveSameTitle() throws Exception {
+        String title = createDataset("testTwoDatasetsCannotHaveSameTitle");
+
+        String datasetJson = getDatasetData(title);
+        Assertions.assertEquals(
+            HttpStatus.CONFLICT,
+            restTemplate.postForEntity(
+                createUrl("/datasets"),
+                makeBody(MediaType.APPLICATION_JSON, datasetJson),
+                String.class
+            ).getStatusCode()
+        );
+
     }
 
     /**

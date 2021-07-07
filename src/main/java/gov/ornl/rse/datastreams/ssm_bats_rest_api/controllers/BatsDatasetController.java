@@ -110,11 +110,12 @@ public class BatsDatasetController {
         if (!isTitleValid) {
             LOGGER.error(INVALID_TITLE_ERROR);
             throw new ResponseStatusException(
-                HttpStatus.UNPROCESSABLE_ENTITY,
+                HttpStatus.BAD_REQUEST,
                 "Title " + title + " incorrectly formatted: "
                 + TITLE_REGEX
             );
         }
+
         DataSet dataset = new DataSet();
         dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
