@@ -134,12 +134,12 @@ public class BatsModelController {
 
     /**
      *
-     * @param uuid dataset UUID from user parameter
+     * @param title dataset title from user parameter
      * @return Bats dataset with name, Fuseki host, and Fuseki port configured
      */
-    private DataSet initDataset(final String uuid) {
+    private DataSet initDataset(final String title) {
         DataSet dataset = new DataSet();
-        dataset.setName(uuid);
+        dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
         return dataset;
@@ -154,11 +154,11 @@ public class BatsModelController {
      * implementations may want to handle exceptions differently.
      * </p>
      *
-     * @param datasetUUID UUID from the dataset.
+     * @param datasetTitle Title from the dataset.
      * @param queryStr literal query to call
      * @return a prepared query, ready to be executed
      */
-    private QueryExecution prepareModelUUIDQuery(final String datasetUUID,
+    private QueryExecution prepareModelUUIDQuery(final String datasetTitle,
         final String queryStr) {
         //SPARQL query to find all unique graphs
         ParameterizedSparqlString sparql = new ParameterizedSparqlString();
@@ -168,7 +168,7 @@ public class BatsModelController {
         Query query = sparql.asQuery();
         String endpointURL = fuseki().getHostname() + ":"
                 + fuseki().getPort()
-                + "/" + datasetUUID;
+                + "/" + datasetTitle;
         return QueryExecutionFactory.sparqlService(endpointURL, query);
     }
 
@@ -249,7 +249,7 @@ public class BatsModelController {
      * Converts SciData JSON-LD payload into Bats Model.
      *
      * @param jsonldNode  SciData JSON-LD to convert to Bats Model
-     * @param datasetUUID UUID of the Apache Jena Dataset this model belongs to
+     * @param datasetTitle Title of the Apache Jena Dataset this model belongs to
      * @param modelUUID   UUID of output model
      * @param dataset     Bats DataSet this model will belong to
      * @param priorCreatedTime get value from prior model if updating, null if creating
@@ -257,7 +257,7 @@ public class BatsModelController {
     */
     private BatsModel jsonldToBatsModel(
         final JsonNode jsonldNode,
-        final String datasetUUID,
+        final String datasetTitle,
         final String modelUUID,
         final DataSet dataset,
         final String priorCreatedTime
@@ -274,7 +274,7 @@ public class BatsModelController {
         // Replace @base in @context block w/ new URI
         String scidataString = addBaseToContextToJsonLD(
             scidataNode.toString(),
-            configUtils.getModelUri(datasetUUID, modelUUID)
+            configUtils.getModelUri(datasetTitle, modelUUID)
         );
 
         // Tree -> JSON -> Jena Model
@@ -331,15 +331,15 @@ public class BatsModelController {
      * Gets full models from dataset based on SPARQL query results.
      *
      * @param queryResults Results from previous SPARQL query
-     * @param datasetUUID  UUID of the Apache Jena Dataset the models belong to
+     * @param datasetTitle Title of the Apache Jena Dataset the models belong to
      * @return             List of BatsModel for the full models
     */
     private List<BatsModel> getFullModels(
-        final String datasetUUID,
+        final String datasetTitle,
         final ResultSet queryResults
     ) {
         List<BatsModel> body = new ArrayList<>();
-        DataSet dataset = initDataset(datasetUUID);
+        DataSet dataset = initDataset(datasetTitle);
         while (queryResults.hasNext()) {
             QuerySolution solution = queryResults.next();
             RDFNode node = solution.get("?model");
@@ -355,7 +355,7 @@ public class BatsModelController {
                 LOGGER.error(
                     "Unable to parse JSONLD from model {} dataset {}",
                     node.toString(),
-                    datasetUUID
+                    datasetTitle
                 );
             }
         }
@@ -366,7 +366,7 @@ public class BatsModelController {
     /**
      * FETCH a certain amount of datasets.
      *
-     * @param datasetUUID UUID of the Apache Jena Dataset this model belongs to
+     * @param datasetTitle Title of the Apache Jena Dataset this model belongs to
      * @param pageNumber page number to start on,
      *    must be positive (default: 1)
      * @param pageSize number of results to return,
@@ -375,11 +375,11 @@ public class BatsModelController {
      * @return List either BatsModels (full) or List of Map (not full)
      */
     @RequestMapping(
-        value = "/{dataset_uuid}/models",
+        value = "/{dataset_title}/models",
         method = RequestMethod.GET)
     public ResponseEntity<?> queryModels(
-        @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String datasetUUID,
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        final String datasetTitle,
         @RequestParam(name = "pageNumber", defaultValue = "1")
         @Min(1) final int pageNumber,
         @RequestParam(name = "pageSize", defaultValue = "5")
@@ -411,7 +411,7 @@ public class BatsModelController {
             + "LIMIT " + pageSize;
 
         QueryExecution execution = prepareModelUUIDQuery(//NOPMD
-            datasetUUID, queryString
+            datasetTitle, queryString
         );
 
         // immediately return 200 if the query was not valid
@@ -425,7 +425,7 @@ public class BatsModelController {
 
         //Add each found model to the response
         if (returnFull) {
-            List<BatsModel> body = getFullModels(datasetUUID, results);
+            List<BatsModel> body = getFullModels(datasetTitle, results);
             execution.close();
             return ResponseEntity.ok(body);
         } else {
@@ -434,7 +434,7 @@ public class BatsModelController {
                 "SELECT (count(distinct ?model) as ?count) WHERE {"
                 + "GRAPH ?model { ?x ?y ?z }}";
             QueryExecution countAllExecution = // NOPMD
-                prepareModelUUIDQuery(datasetUUID, countAllQueryString);
+                prepareModelUUIDQuery(datasetTitle, countAllQueryString);
             ResultSet countResults;
             try {
                 countResults = countAllExecution.execSelect();
@@ -462,7 +462,7 @@ public class BatsModelController {
             Map<String, Object> body = new LinkedHashMap<>();
             List<Map<String, Object>> models = getModels(results);
             // this endpoint
-            String modelsURI = configUtils.getDatasetUri(datasetUUID) + "/models";
+            String modelsURI = configUtils.getDatasetUri(datasetTitle) + "/models";
             body.put("data", models);
 
             // TODO remember to update the values with the full URI once this is changed
@@ -486,19 +486,19 @@ public class BatsModelController {
     /**
      * CREATE a new Model in the Dataset collection.
      *
-     * @param datasetUUID UUID for Dataset collection to add the new Model
+     * @param datasetTitle Title for Dataset collection to add the new Model
      * @param jsonPayload JSON-LD of new Model
      * @return            BatsModel for created Model in the Dataset
     */
     @RequestMapping(
-        value = "/{dataset_uuid}/models",
+        value = "/{dataset_title}/models",
         method = RequestMethod.POST
     )
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public BatsModel createModel(
-        @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String datasetUUID,
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        final String datasetTitle,
         @RequestBody final String jsonPayload
     ) throws
         IOException,
@@ -506,7 +506,7 @@ public class BatsModelController {
         UnsupportedEncodingException {
 
         // Initialize dataset
-        DataSet dataset = initDataset(datasetUUID);
+        DataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -521,30 +521,30 @@ public class BatsModelController {
             JsonNode.class
         );
 
-        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID, dataset, null);
+        return jsonldToBatsModel(jsonldNode, datasetTitle, modelUUID, dataset, null);
     }
 
     /**
-     * READ Model w/ given UUID in Dataset collection w/ given UUID.
+     * READ Model w/ given UUID in Dataset collection.
      *
-     * @param datasetUUID UUID for Dataset collection that Model belonds to
+     * @param datasetTitle Title for Dataset collection that Model belonds to
      * @param modelUUID   UUID for Model to retrieve from the Dataset
      * @return            BatsModel for given Model UUID
     */
     @RequestMapping(
-        value = "/{dataset_uuid}/models/{model_uuid}",
+        value = "/{dataset_title}/models/{model_uuid}",
         method = RequestMethod.GET
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsModel getModel(
-        @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String datasetUUID,
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
     ) {
         // Initialize dataset
-        DataSet dataset = initDataset(datasetUUID);
+        DataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -566,20 +566,21 @@ public class BatsModelController {
     /**
      * READ A list of all UUIDs for models belonging to the given dataset.
      *
-     * @param datasetUUID The UUID of the dataset to find models for.
+     * @param datasetTitle Title of the dataset to find models for.
      * @return A JSON list of all UUIDs
      */
     @RequestMapping(
-        value = "/{dataset_uuid}/models/uuids",
+        value = "/{dataset_title}/models/uuids",
         method = RequestMethod.GET
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseEntity<?> getUUIDs(@PathVariable("dataset_uuid")
-        @Pattern(regexp = UUIDGenerator.UUID_REGEX) final String datasetUUID) {
+    public ResponseEntity<?> getUUIDs(@PathVariable("dataset_title")
+        @Pattern(regexp = BatsDatasetController.TITLE_REGEX) final String datasetTitle) {
 
         // pmd does not recognize that this is always being closed
-        QueryExecution execution = prepareModelUUIDQuery(datasetUUID, // NOPMD
+        QueryExecution execution = prepareModelUUIDQuery(// NOPMD
+            datasetTitle,
             "SELECT DISTINCT ?model {GRAPH ?model { ?x ?y ?z }}"
         );
 
@@ -616,22 +617,22 @@ public class BatsModelController {
     }
 
     /**
-     * UPDATE (REPLACE) for Model w/ UUID in Dataset collection w/ UUID.
+     * UPDATE (REPLACE) for Model w/ UUID in Dataset collection.
      *
-     * @param datasetUUID UUID for Dataset collection that Model belonds to
+     * @param datasetTitle Title for Dataset collection that Model belonds to
      * @param modelUUID   UUID for Model to replace
      * @param jsonPayload JSON-LD of new Model to replace current Model
      * @return            BatsModel for newly updated Model
     */
     @RequestMapping(
-        value = "/{dataset_uuid}/models/{model_uuid}",
+        value = "/{dataset_title}/models/{model_uuid}",
         method = RequestMethod.PUT
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsModel updateModelReplace(
-        @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String datasetUUID,
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
         @RequestBody final String jsonPayload
@@ -641,7 +642,7 @@ public class BatsModelController {
         UnsupportedEncodingException {
 
         // Initialize dataset
-        DataSet dataset = initDataset(datasetUUID);
+        DataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -672,33 +673,33 @@ public class BatsModelController {
             .readTree(modelJSONLD)
             .findValue(DCTerms.created.getLocalName());
 
-        return jsonldToBatsModel(jsonldNode, datasetUUID, modelUUID,
+        return jsonldToBatsModel(jsonldNode, datasetTitle, modelUUID,
             dataset, createdTimeNode.textValue());
     }
 
     /**
-     * UPDATE (PARTIAL) for Model w/ UUID in Dataset collection w/ UUID.
+     * UPDATE (PARTIAL) for Model w/ UUID in Dataset collection.
      *
-     * @param datasetUUID UUID for Dataset collection that Model belonds to
+     * @param datasetTitle Title for Dataset collection that Model belonds to
      * @param modelUUID   UUID for Model to partially update
      * @param jsonPayload Partial JSON-LD of new Model to update current Model
      * @return            BatsModel for newly updated Model
     */
     @RequestMapping(
-        value = "/{dataset_uuid}/models/{model_uuid}",
+        value = "/{dataset_title}/models/{model_uuid}",
         method = RequestMethod.PATCH
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsModel updateModelPartial(
-        @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String datasetUUID,
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
         @RequestBody final String jsonPayload
     ) throws IOException, NoSuchAlgorithmException {
         // Initialize dataset
-        DataSet dataset = initDataset(datasetUUID);
+        DataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -729,29 +730,29 @@ public class BatsModelController {
         // Merge payload with model
         JsonNode mergedModelNode = JsonUtils.merge(modelNode, payloadNode);
 
-        return jsonldToBatsModel(mergedModelNode, datasetUUID, modelUUID,
+        return jsonldToBatsModel(mergedModelNode, datasetTitle, modelUUID,
             dataset, createdTimeNode.textValue());
     }
 
     /**
      * DELETE Model w/ given UUID in Dataset collection.
      *
-     * @param datasetUUID UUID that Model belongs to
+     * @param datasetTitle Title that Model belongs to
      * @param modelUUID   UUID of Model to delete from Dataset
     */
     @RequestMapping(
-        value = "/{dataset_uuid}/models/{model_uuid}",
+        value = "/{dataset_title}/models/{model_uuid}",
         method = RequestMethod.DELETE
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteModel(
-        @PathVariable("dataset_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String datasetUUID,
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
     ) {
         // Initialize dataset
-        DataSet dataset = initDataset(datasetUUID);
+        DataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
