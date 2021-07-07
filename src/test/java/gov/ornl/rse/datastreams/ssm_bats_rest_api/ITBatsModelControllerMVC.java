@@ -187,12 +187,16 @@ public class ITBatsModelControllerMVC {
      *
      * @param userIncludesTimestamps true to test timestamp submission,
      *      false to test "normal" submission
+     * @param datasetTitle Title of the dataset to create
      * @param jsonld name of jsonld file in src/test/resources
      * @return relevant test data for the update method, as a TestData object
      * @throws Exception
      */
-    private TestData timestampTestBasePost(final boolean userIncludesTimestamps,
-        final String jsonld) throws Exception {
+    private TestData timestampTestBasePost(
+        final boolean userIncludesTimestamps,
+        final String datasetTitle,
+        final String jsonld
+    ) throws Exception {
         // String representation of timestamp - use any value in the far past here
         final String dummyTimestampStr = "1945-07-09 11:02:00";
         // timestamp
@@ -200,14 +204,14 @@ public class ITBatsModelControllerMVC {
             dummyTimestampStr.replace(' ', 'T'));
 
         // create dataset and make model URI
-        String datasetJson = getDatasetData("timestampTestBasePost");
+        String datasetJson = getDatasetData(datasetTitle);
         String response = mockMvc.perform(post(getDatasetUri())
             .contentType(MediaType.APPLICATION_JSON)
             .content(datasetJson))
             .andExpect(status().isCreated())
             .andReturn().getResponse().getContentAsString();
-        final String datasetTitle = MAPPER.readTree(response).get("title").asText();
-        final String modelUri = getModelUri(datasetTitle);
+        final String title = MAPPER.readTree(response).get("title").asText();
+        final String modelUri = getModelUri(title);
 
         // create model with POST
         String sampleJson = getFileDataFromTestResources(jsonld);
@@ -476,7 +480,11 @@ public class ITBatsModelControllerMVC {
     public void testTimestampFromUserScidata() throws Exception {
         final boolean userIncludesTimestamps = true;
         final String jsonld = "scidata_nmr_abbreviated.input.jsonld";
-        final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
+        final TestData data = timestampTestBasePost(
+            userIncludesTimestamps,
+            "testTimestampFromUserScidata",
+            jsonld
+        );
         timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
     }
 
@@ -496,7 +504,11 @@ public class ITBatsModelControllerMVC {
     public void testTimestampNotProvidedScidata() throws Exception {
         final boolean userIncludesTimestamps = false;
         final String jsonld = "scidata_nmr_abbreviated.input.jsonld";
-        final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
+        final TestData data = timestampTestBasePost(
+            userIncludesTimestamps,
+            "testTimestampNotProvidedScidata",
+            jsonld
+        );
         timestampTestScidataUpdate(userIncludesTimestamps, jsonld, data);
     }
 
@@ -517,7 +529,11 @@ public class ITBatsModelControllerMVC {
     public void testTimestampFromUserSimple() throws Exception {
         final boolean userIncludesTimestamps = true;
         final String jsonld = "simple.input.jsonld";
-        final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
+        final TestData data = timestampTestBasePost(
+            userIncludesTimestamps,
+            "testTimestampFromUserSimple",
+            jsonld
+        );
         timestampTestSimpleUpdate(userIncludesTimestamps, jsonld, data);
     }
 
@@ -537,7 +553,11 @@ public class ITBatsModelControllerMVC {
     public void testTimestampNotProvidedSimple() throws Exception {
         final boolean userIncludesTimestamps = false;
         final String jsonld = "simple.input.jsonld";
-        final TestData data = timestampTestBasePost(userIncludesTimestamps, jsonld);
+        final TestData data = timestampTestBasePost(
+            userIncludesTimestamps,
+            "testTimestampNotProvidedSimple",
+            jsonld
+        );
         timestampTestSimpleUpdate(userIncludesTimestamps, jsonld, data);
     }
 
