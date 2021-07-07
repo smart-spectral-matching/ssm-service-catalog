@@ -53,6 +53,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
@@ -378,7 +379,7 @@ public class BatsModelController {
         value = "/{dataset_title}/models",
         method = RequestMethod.GET)
     public ResponseEntity<?> queryModels(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
         @RequestParam(name = "pageNumber", defaultValue = "1")
         @Min(1) final int pageNumber,
@@ -497,7 +498,7 @@ public class BatsModelController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public BatsModel createModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
         @RequestBody final String jsonPayload
     ) throws
@@ -538,7 +539,7 @@ public class BatsModelController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsModel getModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
@@ -576,7 +577,7 @@ public class BatsModelController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ResponseEntity<?> getUUIDs(@PathVariable("dataset_title")
-        @Pattern(regexp = BatsDatasetController.TITLE_REGEX) final String datasetTitle) {
+        @Pattern(regexp = BatsDataset.TITLE_REGEX) final String datasetTitle) {
 
         // pmd does not recognize that this is always being closed
         QueryExecution execution = prepareModelUUIDQuery(// NOPMD
@@ -631,7 +632,7 @@ public class BatsModelController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsModel updateModelReplace(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
@@ -692,7 +693,7 @@ public class BatsModelController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsModel updateModelPartial(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
@@ -746,7 +747,7 @@ public class BatsModelController {
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDatasetController.TITLE_REGEX)
+        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID

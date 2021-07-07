@@ -1,5 +1,7 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
 
+import javax.validation.constraints.Pattern;
+
 /**
  * Representation of a BATS Dataset for Apache Jena Dataset
  * A Dataset holds a collection of Models.
@@ -7,8 +9,14 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
 
 public class BatsDataset {
     /**
+     * Valid regex for the BatsDataset title.
+    */
+    public static final String TITLE_REGEX = "^[A-za-z]+$";
+
+    /**
      * Title for the Dataset.
     */
+    @Pattern(regexp = TITLE_REGEX)
     private String title;
 
     /**

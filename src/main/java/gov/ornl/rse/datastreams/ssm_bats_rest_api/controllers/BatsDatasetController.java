@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.Scanner;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 import org.slf4j.Logger;
@@ -81,12 +82,6 @@ public class BatsDatasetController {
         "Fuseki URL / connection access error for dataset";
 
     /**
-     * Error message for invalid dataset title.
-    */
-    private static final String INVALID_TITLE_ERROR =
-        "Invalid title format provided.";
-
-    /**
      * CREATE a new Dataset collection for Models.
      *
      * @param batsDataset JSON body for creating a new Dataset
@@ -96,20 +91,9 @@ public class BatsDatasetController {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public BatsDataset  createDataSet(
-        @RequestBody final BatsDataset batsDataset
+        @Valid @RequestBody final BatsDataset batsDataset
     ) throws Exception {
         String title = batsDataset.getTitle();
-
-        // Format check the dataset title
-        boolean isTitleValid = title.matches(DatasetUtils.TITLE_REGEX);
-        if (!isTitleValid) {
-            LOGGER.error(INVALID_TITLE_ERROR);
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Title " + title + " incorrectly formatted: "
-                + TITLE_REGEX
-            );
-        }
 
         // Setup the database connection
         DataSet dataset = new DataSet();
@@ -219,7 +203,7 @@ public class BatsDatasetController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsDataset getDataSet(@PathVariable("title")
-        @Pattern(regexp = DatasetUtils.TITLE_REGEX) final String title)
+        @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
         throws
             ResponseStatusException {
         DataSet dataset = new DataSet();
@@ -240,7 +224,7 @@ public class BatsDatasetController {
     @RequestMapping(value = "/{title}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDataSet(@PathVariable("title")
-        @Pattern(regexp = DatasetUtils.TITLE_REGEX) final String title)
+        @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
         throws Exception {
         DataSet dataset = new DataSet();
         dataset.setName(title);
