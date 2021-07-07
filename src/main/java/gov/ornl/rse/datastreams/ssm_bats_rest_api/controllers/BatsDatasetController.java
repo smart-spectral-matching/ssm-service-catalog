@@ -63,11 +63,6 @@ public class BatsDatasetController {
     }
 
     /**
-     * Valid regex for the BatsDataset title.
-    */
-    public static final String TITLE_REGEX = "^[A-za-z]+$";
-
-    /**
      * Error message for reading datasets.
     */
     private static final String READ_DATASETS_ERROR =
@@ -106,7 +101,7 @@ public class BatsDatasetController {
         String title = batsDataset.getTitle();
 
         // Format check the dataset title
-        boolean isTitleValid = title.matches(TITLE_REGEX);
+        boolean isTitleValid = title.matches(DatasetUtils.TITLE_REGEX);
         if (!isTitleValid) {
             LOGGER.error(INVALID_TITLE_ERROR);
             throw new ResponseStatusException(
@@ -224,7 +219,7 @@ public class BatsDatasetController {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsDataset getDataSet(@PathVariable("title")
-        @Pattern(regexp = TITLE_REGEX) final String title)
+        @Pattern(regexp = DatasetUtils.TITLE_REGEX) final String title)
         throws
             ResponseStatusException {
         DataSet dataset = new DataSet();
@@ -245,7 +240,7 @@ public class BatsDatasetController {
     @RequestMapping(value = "/{title}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDataSet(@PathVariable("title")
-        @Pattern(regexp = TITLE_REGEX) final String title)
+        @Pattern(regexp = DatasetUtils.TITLE_REGEX) final String title)
         throws Exception {
         DataSet dataset = new DataSet();
         dataset.setName(title);

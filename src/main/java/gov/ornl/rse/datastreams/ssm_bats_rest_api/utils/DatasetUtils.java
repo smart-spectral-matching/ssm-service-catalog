@@ -41,6 +41,11 @@ public final class DatasetUtils {
     }
 
     /**
+     * Valid regex for the BatsDataset title.
+    */
+    public static final String TITLE_REGEX = "^[A-za-z]+$";
+
+    /**
      * Static methods only.
      */
     private DatasetUtils() {
