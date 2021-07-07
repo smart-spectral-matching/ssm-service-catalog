@@ -127,7 +127,7 @@ public class ITBatsDatasetController {
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                createUrl("/datasets/1"),
+                createUrl("/datasets/pizza"),
                 Void.class
             ).getStatusCode()
         );
