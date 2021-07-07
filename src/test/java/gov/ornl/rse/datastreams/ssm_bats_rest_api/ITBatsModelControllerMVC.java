@@ -128,13 +128,24 @@ public class ITBatsModelControllerMVC {
 
     /**
      *
-     * @param datasetUUID dataset UUID part of the URL
+     * @param datasetTitle dataset title part of the URL
      * @return base Moder URI for POSTing (with trailing slash)
      */
-    private String getModelUri(final String datasetUUID) {
-        return getDatasetUri() + datasetUUID + "/models/";
+    private String getModelUri(final String datasetTitle) {
+        return getDatasetUri() + datasetTitle + "/models/";
     }
 
+    /**
+     * Returns string with dataset JSON for POST to create new dataset.
+     *
+     * @param title title for the new dataset
+     * @return      JSON as string for new dataset, used for POST
+    */
+    private String getDatasetData(final String title) {
+        ObjectNode dataset = MAPPER.createObjectNode();
+        dataset.put("title", title);
+        return dataset.toString();
+    }
     /**
      * Returns string for a file located in test/resources.
      *
@@ -188,11 +199,14 @@ public class ITBatsModelControllerMVC {
             dummyTimestampStr.replace(' ', 'T'));
 
         // create dataset and make model URI
-        String response = mockMvc.perform(post(getDatasetUri()))
+        String datasetJson = getDatasetData("timestampTestBasePost");
+        String response = mockMvc.perform(post(getDatasetUri())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(datasetJson))
             .andExpect(status().isCreated())
             .andReturn().getResponse().getContentAsString();
-        final String datasetUUID = MAPPER.readTree(response).get("uuid").asText();
-        final String modelUri = getModelUri(datasetUUID);
+        final String datasetTitle = MAPPER.readTree(response).get("title").asText();
+        final String modelUri = getModelUri(datasetTitle);
 
         // create model with POST
         String sampleJson = getFileDataFromTestResources(jsonld);
