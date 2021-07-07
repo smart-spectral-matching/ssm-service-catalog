@@ -541,6 +541,8 @@ public class BatsModelController {
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
+        @RequestParam(name = "full", defaultValue = "false")
+        final boolean full
     ) {
         // Initialize dataset
         CustomizedBatsDataSet dataset = initDataset(datasetTitle);
@@ -552,8 +554,14 @@ public class BatsModelController {
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Pulling model: " + modelUUID);
         try {
-            Model model = dataset.getModel(modelUri);
-            return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
+            if (full) {
+                // Return the full JSON-LD model
+                Model model = dataset.getModel(modelUri);
+                return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
+            } else {
+                // Return the abbreviated JSON model
+                // <insert SPARQL query to only fetch required fields>
+            }
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
