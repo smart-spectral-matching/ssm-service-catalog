@@ -116,10 +116,25 @@ public class BatsDatasetController {
             );
         }
 
+        // Setup the database connection
         DataSet dataset = new DataSet();
         dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
+
+        // Check that a Dataset with this same title doesn't already exist
+        DatasetUtils.DataSetQueryStatus code = DatasetUtils.doesDataSetExist(
+            dataset,
+            fuseki()
+        );
+        if (code == DatasetUtils.DataSetQueryStatus.EXISTS) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Title " + title + " already exists!"
+            );
+        }
+
+        // Create the dataset
         dataset.create();
         LOGGER.info("Created datatset: " + title);
         return new BatsDataset(title);
