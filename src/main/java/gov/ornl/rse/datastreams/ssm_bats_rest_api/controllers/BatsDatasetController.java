@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Scanner;
 
 import javax.validation.Valid;
@@ -93,7 +94,7 @@ public class BatsDatasetController {
     public BatsDataset  createDataSet(
         @Valid @RequestBody final BatsDataset batsDataset
     ) throws Exception {
-        String title = batsDataset.getTitle();
+        String title = batsDataset.getTitle().toLowerCase(new Locale("en"));
 
         // Setup the database connection
         DataSet dataset = new DataSet();
