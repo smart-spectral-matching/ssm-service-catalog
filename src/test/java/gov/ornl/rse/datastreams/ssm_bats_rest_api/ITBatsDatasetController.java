@@ -1,5 +1,7 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
+import java.util.Locale;
+
 import javax.servlet.ServletContext;
 
 import org.junit.jupiter.api.Assertions;
@@ -148,7 +150,8 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testCreateDataSet() throws Exception {
-        String datasetJson = getDatasetData("testCreateDataset");
+        String title = "testCreateDataset-foo_bar";
+        String datasetJson = getDatasetData(title);
         Assertions.assertEquals(
             HttpStatus.CREATED,
             restTemplate.postForEntity(
@@ -164,6 +167,7 @@ public class ITBatsDatasetController {
                 String.class
             ).getBody();
         Assertions.assertTrue(json.contains("\"title\":"));
+        Assertions.assertTrue(json.contains(title.toLowerCase(new Locale("en"))));
     }
 
     /**
@@ -189,8 +193,10 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testTwoDatasetsCannotHaveSameTitle() throws Exception {
-        String title = createDataset("testTwoDatasetsCannotHaveSameTitle");
+        String title = "testTwoDatasetsCannotHaveSameTitle";
+        createDataset(title);
 
+        // Upper-case test
         String datasetJson = getDatasetData(title);
         Assertions.assertEquals(
             HttpStatus.CONFLICT,
@@ -201,6 +207,16 @@ public class ITBatsDatasetController {
             ).getStatusCode()
         );
 
+        // Lower-case test
+        datasetJson = getDatasetData(title.toLowerCase(new Locale("en")));
+        Assertions.assertEquals(
+            HttpStatus.CONFLICT,
+            restTemplate.postForEntity(
+                createUrl("/datasets"),
+                makeBody(MediaType.APPLICATION_JSON, datasetJson),
+                String.class
+            ).getStatusCode()
+        );
     }
 
     /**
