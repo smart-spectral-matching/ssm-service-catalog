@@ -11,9 +11,9 @@ cd $(dirname "$0")/../src/test/resources || exit 1
 declare -A datasets
 
 # Loop over files, upload to REST API, and add URLs to the datasets map
+dataset_title=$(curl -X POST -H "Content-Type: application/json" --data '{"title":"test"}' "${server_ip}/datasets" | jq -r .title)
 for jsonld in "simple.input.jsonld" "scidata_nmr_abbreviated.input.jsonld" "studtite.jsonld"
 do
-    dataset_title=$(curl -X POST -H "Content-Type: application/json" --data '{"title":"test"}' "${server_ip}/datasets" | jq -r .title)
     model_uuid=$(curl -X POST "${server_ip}/datasets/${dataset_title}/models" -H "Content-Type: application/json" -d @${jsonld} | jq -r .uuid)
     name=$(echo ${jsonld} | cut -d'.' -f 1)
     datasets["${name}"]="${server_ip}/datasets/${dataset_title}/models/${model_uuid}"
