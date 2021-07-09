@@ -11,7 +11,7 @@ public class BatsDataset {
     /**
      * Valid regex for the BatsDataset title.
     */
-    public static final String TITLE_REGEX = "^[A-za-z\\-\\_]+$";
+    public static final String TITLE_REGEX = "^[A-za-z-]+$";
 
     /**
      * Title for the Dataset.
