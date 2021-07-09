@@ -47,7 +47,6 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
@@ -55,6 +54,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuse
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
@@ -138,8 +138,8 @@ public class BatsModelController {
      * @param title dataset title from user parameter
      * @return Bats dataset with name, Fuseki host, and Fuseki port configured
      */
-    private DataSet initDataset(final String title) {
-        DataSet dataset = new DataSet();
+    private CustomizedBatsDataSet initDataset(final String title) {
+        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
         dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
@@ -260,7 +260,7 @@ public class BatsModelController {
         final JsonNode jsonldNode,
         final String datasetTitle,
         final String modelUUID,
-        final DataSet dataset,
+        final CustomizedBatsDataSet dataset,
         final String priorCreatedTime
     ) throws
         IOException,
@@ -340,7 +340,7 @@ public class BatsModelController {
         final ResultSet queryResults
     ) {
         List<BatsModel> body = new ArrayList<>();
-        DataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
         while (queryResults.hasNext()) {
             QuerySolution solution = queryResults.next();
             RDFNode node = solution.get("?model");
@@ -507,7 +507,7 @@ public class BatsModelController {
         UnsupportedEncodingException {
 
         // Initialize dataset
-        DataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -545,7 +545,7 @@ public class BatsModelController {
         final String modelUUID
     ) {
         // Initialize dataset
-        DataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -643,7 +643,7 @@ public class BatsModelController {
         UnsupportedEncodingException {
 
         // Initialize dataset
-        DataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -700,7 +700,7 @@ public class BatsModelController {
         @RequestBody final String jsonPayload
     ) throws IOException, NoSuchAlgorithmException {
         // Initialize dataset
-        DataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -753,7 +753,7 @@ public class BatsModelController {
         final String modelUUID
     ) {
         // Initialize dataset
-        DataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
