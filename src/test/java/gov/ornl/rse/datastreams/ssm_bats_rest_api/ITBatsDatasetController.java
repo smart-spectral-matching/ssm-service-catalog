@@ -3,7 +3,6 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 import java.util.Locale;
 
 import javax.servlet.ServletContext;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -113,22 +113,33 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testGetDataset() throws Exception {
-        String title = createDataset("testGetDataset");
+        String title = "testGetDataset";
+        String titleLower = createDataset(title);
 
+        // Test using the returned title from POST
+        ResponseEntity<String> responseLower = restTemplate.getForEntity(
+            createUrl("/datasets/" + titleLower),
+            String.class
+        );
         Assertions.assertEquals(
             HttpStatus.OK,
-            restTemplate.getForEntity(
-                createUrl("/datasets/" + title),
-                String.class
-            ).getStatusCode()
+            responseLower.getStatusCode()
+        );
+        String json = responseLower.getBody();
+        Assertions.assertTrue(json.contains("\"title\":\"" + titleLower + "\""));
+
+        // Test case-insenstive
+        ResponseEntity<String> response = restTemplate.getForEntity(
+            createUrl("/datasets/" + title),
+            String.class
+        );
+        Assertions.assertEquals(
+            HttpStatus.OK,
+            response.getStatusCode()
         );
 
-        String json = restTemplate.getForEntity(
-                createUrl("/datasets/" + title),
-                String.class
-            ).getBody();
-
-        Assertions.assertTrue(json.contains("\"title\":\"" + title + "\""));
+        json = response.getBody();
+        Assertions.assertTrue(json.contains("\"title\":\"" + titleLower + "\""));
     }
 
     /**
@@ -150,22 +161,20 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testCreateDataSet() throws Exception {
-        String title = "testCreateDataset-foo_bar";
+        String title = "testCreateDataset-foo";
         String datasetJson = getDatasetData(title);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+            createUrl("/datasets"),
+            makeBody(MediaType.APPLICATION_JSON, datasetJson),
+            String.class
+        );
         Assertions.assertEquals(
             HttpStatus.CREATED,
-            restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJson),
-                String.class
-            ).getStatusCode()
+            response.getStatusCode()
         );
 
-        String json = restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJson),
-                String.class
-            ).getBody();
+        String json = response.getBody();
         Assertions.assertTrue(json.contains("\"title\":"));
         Assertions.assertTrue(json.contains(title.toLowerCase(new Locale("en"))));
     }
@@ -175,17 +184,25 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testForInvalidDatasetTitle() throws Exception {
-        String datasetJson = getDatasetData("testForInvalidDatasetTitle-9999");
+        String datasetJsonNumbers = getDatasetData("testForInvalidDatasetTitle-99");
         Assertions.assertEquals(
             HttpStatus.BAD_REQUEST,
             restTemplate.postForEntity(
                 createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJson),
+                makeBody(MediaType.APPLICATION_JSON, datasetJsonNumbers),
                 String.class
             ).getStatusCode()
         );
 
-
+        String datasetJsonHyphen = getDatasetData("testForInvalidDatasetTitle_foo");
+        Assertions.assertEquals(
+            HttpStatus.BAD_REQUEST,
+            restTemplate.postForEntity(
+                createUrl("/datasets"),
+                makeBody(MediaType.APPLICATION_JSON, datasetJsonHyphen),
+                String.class
+            ).getStatusCode()
+        );
     }
 
     /**
@@ -224,7 +241,21 @@ public class ITBatsDatasetController {
     */
     @Test
     public void testDeleteDataSet() throws Exception {
-        String title = createDataset("testDeleteDataSet");
+        // Test using the title returned from POST
+        String title = "testDeleteDataSet";
+        String titleLowerCase = createDataset(title);
+        Assertions.assertEquals(
+            HttpStatus.NO_CONTENT,
+            restTemplate.exchange(
+                createUrl("/datasets/" + titleLowerCase),
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                Void.class
+            ).getStatusCode()
+        );
+
+        // Test for case-insensitive
+        createDataset(title);
         Assertions.assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
