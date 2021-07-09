@@ -57,6 +57,19 @@ mvn clean docker:build verify
 
 The `docker:build` is necessary to build the Fuseki docker container for integration tests
 
+#### Testing with VSCode
+
+You can run individual tests with VSCode IDE.
+
+One thing is you need to spin up a Fuseki server for the database.
+
+You can do so via:
+```
+docker login code.ornl.gov:4567
+docker pull code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/fuseki
+docker run -p 3030:3030 code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/fuseki
+```
+
 ### Coverage Report
 
 To generate a coverage report using [jacoco](https://www.jacoco.org/jacoco/) run:
