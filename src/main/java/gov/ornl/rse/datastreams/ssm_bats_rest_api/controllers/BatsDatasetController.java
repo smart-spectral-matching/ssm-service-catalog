@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Scanner;
 
 import javax.validation.Valid;
@@ -28,10 +27,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 
 @RestController
@@ -94,10 +93,10 @@ public class BatsDatasetController {
     public BatsDataset  createDataSet(
         @Valid @RequestBody final BatsDataset batsDataset
     ) throws Exception {
-        String title = batsDataset.getTitle().toLowerCase(new Locale("en"));
+        String title = batsDataset.getTitle();
 
         // Setup the database connection
-        DataSet dataset = new DataSet();
+        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
         dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
@@ -110,14 +109,14 @@ public class BatsDatasetController {
         if (code == DatasetUtils.DataSetQueryStatus.EXISTS) {
             throw new ResponseStatusException(
                 HttpStatus.CONFLICT,
-                "Title " + title + " already exists!"
+                "Title " + dataset.getName() + " already exists!"
             );
         }
 
         // Create the dataset
         dataset.create();
-        LOGGER.info("Created datatset: " + title);
-        return new BatsDataset(title);
+        LOGGER.info("Created dataset: " + dataset.getName());
+        return new BatsDataset(dataset.getName());
     }
 
     /**
@@ -207,14 +206,14 @@ public class BatsDatasetController {
         @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
         throws
             ResponseStatusException {
-        DataSet dataset = new DataSet();
+        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
         dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
 
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
-        return new BatsDataset(title);
+        return new BatsDataset(dataset.getName());
     }
 
     /**
@@ -227,11 +226,11 @@ public class BatsDatasetController {
     public void deleteDataSet(@PathVariable("title")
         @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
         throws Exception {
-        DataSet dataset = new DataSet();
+        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
         dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
         dataset.delete();
-        LOGGER.info("Deleted dataset: " + title);
+        LOGGER.info("Deleted dataset: " + dataset.getName());
     }
 }
