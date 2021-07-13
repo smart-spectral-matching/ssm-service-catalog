@@ -11,6 +11,7 @@ public class CustomizedBatsDataSet extends DataSet {
      *
      * @param name
     */
+    @Override
     public void setName(final String name) {
         super.setName(name.toLowerCase(new Locale("en")));
     }
