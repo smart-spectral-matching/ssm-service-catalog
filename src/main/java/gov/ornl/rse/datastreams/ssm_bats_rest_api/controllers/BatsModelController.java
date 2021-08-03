@@ -109,6 +109,12 @@ public class BatsModelController {
         "Unable to delete model on the remote Fuseki server.";
 
     /**
+     * Error message for creating response from model.
+    */
+    private static final String RESPONSE_MODEL_ERROR =
+    "Unable to create response for model from the remote Fuseki server.";
+
+    /**
      * SPARQL Prefix string. This should be included with EVERY query
      * which needs to get the values of the model properties.
      */
@@ -555,21 +561,31 @@ public class BatsModelController {
         // Get the dataset's model
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Pulling model: " + modelUUID);
+        Model model;
+        try {
+            model = dataset.getModel(modelUUID);
+        } catch (Exception e) {
+            LOGGER.error(READ_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Model " + modelUUID + " Not Found"
+            );
+        }
+
+        // Either return full model or the abbrev. version from full model
         try {
             if (full) {
                 // Return the full JSON-LD model
                 Model model = dataset.getModel(modelUri);
                 return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
             } else {
-                // Return the abbreviated JSON model
-                // <insert SPARQL query to only fetch required fields>
                 return new BatsModel("foo", "bar");
             }
         } catch (Exception e) {
-            LOGGER.error(READ_MODEL_ERROR, e);
+            LOGGER.error(RESPONSE_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Model " + modelUUID + " Not Found"
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Unable to create response for model" + modelUUID
             );
         }
     }
