@@ -79,17 +79,51 @@ public class ITBatsModelController {
     }
 
     /**
-     * Returns full database uri given the Dataset title and Model UUID.
+     * Returns uri given the Dataset title and Model UUID.
+     *
+     * @param datasetTitle Title for the Dataset the model belongs to
+     * @param modelUUID   UUID for the Model
+     * @param full        Boolean flag if we want a full model
+     * @return            Full URI for the Model
+    */
+    private String getModelUri(
+        final String datasetTitle,
+        final String modelUUID,
+        final boolean full
+    ) {
+        String uri = getDatasetUri(datasetTitle) + "/models/" + modelUUID;
+        if (full) {
+            uri += "?full=true";
+        }
+        return uri;
+    }
+
+    /**
+     * Returns uri to full model given the Dataset title and Model UUID.
      *
      * @param datasetTitle Title for the Dataset the model belongs to
      * @param modelUUID   UUID for the Model
      * @return            Full URI for the Model
     */
-    private String getModelUri(
+    private String getModelUriFull(
         final String datasetTitle,
         final String modelUUID
     ) {
-        return getDatasetUri(datasetTitle) + "/models/" + modelUUID;
+        return getModelUri(datasetTitle, modelUUID, true);
+    }
+
+    /**
+     * Returns uri to abbrviated model given the Dataset title and Model UUID.
+     *
+     * @param datasetTitle Title for the Dataset the model belongs to
+     * @param modelUUID   UUID for the Model
+     * @return            Full URI for the Model
+    */
+    private String getModelUriAbbreviated(
+        final String datasetTitle,
+        final String modelUUID
+    ) {
+        return getModelUri(datasetTitle, modelUUID, false);
     }
 
     /**
@@ -156,8 +190,9 @@ public class ITBatsModelController {
             if (nodeID.contains(JsonUtils.METADATA_URI)) {
                 continue;
             }
-            String modelPath = getModelUriPartial(datasetTitle, modelUUID);
-            String msg = "Asserting " + nodeID + " contains " + modelPath;
+
+            String modelUri = getModelUriAbbreviated(datasetTitle, modelUUID);
+            String msg = "Asserting " + nodeID + " contains " + modelUri;
             System.out.println(msg);
 
             Assertions.assertTrue(nodeID.contains(modelPath));
@@ -281,7 +316,7 @@ public class ITBatsModelController {
      * Test to create a Model from a simple JSON-LD.
     */
     @Test
-    public void testCreateSimpleModel() throws Exception {
+    public void testCreateSimpleFullModel() throws Exception {
         String datasetTitle = createDataset("testCreateSimpleModel");
         ResponseEntity<String> response = restTemplate.postForEntity(
                 getDatasetUri(datasetTitle) + "/models",
@@ -317,7 +352,7 @@ public class ITBatsModelController {
      * Test to create a Model from a SciData JSON-LD.
     */
     @Test
-    public void testCreateSciDataModel() throws Exception {
+    public void testCreateSciDataFullModel() throws Exception {
         String datasetTitle = createDataset("testCreateSciDataModel");
 
         ResponseEntity<String> response = restTemplate.postForEntity(
@@ -330,7 +365,7 @@ public class ITBatsModelController {
         String modelUUID = MAPPER.readTree(response.getBody())
                                  .get("uuid")
                                  .asText();
-        String modelUri = getModelUri(datasetTitle, modelUUID);
+        String modelUri = getModelUriFull(datasetTitle, modelUUID);
 
         System.out.println("\n\n");
         System.out.println("Dataset title: " + datasetTitle);
@@ -352,10 +387,10 @@ public class ITBatsModelController {
      * Test to get a Model created from a simple JSON-LD.
     */
     @Test
-    public void testGetSimpleModel() throws Exception {
+    public void testGetSimpleFullModel() throws Exception {
         String datasetTitle = createDataset("testGetSimpleModel");
         String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
-        String modelUri = getModelUri(datasetTitle, modelUUID);
+        String modelUri = getModelUriFull(datasetTitle, modelUUID);
 
         ResponseEntity<String> response = restTemplate.getForEntity(
             modelUri,
@@ -390,10 +425,10 @@ public class ITBatsModelController {
      * Test to get a Model created from a SciData JSON-LD.
     */
     @Test
-    public void testGetSciDataModel() throws Exception {
+    public void testGetSciDataFullModel() throws Exception {
         String datasetTitle = createDataset("testGetSciDataModel");
         String modelUUID = createModel(datasetTitle, scidataInputJSONLD());
-        String modelUri = getModelUri(datasetTitle, modelUUID);
+        String modelUri = getModelUriFull(datasetTitle, modelUUID);
 
         ResponseEntity<String> response = restTemplate.getForEntity(
             modelUri,
@@ -415,13 +450,13 @@ public class ITBatsModelController {
      * Test to get correct HTTP status if Model not found.
     */
     @Test
-    public void testGetModelNotFound() throws Exception {
+    public void testGetFullModelNotFound() throws Exception {
         String datasetTitle = createDataset("testGetModelNotFound");
 
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                getModelUri(datasetTitle, "1"),
+                getModelUriFull(datasetTitle, "1"),
                 Void.class
             ).getStatusCode()
         );
@@ -431,10 +466,10 @@ public class ITBatsModelController {
      * Test to update via replace for a Model using a simple JSON-LD.
     */
     @Test
-    public void testUpdateSimpleModelReplace() throws Exception {
+    public void testUpdateSimpleFullModelReplace() throws Exception {
         String datasetTitle = createDataset("testUpdateSimpleModelReplace");
         String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
-        String modelUri = getModelUri(datasetTitle, modelUUID);
+        String modelUri = getModelUriFull(datasetTitle, modelUUID);
 
         // Create @graph node
         JsonNode updateNode = getSimpleUpdateNode();
@@ -479,10 +514,10 @@ public class ITBatsModelController {
      * Test to partial update for a Model using a simple JSON-LD.
     */
     @Test
-    public void testUpdateSimpleModelPartial() throws Exception {
+    public void testUpdateSimpleFullModelPartial() throws Exception {
         String datasetTitle = createDataset("testUpdateSimpleModelPartial");
         String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
-        String modelUri = getModelUri(datasetTitle, modelUUID);
+        String modelUri = getModelUriFull(datasetTitle, modelUUID);
 
         // Create body for our update to the model
         JsonNode newNameNode = getSimpleUpdateNode();
@@ -530,7 +565,7 @@ public class ITBatsModelController {
      * Test to delete a Model using a simple JSON-LD.
     */
     @Test
-    public void testDeleteSimpleModel() throws Exception {
+    public void testDeleteSimpleFullModel() throws Exception {
         String datasetTitle = createDataset("testDeleteSimpleModel");
         String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
 
@@ -538,7 +573,7 @@ public class ITBatsModelController {
         Assertions.assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
-                getModelUri(datasetTitle, modelUUID),
+                getModelUriFull(datasetTitle, modelUUID),
                 Void.class
             ).getStatusCode()
         );
@@ -547,7 +582,7 @@ public class ITBatsModelController {
         Assertions.assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
-                getModelUri(datasetTitle, modelUUID),
+                getModelUriFull(datasetTitle, modelUUID),
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class
@@ -558,7 +593,7 @@ public class ITBatsModelController {
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                getModelUri(datasetTitle, modelUUID),
+                getModelUriFull(datasetTitle, modelUUID),
                 Void.class
             ).getStatusCode()
         );
