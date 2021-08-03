@@ -414,9 +414,9 @@ public class BatsModelController {
         );
 
         // immediately return 200 if the query was not valid
-        ResultSet results;
+        ResultSet modelResults;
         try {
-            results = execution.execSelect();
+            modelResults = execution.execSelect();
         } catch (QueryException ex) {
             execution.close();
             return ResponseEntity.ok(Collections.EMPTY_MAP);
@@ -424,7 +424,7 @@ public class BatsModelController {
 
         //Add each found model to the response
         if (returnFull) {
-            List<BatsModel> body = getFullModels(datasetTitle, results);
+            List<BatsModel> body = getFullModels(datasetTitle, modelResults);
             execution.close();
             return ResponseEntity.ok(body);
         } else {
@@ -459,7 +459,7 @@ public class BatsModelController {
 
             // build the actual body
             Map<String, Object> body = new LinkedHashMap<>();
-            List<Map<String, Object>> models = getModels(results);
+            List<Map<String, Object>> models = getModels(modelResults);
             // this endpoint
             String modelsURI = configUtils.getDatasetUri(datasetTitle) + "/models";
             body.put("data", models);
@@ -528,6 +528,8 @@ public class BatsModelController {
      *
      * @param datasetTitle Title for Dataset collection that Model belonds to
      * @param modelUUID   UUID for Model to retrieve from the Dataset
+     * @param full        Boolean flag to return either full JSON-LD
+     *  or abbreviated JSON model
      * @return            BatsModel for given Model UUID
     */
     @RequestMapping(
@@ -540,7 +542,7 @@ public class BatsModelController {
         @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String modelUUID
+        final String modelUUID,
         @RequestParam(name = "full", defaultValue = "false")
         final boolean full
     ) {
@@ -561,6 +563,7 @@ public class BatsModelController {
             } else {
                 // Return the abbreviated JSON model
                 // <insert SPARQL query to only fetch required fields>
+                return new BatsModel("foo", "bar");
             }
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
