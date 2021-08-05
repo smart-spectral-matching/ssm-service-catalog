@@ -305,7 +305,7 @@ public class BatsModelController {
         }
 
         Model newModel = dataset.getModel(modelUri);
-        return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
+        return new BatsModel(modelUUID, RdfModelWriter.getJsonldForModel(newModel));
     }
 
     /**
@@ -353,7 +353,7 @@ public class BatsModelController {
                 body.add(
                     new BatsModel(//NOPMD
                         node.toString(),
-                        RdfModelWriter.model2jsonld(model)
+                        RdfModelWriter.getJsonldForModel(model)
                     )
                 );
             } catch (IOException e) {
@@ -571,13 +571,16 @@ public class BatsModelController {
         }
 
         // Either return full model or the abbrev. version from full model
+        String frame = "{\"@type\" : ";
+        frame += "\"https://stuchalk.github.io/scidata/ontology/scidata.owl#valuearray\"}";
         try {
             if (full) {
                 // Return the full JSON-LD model
                 Model model = dataset.getModel(modelUri);
                 return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
             } else {
-                return new BatsModel("foo", "bar");
+                String json = RdfModelWriter.getAbbrvJsonForModel(model);
+                return new BatsModel(modelUUID, json);
             }
         } catch (Exception e) {
             LOGGER.error(RESPONSE_MODEL_ERROR, e);
@@ -685,7 +688,7 @@ public class BatsModelController {
         String modelJSONLD;
         try {
             Model model = dataset.getModel(modelUri);
-            modelJSONLD = RdfModelWriter.model2jsonld(model);
+            modelJSONLD = RdfModelWriter.getJsonldForModel(model);
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
@@ -736,7 +739,7 @@ public class BatsModelController {
         String modelJSONLD;
         try {
             Model model = dataset.getModel(modelUri);
-            modelJSONLD = RdfModelWriter.model2jsonld(model);
+            modelJSONLD = RdfModelWriter.getJsonldForModel(model);
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(

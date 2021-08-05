@@ -51,7 +51,7 @@ public final class RdfModelWriter {
      * @param ctx  Context for the RDF model
      * @return     RDF Model as a string
     */
-    private static String write2String(
+    public static String write2String(
         final DatasetGraph g,
         final RDFFormat f,
         final Context ctx) {
@@ -72,10 +72,21 @@ public final class RdfModelWriter {
      * @return      JSON-LD for the Model provided
     */
 
-    public static String model2jsonld(final Model model) {
+    public static String getJsonldForModel(final Model model) {
         DatasetGraph g = DatasetFactory.wrap(model).asDatasetGraph();
         JsonLDWriteContext ctx = new JsonLDWriteContext();
         String jsonld = write2String(g, RDFFormat.JSONLD_COMPACT_PRETTY, ctx);
+        return jsonld;
+    }
+
+        /**
+     * Returns RDF model as abbreviated JSON.
+     *
+     * @param model Apache Jena Model to return as JSON-LD
+     * @return      Abbreviated JSON for the Model provided
+    */
+    public static String getAbbrvJsonForModel(final Model model) {
+        String jsonld = getJsonldForModel(model);
         return jsonld;
     }
 }
