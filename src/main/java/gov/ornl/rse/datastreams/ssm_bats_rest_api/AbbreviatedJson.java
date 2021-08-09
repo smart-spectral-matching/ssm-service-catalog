@@ -50,7 +50,12 @@ public final class AbbreviatedJson {
     private static void traverseObject(final JsonNode node) {
         node.fieldNames().forEachRemaining((String fieldName) -> {
             JsonNode childNode = node.get(fieldName);
-            printNode(childNode, fieldName);
+
+            System.out.println("Object: " + fieldName);
+            if (fieldName.equals("@value")) {
+                System.out.println("  value: " + fieldName);
+            }
+
             traverse(childNode);
         });
     }
@@ -62,32 +67,8 @@ public final class AbbreviatedJson {
      */
     private static void traverseArray(final JsonNode node) {
         for (JsonNode jsonArrayNode : node) {
-            printNode(jsonArrayNode, "arrayElement");
+            System.out.println("Array: " + jsonArrayNode);
             traverse(jsonArrayNode);
-        }
-    }
-
-    /**
-     * Pretty print the json node.
-     *
-     * @param node
-     * @param keyName
-     */
-    private static void printNode(
-        final JsonNode node,
-        final String keyName
-    ) {
-        System.out.printf("|-- KEY:%s%n", keyName);
-        Object value = null;
-        if (node.isTextual()) {
-            value = node.textValue();
-        } else if (node.isNumber()) {
-            value = node.numberValue();
-        }
-
-        if (keyName.equals("@value")) {
-            System.out.printf("|-- %s=%s type=%s%n",
-                "", keyName, value, node.getNodeType());
         }
     }
 
@@ -106,21 +87,46 @@ public final class AbbreviatedJson {
     }
 
     /**
-     * Returns RDF model as abbreviated JSON.
+     * Returns a frame filtered JSON-LD.
+     *
+     * @param model Apache Jena Model to apply the filter to
+     * @param typeFilter The frame filter to apply to the model
+     * @return Abbreviated Json after frame filtering a JSON-LD model
+     */
+    private static String getTypedFrameFilter(
+        final Model model,
+        final String typeFilter
+    ) throws JsonProcessingException {
+        String typeFrame = "{\"@type\" : \"" + typeFilter + "\"}";
+        String fullJson = getFramedJsonLd(model, typeFrame);
+        JsonNode graphNode = MAPPER.readTree(fullJson).get("@graph");
+        traverse(graphNode);
+        return fullJson;
+    }
+
+    /**
+     * Returns x-axis for the abbreviated JSON format.
      *
      * @param model Apache Jena Model to return as JSON-LD
-     * @return      Abbreviated JSON for the Model provided
+     * @return      X-axis for abbreviated JSON for the Model provided
+    */
+    public static String getXAxis(final Model model)
+    throws
+        JsonProcessingException {
+        String typeFilter = SDO + "#independent";
+        return getTypedFrameFilter(model, typeFilter);
+    }
+
+    /**
+     * Returns y-axis for the abbreviated JSON format.
+     *
+     * @param model Apache Jena Model to return as JSON-LD
+     * @return      Y-axis for abbreviated JSON for the Model provided
     */
     public static String getYAxis(final Model model)
     throws
         JsonProcessingException {
         String typeFilter = SDO + "#dependent";
-        String typeFrame = "{\"@type\" : \"" + typeFilter + "\"}";
-
-        String fullJson = getFramedJsonLd(model, typeFrame);
-
-        JsonNode graphNode = MAPPER.readTree(fullJson).get("@graph");
-        traverse(graphNode);
-        return fullJson;
+        return getTypedFrameFilter(model, typeFilter);
     }
 }
