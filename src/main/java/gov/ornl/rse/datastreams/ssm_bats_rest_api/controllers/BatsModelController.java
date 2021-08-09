@@ -578,7 +578,7 @@ public class BatsModelController {
                 Model model = dataset.getModel(modelUri);
                 return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
             } else {
-                String json = AbbreviatedJson.getDependentAxes(model);
+                String json = AbbreviatedJson.getYAxis(model);
                 return new BatsModel(modelUUID, json);
             }
         } catch (Exception e) {

@@ -93,12 +93,12 @@ public final class AbbreviatedJson {
 
     /**
      * Get frame filtered JSON-LD for a model.
-     * 
+     *
      * @param model
      * @param frame
      * @return Frame filtered JSON
      */
-    private static String getFramedJsonLd(Model model, String frame)  {
+    private static String getFramedJsonLd(final Model model, final String frame)  {
         DatasetGraph g = DatasetFactory.wrap(model).asDatasetGraph();
         JsonLDWriteContext ctx = new JsonLDWriteContext();
         ctx.setFrame(frame);
@@ -117,7 +117,6 @@ public final class AbbreviatedJson {
         String typeFilter = SDO + "#dependent";
         String typeFrame = "{\"@type\" : \"" + typeFilter + "\"}";
 
-        // Get full model but use frame to "filter" for a type
         String fullJson = getFramedJsonLd(model, typeFrame);
 
         JsonNode graphNode = MAPPER.readTree(fullJson).get("@graph");
