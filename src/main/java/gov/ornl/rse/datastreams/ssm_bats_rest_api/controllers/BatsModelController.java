@@ -47,6 +47,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.AbbreviatedJson;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
@@ -571,15 +572,13 @@ public class BatsModelController {
         }
 
         // Either return full model or the abbrev. version from full model
-        String frame = "{\"@type\" : ";
-        frame += "\"https://stuchalk.github.io/scidata/ontology/scidata.owl#valuearray\"}";
         try {
             if (full) {
                 // Return the full JSON-LD model
                 Model model = dataset.getModel(modelUri);
                 return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
             } else {
-                String json = RdfModelWriter.getAbbrvJsonForModel(model);
+                String json = AbbreviatedJson.getDependentAxes(model);
                 return new BatsModel(modelUUID, json);
             }
         } catch (Exception e) {
