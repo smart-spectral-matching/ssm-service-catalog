@@ -53,7 +53,7 @@ public final class AbbreviatedJson {
 
             System.out.println("Object: " + fieldName);
             if (fieldName.equals("@value")) {
-                System.out.println("  value: " + fieldName);
+                System.out.println("  value: " + childNode.textValue());
             }
 
             traverse(childNode);
