@@ -78,16 +78,5 @@ public final class RdfModelWriter {
         String jsonld = write2String(g, RDFFormat.JSONLD_COMPACT_PRETTY, ctx);
         return jsonld;
     }
-
-        /**
-     * Returns RDF model as abbreviated JSON.
-     *
-     * @param model Apache Jena Model to return as JSON-LD
-     * @return      Abbreviated JSON for the Model provided
-    */
-    public static String getAbbrvJsonForModel(final Model model) {
-        String jsonld = getJsonldForModel(model);
-        return jsonld;
-    }
 }
 
