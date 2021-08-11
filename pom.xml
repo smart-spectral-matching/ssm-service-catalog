@@ -332,6 +332,11 @@
       <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
+        <includes>
+            <include>*.xml</include>
+            <include>*.config</include>
+            <include>*.properties</include>
+        </includes>
       </resource>
     </resources>
 
