@@ -151,7 +151,7 @@ public class BatsDatasetController {
         try {
             scanner = new Scanner(url.openStream(), "UTF-8");
         } catch (IOException e) {
-            LOGGER.error(URL_ACCESS_ERROR, e);
+            LOGGER.error(URL_ACCESS_ERROR + ": " + url, e);
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 READ_DATASETS_ERROR
