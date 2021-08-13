@@ -578,14 +578,14 @@ public class BatsModelController {
                 Model model = dataset.getModel(modelUri);
                 return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
             } else {
-                String json = AbbreviatedJson.getYAxis(model);
+                String json = AbbreviatedJson.getJson(model);
                 return new BatsModel(modelUUID, json);
             }
         } catch (Exception e) {
             LOGGER.error(RESPONSE_MODEL_ERROR, e);
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unable to create response for model" + modelUUID
+                "Unable to create response for model: " + modelUUID
             );
         }
     }
