@@ -273,10 +273,8 @@ public class BatsModelController {
         scidataNode = JsonUtils.clearTimestamps(scidataNode);
 
         // Replace @base in @context block w/ new URI
-        String scidataString = addBaseToContextToJsonLD(
-            scidataNode.toString(),
-            configUtils.getModelUri(datasetTitle, modelUUID)
-        );
+        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
+        String scidataString = addBaseToContextToJsonLD(scidataNode.toString(), modelUri);
 
         // Tree -> JSON -> Jena Model
         LOGGER.info("Uploading model: " + modelUUID);
@@ -294,13 +292,13 @@ public class BatsModelController {
 
         // Jena Model -> BATS DataSet
         try {
-            dataset.updateModel(modelUUID, model);
+            dataset.updateModel(modelUri, model);
             LOGGER.info("Model uploaded!");
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
 
-        Model newModel = dataset.getModel(modelUUID);
+        Model newModel = dataset.getModel(modelUri);
         return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(newModel));
     }
 

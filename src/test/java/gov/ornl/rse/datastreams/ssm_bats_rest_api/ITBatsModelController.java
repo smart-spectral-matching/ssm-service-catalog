@@ -156,10 +156,10 @@ public class ITBatsModelController {
             if (nodeID.contains(JsonUtils.METADATA_URI)) {
                 continue;
             }
-            String modelUri = getModelUri(datasetTitle, modelUUID);
-            String msg = "Asserting " + nodeID + " contains " + modelUri;
-            System.out.println(msg);
             String modelPath = getModelUriPartial(datasetTitle, modelUUID);
+            String msg = "Asserting " + nodeID + " contains " + modelPath;
+            System.out.println(msg);
+
             Assertions.assertTrue(nodeID.contains(modelPath));
             System.out.println("  - assertion true!\n");
         }
