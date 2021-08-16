@@ -274,7 +274,7 @@ public class BatsModelController {
 
         // Replace @base in @context block w/ new URI
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-        String scidataString = addBaseToContextToJsonLD(scidataNode.toString(), modelUri);
+        String scidataString = addBaseToContextToJsonLD(scidataNode.toString(), modelUri + "/");
 
         // Tree -> JSON -> Jena Model
         LOGGER.info("Uploading model: " + modelUUID);
@@ -549,9 +549,10 @@ public class BatsModelController {
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // Get the dataset's model
+        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Pulling model: " + modelUUID);
         try {
-            Model model = dataset.getModel(modelUUID);
+            Model model = dataset.getModel(modelUri);
             return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
@@ -654,10 +655,11 @@ public class BatsModelController {
         Get the dataset's model. We want to extract the created timestamp,
         instead of updating it from user params or deleting it.
         */
+        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Pulling model: " + modelUUID);
         String modelJSONLD;
         try {
-            Model model = dataset.getModel(modelUUID);
+            Model model = dataset.getModel(modelUri);
             modelJSONLD = RdfModelWriter.model2jsonld(model);
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
@@ -704,10 +706,11 @@ public class BatsModelController {
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // Get the dataset's model
+        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Pulling model: " + modelUUID);
         String modelJSONLD;
         try {
-            Model model = dataset.getModel(modelUUID);
+            Model model = dataset.getModel(modelUri);
             modelJSONLD = RdfModelWriter.model2jsonld(model);
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
@@ -757,9 +760,10 @@ public class BatsModelController {
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // Delete the dataset's model
+        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Deleting model: " + modelUUID);
         try {
-            dataset.deleteModel(modelUUID);
+            dataset.deleteModel(modelUri);
         } catch (Exception e) {
             LOGGER.error(DELETE_MODEL_ERROR, e);
         }

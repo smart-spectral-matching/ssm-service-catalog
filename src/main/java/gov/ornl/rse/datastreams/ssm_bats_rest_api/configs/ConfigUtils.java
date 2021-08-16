@@ -95,7 +95,7 @@ public class ConfigUtils {
     public String getModelUri(final String datasetUUID, final String modelUUID) {
         String baseUri = getBasePath();
         String datasetUri = baseUri + "/datasets/" + datasetUUID;
-        String modelUri = datasetUri + "/models/" + modelUUID + "/";
+        String modelUri = datasetUri + "/models/" + modelUUID;
         return modelUri.replace("\"", "");
     }
 
