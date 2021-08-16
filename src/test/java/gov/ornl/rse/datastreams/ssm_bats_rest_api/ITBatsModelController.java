@@ -191,8 +191,8 @@ public class ITBatsModelController {
                 continue;
             }
 
-            String modelUri = getModelUriAbbreviated(datasetTitle, modelUUID);
-            String msg = "Asserting " + nodeID + " contains " + modelUri;
+            String modelPath = getModelUriPartial(datasetTitle, modelUUID);
+            String msg = "Asserting " + nodeID + " contains " + modelPath;
             System.out.println(msg);
 
             Assertions.assertTrue(nodeID.contains(modelPath));
