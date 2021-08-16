@@ -51,7 +51,7 @@ public final class AbbreviatedJson {
     /**
      * Dublin Core Ontology string for RDF frame filtering (also used as splitter).
      */
-    private static final String DC = "https://purl.org/dc/terms/";
+    private static final String DCTERMS = "https://purl.org/dc/terms/";
 
     /**
      * Get frame filtered JSON-LD for a model.
@@ -105,9 +105,10 @@ public final class AbbreviatedJson {
         }
 
         // Split JSON-LD dcterms field format 'https://purl.org/dc/terms/<label>'
-        if (key.split(DC).length == 2) {
-            label = key.split(DC)[1];
+        if (key.split(DCTERMS).length == 2) {
+            label = key.split(DCTERMS)[1];
         }
+
         return label;
     }
 
