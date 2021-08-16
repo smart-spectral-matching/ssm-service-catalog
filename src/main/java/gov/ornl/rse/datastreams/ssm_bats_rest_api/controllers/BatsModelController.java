@@ -575,8 +575,8 @@ public class BatsModelController {
         try {
             if (full) {
                 // Return the full JSON-LD model
-                Model model = dataset.getModel(modelUri);
-                return new BatsModel(modelUUID, RdfModelWriter.model2jsonld(model));
+                Model newModel = dataset.getModel(modelUri);
+                return new BatsModel(modelUUID, RdfModelWriter.getJsonldForModel(newModel));
             } else {
                 String json = AbbreviatedJson.getJson(model);
                 return new BatsModel(modelUUID, json);
