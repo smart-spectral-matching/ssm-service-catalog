@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 
 public final class DatasetUtils {
 
@@ -43,9 +44,7 @@ public final class DatasetUtils {
     /**
      * Static methods only.
      */
-    private DatasetUtils() {
-
-    }
+    private DatasetUtils() { }
 
     /**
      * Return if given Apache Jena Dataset exists in Fuseki database.
@@ -113,6 +112,24 @@ public final class DatasetUtils {
                     "Error accessing dataset " + dataset.getName() + "!");
         }
         logger.info("Dataset " + dataset.getName() + " exists!");
+    }
+
+    /**
+     * Initialize BATS dataset connection.
+     *
+     * @param datasetTitle Dataset title from user parameter
+     * @param fusekiObject Fuseki object that holds the Fuseki database info
+     * @return Bats dataset with name, Fuseki host, and Fuseki port configured
+     */
+    public static CustomizedBatsDataSet initDataset(
+        final String datasetTitle,
+        final Fuseki fusekiObject
+    ) {
+        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
+        dataset.setName(datasetTitle);
+        dataset.setHost(fusekiObject.getHostname());
+        dataset.setPort(fusekiObject.getPort());
+        return dataset;
     }
 
 }

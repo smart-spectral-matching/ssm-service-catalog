@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,19 +12,15 @@ import java.util.Map;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryException;
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.vocabulary.DCTerms;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +40,6 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.AbbreviatedJson;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.RdfModelWriter;
@@ -59,6 +53,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
 
 @RestController
 @RequestMapping("/datasets")
@@ -84,6 +79,12 @@ public class BatsModelController {
     @Autowired
     private ConfigUtils configUtils;
 
+    /**
+     * @return shorthand for the Fuseki configuration
+     */
+    private Fuseki fuseki() {
+        return appConfig.getFuseki();
+    }
 
     /**
      * Class ObjectMapper.
@@ -114,71 +115,6 @@ public class BatsModelController {
     */
     private static final String RESPONSE_MODEL_ERROR =
     "Unable to create response for model from the remote Fuseki server.";
-
-    /**
-     * SPARQL Prefix string. This should be included with EVERY query
-     * which needs to get the values of the model properties.
-     */
-    private static final String QUERY_PREFIX_STRING =
-    "PREFIX dcterm: <http://purl.org/dc/terms/>"
-    + "PREFIX dcterms: <https://purl.org/dc/terms/>"
-    + "PREFIX obo: <http://purl.obolibrary.org/obo/>"
-    + "PREFIX prov: <http://www.w3.org/ns/prov#>"
-    + "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
-    + "PREFIX rdfs: <https://www.w3.org/2000/01/rdf-schema#>"
-    + "PREFIX sdo: <https://stuchalk.github.io/scidata/ontology/scidata.owl#>"
-    + "PREFIX url: <http://schema.org/>"
-    + "PREFIX urls: <https://schema.org/>"
-    + "PREFIX xml: <http://www.w3.org/2001/XMLSchema#>"
-    + "PREFIX xmls: <https://www.w3.org/2001/XMLSchema#>"
-    + "PREFIX xsd: <https://www.w3.org/2001/XMLSchema#>";
-
-    /**
-     * @return shorthand for the Fuseki configuration
-     */
-    private Fuseki fuseki() {
-        return appConfig.getFuseki();
-    }
-
-    /**
-     *
-     * @param title dataset title from user parameter
-     * @return Bats dataset with name, Fuseki host, and Fuseki port configured
-     */
-    private CustomizedBatsDataSet initDataset(final String title) {
-        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
-        dataset.setName(title);
-        dataset.setHost(fuseki().getHostname());
-        dataset.setPort(fuseki().getPort());
-        return dataset;
-    }
-
-    /**
-     * <p>
-     * Prepare to query a dataset for all of its model UUIDs.
-     * </p>
-     * <p>
-     * Note that the return value does not actually execute, as different
-     * implementations may want to handle exceptions differently.
-     * </p>
-     *
-     * @param datasetTitle Title from the dataset.
-     * @param queryStr literal query to call
-     * @return a prepared query, ready to be executed
-     */
-    private QueryExecution prepareModelUUIDQuery(final String datasetTitle,
-        final String queryStr) {
-        //SPARQL query to find all unique graphs
-        ParameterizedSparqlString sparql = new ParameterizedSparqlString();
-        sparql.append(queryStr);
-
-        //Prepare to execute the query against the given dataset
-        Query query = sparql.asQuery();
-        String endpointURL = fuseki().getHostname() + ":"
-                + fuseki().getPort()
-                + "/" + datasetTitle;
-        return QueryExecutionFactory.sparqlService(endpointURL, query);
-    }
 
     /**
      * Returns modified input JSON-LD with `@graph` at top-level.
@@ -216,8 +152,6 @@ public class BatsModelController {
         final String baseUri
     )
     throws IOException {
-        LOGGER.info("Updating @base in @context block...");
-
         // Create default output JSON-LD
         String newJsonLd = jsonld;
 
@@ -310,64 +244,45 @@ public class BatsModelController {
     }
 
     /**
-     * Gets model data based on SPARQL query results.
+     * Construct the body response for the GET method of models.
      *
-     * @param queryResults Results from previous SPARQL query
-     * @return             List of Maps for model data
-    */
-
-    private List<Map<String, Object>> getModels(
-        final ResultSet queryResults
+     * @param models     List of models from SPARQL query
+     * @param modelsUri  Uri to use for the models
+     * @param pageSize   Size of the pages for pagination
+     * @param pageNumber Page number for pagination
+     * @return Body for JSON response as a Map for list of models
+     */
+    private Map<String, Object> constructModelsBody(
+        final List<Map<String, Object>> models,
+        final String modelsUri,
+        final int pageSize,
+        final int pageNumber
     ) {
-        List<Map<String, Object>> body = new ArrayList<>();
-        while (queryResults.hasNext()) {
-            QuerySolution solution = queryResults.next();
-            Map<String, Object> map = new LinkedHashMap<String, Object>(); //NOPMD
-            map.put("uuid", solution.get("?model").toString());
-            map.put("title", solution.get("?title").toString());
-            map.put("url", solution.get("?scidata_url").toString());
-            map.put("created", solution.get("?created").toString());
-            map.put("modified", solution.get("?modified").toString());
-            body.add(map);
-        }
+        Map<String, Object> body = new LinkedHashMap<>();
+        /*
+        cheeky way to avoid the division twice,
+        compare Option 1 vs Option 2 here:
+        https://stackoverflow.com/a/21830188
+        */
+        int modelCount = models.size();
+        final int totalPages = (modelCount - 1) / pageSize + 1;
+
+        body.put("data", models);
+
+        // TODO remember to update the values with the full URI once this is changed
+        body.put("first", modelsUri + "?pageNumber=1&pageSize="
+            + pageSize + "&returnFull=false");
+        body.put("previous", modelsUri + "?pageNumber="
+            + (pageNumber > 1 ? pageNumber - 1 : 1) + "&pageSize="
+            + pageSize + "&returnFull=false");
+        body.put("next", modelsUri + "?pageNumber="
+            + (pageNumber < totalPages ? pageNumber + 1 : totalPages)
+            + "&pageSize=" + pageSize + "&returnFull=false");
+        body.put("last", modelsUri + "?pageNumber=" + totalPages
+            + "&pageSize=" + pageSize + "&returnFull=false");
+        body.put("total", modelCount);
         return body;
     }
-
-    /**
-     * Gets full models from dataset based on SPARQL query results.
-     *
-     * @param queryResults Results from previous SPARQL query
-     * @param datasetTitle Title of the Apache Jena Dataset the models belong to
-     * @return             List of BatsModel for the full models
-    */
-    private List<BatsModel> getFullModels(
-        final String datasetTitle,
-        final ResultSet queryResults
-    ) {
-        List<BatsModel> body = new ArrayList<>();
-        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
-        while (queryResults.hasNext()) {
-            QuerySolution solution = queryResults.next();
-            RDFNode node = solution.get("?model");
-            Model model = dataset.getModel(node.toString());
-            try {
-                body.add(
-                    new BatsModel(//NOPMD
-                        node.toString(),
-                        RdfModelWriter.getJsonldForModel(model)
-                    )
-                );
-            } catch (IOException e) {
-                LOGGER.error(
-                    "Unable to parse JSONLD from model {} dataset {}",
-                    node.toString(),
-                    datasetTitle
-                );
-            }
-        }
-        return body;
-    }
-
 
     /**
      * FETCH a certain amount of datasets.
@@ -400,93 +315,40 @@ public class BatsModelController {
     ) {
         // final PropertyEnum[]
         // pmd does not recognize that this will always be closed
-        String queryString =
-            QUERY_PREFIX_STRING
-            + "SELECT ?model ?title ?scidata_url ?modified ?created "
-            + "WHERE { "
-            + "  GRAPH ?model { "
-            + "    ?node1 dcterms:title ?_title . "
-            + "    ?node2 dcterm:modified ?modified . "
-            + "    ?node3 dcterm:created ?created . "
-            + "    ?scidata_url rdf:type sdo:scidataFramework . "
-            + "  } "
-            + "  BIND( xml:string(?_title) as ?title)"
-            + "}"
-            + "ORDER BY DESC(?modified) "
-            + "OFFSET " + (pageNumber * pageSize - pageSize) + " "
-            + "LIMIT " + pageSize;
+        String endpointUrl = fuseki().getHostname() + ":"
+            + fuseki().getPort()
+            + "/" + datasetTitle;
 
-        QueryExecution execution = prepareModelUUIDQuery(//NOPMD
-            datasetTitle, queryString
-        );
-
-        // immediately return 200 if the query was not valid
         ResultSet modelResults;
         try {
-            modelResults = execution.execSelect();
+            modelResults = ModelSparql.queryForModels(pageSize, pageNumber, endpointUrl);
         } catch (QueryException ex) {
-            execution.close();
             return ResponseEntity.ok(Collections.EMPTY_MAP);
         }
 
         //Add each found model to the response
         if (returnFull) {
-            List<BatsModel> body = getFullModels(datasetTitle, modelResults);
-            execution.close();
+            CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+                datasetTitle,
+                fuseki()
+            );
+            List<BatsModel> body = ModelSparql.getFullModelsFromResult(
+                dataset,
+                modelResults
+            );
             return ResponseEntity.ok(body);
         } else {
-            // make an additional query to count total number of models
-            String countAllQueryString =
-                "SELECT (count(distinct ?model) as ?count) WHERE {"
-                + "GRAPH ?model { ?x ?y ?z }}";
-            QueryExecution countAllExecution = // NOPMD
-                prepareModelUUIDQuery(datasetTitle, countAllQueryString);
-            ResultSet countResults;
-            try {
-                countResults = countAllExecution.execSelect();
-            } catch (QueryException ex) {
-                countAllExecution.close();
-                execution.close();
-                return ResponseEntity.ok(Collections.EMPTY_MAP);
-            }
-            int totalResults = 0;
-            while (countResults.hasNext()) {
-                QuerySolution countSolution = countResults.next();
-                totalResults = Integer.parseInt(countSolution.get("?count")
-                    .asLiteral()
-                    .getLexicalForm());
-            }
-            countAllExecution.close();
-            /*
-            cheeky way to avoid the division twice,
-            compare Option 1 vs Option 2 here:
-            https://stackoverflow.com/a/21830188
-            */
-            final int totalPages = (totalResults - 1) / pageSize + 1;
-
             // build the actual body
-            Map<String, Object> body = new LinkedHashMap<>();
-            List<Map<String, Object>> models = getModels(modelResults);
-            // this endpoint
-            String modelsURI = configUtils.getDatasetUri(datasetTitle) + "/models";
-            body.put("data", models);
-
-            // TODO remember to update the values with the full URI once this is changed
-            body.put("first", modelsURI + "?pageNumber=1&pageSize="
-                + pageSize + "&returnFull=false");
-            body.put("previous", modelsURI + "?pageNumber="
-                + (pageNumber > 1 ? pageNumber - 1 : 1) + "&pageSize="
-                + pageSize + "&returnFull=false");
-            body.put("next", modelsURI + "?pageNumber="
-                + (pageNumber < totalPages ? pageNumber + 1 : totalPages)
-                + "&pageSize=" + pageSize + "&returnFull=false");
-            body.put("last", modelsURI + "?pageNumber=" + totalPages
-                + "&pageSize=" + pageSize + "&returnFull=false");
-            body.put("total", totalResults);
-            execution.close();
+            List<Map<String, Object>> models = ModelSparql.getModelsFromResult(modelResults);
+            String modelsUri = configUtils.getDatasetUri(datasetTitle) + "/models";
+            Map<String, Object> body = constructModelsBody(
+                models,
+                modelsUri,
+                pageSize,
+                pageNumber
+            );
             return ResponseEntity.ok(body);
         }
-
     }
 
     /**
@@ -511,8 +373,10 @@ public class BatsModelController {
         NoSuchAlgorithmException,
         UnsupportedEncodingException {
 
-        // Initialize dataset
-        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+            datasetTitle,
+            fuseki()
+        );
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -553,8 +417,10 @@ public class BatsModelController {
         @RequestParam(name = "full", defaultValue = "false")
         final boolean full
     ) {
-        // Initialize dataset
-        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+            datasetTitle,
+            fuseki()
+        );
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -605,35 +471,20 @@ public class BatsModelController {
     public ResponseEntity<?> getUUIDs(@PathVariable("dataset_title")
         @Pattern(regexp = BatsDataset.TITLE_REGEX) final String datasetTitle) {
 
-        // pmd does not recognize that this is always being closed
-        QueryExecution execution = prepareModelUUIDQuery(// NOPMD
-            datasetTitle,
-            "SELECT DISTINCT ?model {GRAPH ?model { ?x ?y ?z }}"
-        );
+        String endpointUrl = fuseki().getHostname() + ":"
+            + fuseki().getPort()
+            + "/" + datasetTitle;
 
-        // immediately return 200 if the query was not valid
-        ResultSet results;
+        ArrayNode uuidArray;
         try {
-            results = execution.execSelect();
+            uuidArray = ModelSparql.getModelUuids(endpointUrl);
         } catch (QueryException ex) {
-            execution.close();
             return ResponseEntity.ok(Collections.EMPTY_LIST);
         }
 
-        //The JSON response being built
-        ArrayNode response = new ArrayNode(new JsonNodeFactory(false));
-
-        //Add each found model to the response
-        while (results.hasNext()) {
-            QuerySolution solution = results.next();
-            RDFNode node = solution.get("?model");
-            response.add(node.toString());
-        }
-        execution.close();
-
         try {
             //Return the JSON representation
-            return ResponseEntity.ok(MAPPER.writeValueAsString(response));
+            return ResponseEntity.ok(MAPPER.writeValueAsString(uuidArray));
         } catch (JsonProcessingException e) {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
@@ -668,8 +519,10 @@ public class BatsModelController {
         NoSuchAlgorithmException,
         UnsupportedEncodingException {
 
-        // Initialize dataset
-        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+            datasetTitle,
+            fuseki()
+        );
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -726,8 +579,11 @@ public class BatsModelController {
         final String modelUUID,
         @RequestBody final String jsonPayload
     ) throws IOException, NoSuchAlgorithmException {
-        // Initialize dataset
-        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
+
+        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+            datasetTitle,
+            fuseki()
+        );
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
@@ -780,8 +636,10 @@ public class BatsModelController {
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
     ) {
-        // Initialize dataset
-        CustomizedBatsDataSet dataset = initDataset(datasetTitle);
+        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+            datasetTitle,
+            fuseki()
+        );
 
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
