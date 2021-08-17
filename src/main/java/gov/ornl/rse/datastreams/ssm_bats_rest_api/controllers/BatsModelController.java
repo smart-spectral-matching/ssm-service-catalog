@@ -562,7 +562,7 @@ public class BatsModelController {
         // Get the dataset's model
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Pulling model: " + modelUUID);
-        Model model = dataset.getModel(modelUUID);
+        Model model = dataset.getModel(modelUri);
         if (model == null) {
             LOGGER.error(READ_MODEL_ERROR);
             throw new ResponseStatusException(
