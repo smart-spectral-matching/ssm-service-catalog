@@ -17,6 +17,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
+
 public final class AbbreviatedJson {
     /**
      * Splitter for JSON-LD map keys of the form 'url#label'.
@@ -49,7 +51,12 @@ public final class AbbreviatedJson {
     private static final String SDO = "https://stuchalk.github.io/scidata/ontology/scidata.owl";
 
     /**
-     * Dublin Core Ontology string for RDF frame filtering (also used as splitter).
+     * Dublin Core Ontology string for RDF frame filtering - HTTP.
+     */
+    private static final String DCTERM = "http://purl.org/dc/terms/";
+
+    /**
+     * Dublin Core Ontology string for RDF frame filtering - HTTPS.
      */
     private static final String DCTERMS = "https://purl.org/dc/terms/";
 
@@ -102,6 +109,11 @@ public final class AbbreviatedJson {
         // Split JSON-LD format 'url#<label>'
         if (key.split(HASH_SPLITTER).length == 2) {
             label = key.split(HASH_SPLITTER)[1];
+        }
+
+        // Split JSON-LD dcterms field format 'http://purl.org/dc/terms/<label>'
+        if (key.split(DCTERM).length == 2) {
+            label = key.split(DCTERM)[1];
         }
 
         // Split JSON-LD dcterms field format 'https://purl.org/dc/terms/<label>'
@@ -203,6 +215,7 @@ public final class AbbreviatedJson {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
         for (JsonNode node : graphNode) {
+            System.out.println(node);
             Map<String, Object> map = transformNodeToMap(node);
             list.add(map);
         }
@@ -210,16 +223,68 @@ public final class AbbreviatedJson {
     }
 
     /**
-     * Returns title for the abbreviated JSON format.
+     * Returns property for the abbreviated JSON format.
      *
      * @param model Apache Jena Model to return as JSON-LD
-     * @return      Title for abbreviated JSON for the Model provided
+     * @return      Property for abbreviated JSON for the Model provided
     */
-    public static String getTitle(final Model model)
+    public static String getProperty(final Model model)
+    throws
+        JsonProcessingException {
+        String typeFilter = SDO + HASH_SPLITTER + "scientificData";
+        return (String) getTypedFrameFilter(model, typeFilter).get(0).get("property");
+    }
+
+    /**
+     * Returns description for the abbreviated JSON format.
+     *
+     * @param model Apache Jena Model to return as JSON-LD
+     * @return      Description for abbreviated JSON for the Model provided
+    */
+    public static String getDescription(final Model model)
     throws
         JsonProcessingException {
         String typeFilter = SDO + HASH_SPLITTER + "scidataFramework";
-        return (String) getTypedFrameFilter(model, typeFilter).get(0).get("title");
+        return (String) getTypedFrameFilter(model, typeFilter).get(0).get("description");
+    }
+
+    /**
+     * Returns sources for the abbreviated JSON format.
+     *
+     * @param model Apache Jena Model to return as JSON-LD
+     * @return      Sources for abbreviated JSON for the Model provided
+    */
+    public static List<Map<String, Object>> getSources(final Model model)
+    throws
+        JsonProcessingException {
+        String typeFilter = DCTERM + "source";
+        return getTypedFrameFilter(model, typeFilter);
+    }
+
+    /**
+     * Returns methodology for the abbreviated JSON format.
+     *
+     * @param model Apache Jena Model to return as JSON-LD
+     * @return      Methodology for abbreviated JSON for the Model provided
+    */
+    public static Map<String, Object> getMethodology(final Model model)
+    throws
+        JsonProcessingException {
+        String typeFilter = SDO + HASH_SPLITTER + "methodology";
+        return getTypedFrameFilter(model, typeFilter).get(0);
+    }
+
+    /**
+     * Returns system for the abbreviated JSON format.
+     *
+     * @param model Apache Jena Model to return as JSON-LD
+     * @return      System for abbreviated JSON for the Model provided
+    */
+    public static List<Map<String, Object>> getSystem(final Model model)
+    throws
+        JsonProcessingException {
+        String typeFilter = SDO + HASH_SPLITTER + "system";
+        return getTypedFrameFilter(model, typeFilter);
     }
 
     /**
@@ -265,18 +330,19 @@ public final class AbbreviatedJson {
 
     /**
      * Returns the abbreviated json for the model.
-     * @param model Input Jena Model
+     * @param endpointUrl Endpoint for issuing SPARQL queries
+     * @param modelUri    Model URI to issue SPARQL queries for
+     * @param model       Input Jena Model to do frame filtering on for abbreviated json info
      * @return Abbreviated JSON for the Model
      * @throws JsonProcessingException
      */
-    public static String getJson(final Model model)
-    throws JsonProcessingException {
-        Map<String, Object> map = new HashMap<>();
-        map.put("title", getTitle(model));
-        map.put("url", "");
-        map.put("full", "");
-        map.put("created", "");
-        map.put("modified", "");
+    public static String getJson(
+        final String endpointUrl,
+        final Model model,
+        final String modelUri
+    ) throws JsonProcessingException {
+        Map<String, Object> map = ModelSparql.getModelSummary(endpointUrl, modelUri);
+        map.put("full", map.get("url") + "?full=true");
 
         List<Map<String, Object>> dataseries = new ArrayList<Map<String, Object>>();
         Map<String, Object> ds1 = new HashMap<>();
@@ -285,6 +351,11 @@ public final class AbbreviatedJson {
         dataseries.add(ds1);
 
         Map<String, Object> scidata = new HashMap<>();
+        scidata.put("property", getProperty(model));
+        scidata.put("description", getDescription(model));
+        scidata.put("sources", getSources(model));
+        scidata.put("methodology", getMethodology(model));
+        scidata.put("system", getSystem(model));
         scidata.put("dataseries", dataseries);
         map.put("scidata", scidata);
 
