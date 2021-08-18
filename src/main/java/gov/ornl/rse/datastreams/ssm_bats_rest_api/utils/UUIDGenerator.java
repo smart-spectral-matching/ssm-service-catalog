@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api;
+package gov.ornl.rse.datastreams.ssm_bats_rest_api.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
