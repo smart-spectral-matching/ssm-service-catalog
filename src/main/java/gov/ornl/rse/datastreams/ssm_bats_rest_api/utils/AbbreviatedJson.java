@@ -80,10 +80,10 @@ public final class AbbreviatedJson {
      * @param listObject Object with list in JSON-LD format to create output list from
      * @return List of values extracted from inputList
      */
-    private static ArrayList<Double> extractJsonLdArray(
+    private static ArrayList<Object> extractJsonLdArray(
         final Object listObject
     ) {
-        ArrayList<Double> output = new ArrayList<>();
+        ArrayList<Object> output = new ArrayList<>();
         if (listObject instanceof ArrayList) {
             ArrayList<Map<String, Object>> listOfMaps =
                 (ArrayList<Map<String, Object>>) listObject;
@@ -91,6 +91,8 @@ public final class AbbreviatedJson {
             for (Map<String, Object> map: listOfMaps) {
                 if (map.containsKey(VALUE_KEY)) {
                     output.add(Double.parseDouble((String) map.get(VALUE_KEY)));
+                } else {
+                    output.add(map);
                 }
             }
         }
@@ -125,35 +127,38 @@ public final class AbbreviatedJson {
     }
 
     /**
-     * Adds entry from JSON-LD map into the output map.
+     * Gets value of map entry from JSON-LD.
      *
      * @param entry Map entry from the JSON-LD map
-     * @param output Map to add the extracted values from
+     * @return Value object extracted from the map entry
      */
-    private static void addEntryToMap(
-        final Map.Entry<String, Object> entry,
-        final Map<String, Object> output
+    private static Object getValueFromMapEntry(
+        final Map.Entry<String, Object> entry
     ) {
-        String key = entry.getKey();
         Object value = entry.getValue();
-        String label = getJsonLdLabel(key);
 
-        Map<String, Object> valueMap = (Map<String, Object>) value;
-        if (valueMap.containsKey(VALUE_KEY)) {
-            output.put(label, valueMap.get(VALUE_KEY));
-            return;
+        // If a basic key-value, where value is string, add and return before we get to map
+        if (value instanceof String || value instanceof Integer) {
+            return value;
         }
 
-        if (valueMap.containsKey(LIST_KEY)) {
-            output.put(label, extractJsonLdArray(valueMap.get(LIST_KEY)));
-            return;
-        }
+        // Return early if not an instance of a map
+        if (value instanceof Map) {
+            Map<String, Object> valueMap = (Map<String, Object>) value;
+            if (valueMap.containsKey(VALUE_KEY)) {
+                return valueMap.get(VALUE_KEY);
+            }
 
-        Map<String, Object> tempMap = extractJsonLdMap(valueMap);
-        if (!tempMap.isEmpty()) {
-            output.put(label, tempMap);
-            return;
+            if (valueMap.containsKey(LIST_KEY)) {
+                return extractJsonLdArray(valueMap.get(LIST_KEY));
+            }
+
+            Map<String, Object> tempMap = extractJsonLdMap(valueMap);
+            if (!tempMap.isEmpty()) {
+                return tempMap;
+            }
         }
+        return null;
     }
 
     /**
@@ -175,11 +180,16 @@ public final class AbbreviatedJson {
                 continue;
             }
 
-            if (!(value instanceof Map)) {
-                continue;
+            if (value instanceof Map) {
+                Object valueEntry = getValueFromMapEntry(entry);
+                if (valueEntry != null) {
+                    output.put(label, valueEntry);
+                }
             }
 
-            addEntryToMap(entry, output);
+            if (value instanceof ArrayList) {
+                output.put(label, extractJsonLdArray(value));
+            }
         }
         return output;
     }
@@ -215,7 +225,6 @@ public final class AbbreviatedJson {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
         for (JsonNode node : graphNode) {
-            System.out.println(node);
             Map<String, Object> map = transformNodeToMap(node);
             list.add(map);
         }
@@ -275,16 +284,40 @@ public final class AbbreviatedJson {
     }
 
     /**
-     * Returns system for the abbreviated JSON format.
+     * Returns system facets for the abbreviated JSON format.
      *
      * @param model Apache Jena Model to return as JSON-LD
-     * @return      System for abbreviated JSON for the Model provided
+     * @return      System facets for abbreviated JSON for the Model provided
     */
-    public static List<Map<String, Object>> getSystem(final Model model)
+    public static List<Map<String, Object>> getFacets(final Model model)
     throws
         JsonProcessingException {
         String typeFilter = SDO + HASH_SPLITTER + "system";
-        return getTypedFrameFilter(model, typeFilter);
+        Map<String, Object> hasFacetsMap = getTypedFrameFilter(model, typeFilter).get(0);
+
+        // Get the sub list for "hasSystemFacet", which has the actual facet values
+        List<Map<String, Object>> facetsList = new ArrayList<Map<String, Object>>();
+        if (hasFacetsMap.get("hasSystemFacet") instanceof List) {
+            facetsList = (List<Map<String, Object>>) hasFacetsMap.get("hasSystemFacet");
+        }
+
+        // Construct the output facets list of maps from the "hasSystemFacet" list
+        List<Map<String, Object>> output = new ArrayList<Map<String, Object>>();
+
+        Map<String, Object> tempMap;
+        for (Map<String, Object> facetMap: facetsList) {
+            tempMap = new HashMap<String, Object>(); //NOPMD
+            for (Map.Entry<String, Object> entry : facetMap.entrySet()) {
+                String label = getJsonLdLabel(entry.getKey());
+                if (label.isEmpty()) {
+                    continue;
+                }
+                Object value = getValueFromMapEntry(entry);
+                tempMap.put(label, value);
+            }
+            output.add(tempMap);
+        }
+        return output;
     }
 
     /**
@@ -350,13 +383,18 @@ public final class AbbreviatedJson {
         ds1.put("y-axis", getYAxis(model, 0));
         dataseries.add(ds1);
 
+        Map<String, Object> system = new HashMap<>();
+        system.put("facets", getFacets(model));
+
         Map<String, Object> scidata = new HashMap<>();
         scidata.put("property", getProperty(model));
         scidata.put("description", getDescription(model));
         scidata.put("sources", getSources(model));
+
         scidata.put("methodology", getMethodology(model));
-        scidata.put("system", getSystem(model));
+        scidata.put("system", system);
         scidata.put("dataseries", dataseries);
+
         map.put("scidata", scidata);
 
         return MAPPER.writeValueAsString(map);
