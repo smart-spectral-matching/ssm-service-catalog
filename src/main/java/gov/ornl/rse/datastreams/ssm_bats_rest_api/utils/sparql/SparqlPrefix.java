@@ -8,7 +8,7 @@ public enum SparqlPrefix {
     DCTERM("dcterm", "http://purl.org/dc/terms/"),
 
     /** Dublic Core HTTPS ontology. */
-    DCTERMS("dcterms", "http://purl.org/dc/terms/"),
+    DCTERMS("dcterms", "https://purl.org/dc/terms/"),
 
     /** Permanent URL OBO ontology. */
     OBO("obo", "http://purl.obolibrary.org/obo/"),
@@ -85,7 +85,7 @@ public enum SparqlPrefix {
      * @return Full prefix name (i.e. "PREFIX 'label': <'iri'>")
      */
     public String getPrefixName() {
-        return "PREFIX " + label + ": " + iri;
+        return "PREFIX " + label + ": <" + iri + ">\n";
     }
 
     /**
