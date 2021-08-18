@@ -127,6 +127,28 @@ public final class AbbreviatedJson {
     }
 
     /**
+     * Gets the object from a map value of a key-value pair.
+     *
+     * @param valueMap Map from value of a key-value pair
+     * @return Object for the value
+     */
+    private static Object getMapValue(final Map<String, Object>  valueMap) {
+        if (valueMap.containsKey(VALUE_KEY)) {
+            return valueMap.get(VALUE_KEY);
+        }
+
+        if (valueMap.containsKey(LIST_KEY)) {
+            return extractJsonLdArray(valueMap.get(LIST_KEY));
+        }
+
+        Map<String, Object> tempMap = extractJsonLdMap(valueMap);
+        if (!tempMap.isEmpty()) {
+            return tempMap;
+        }
+        return null;
+    }
+
+    /**
      * Gets value of map entry from JSON-LD.
      *
      * @param entry Map entry from the JSON-LD map
@@ -136,7 +158,6 @@ public final class AbbreviatedJson {
         final Map.Entry<String, Object> entry
     ) {
         Object value = entry.getValue();
-
         // If a basic key-value, where value is string, add and return before we get to map
         if (value instanceof String || value instanceof Integer) {
             return value;
@@ -144,19 +165,11 @@ public final class AbbreviatedJson {
 
         // Return early if not an instance of a map
         if (value instanceof Map) {
-            Map<String, Object> valueMap = (Map<String, Object>) value;
-            if (valueMap.containsKey(VALUE_KEY)) {
-                return valueMap.get(VALUE_KEY);
-            }
+            return getMapValue((Map<String, Object>) value);
+        }
 
-            if (valueMap.containsKey(LIST_KEY)) {
-                return extractJsonLdArray(valueMap.get(LIST_KEY));
-            }
-
-            Map<String, Object> tempMap = extractJsonLdMap(valueMap);
-            if (!tempMap.isEmpty()) {
-                return tempMap;
-            }
+        if (value instanceof ArrayList) {
+            return extractJsonLdArray(value);
         }
         return null;
     }
@@ -172,23 +185,15 @@ public final class AbbreviatedJson {
     ) {
         Map<String, Object> output = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : inputMap.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
+            String label = getJsonLdLabel(entry.getKey());
 
-            String label = getJsonLdLabel(key);
             if (label.isEmpty()) {
                 continue;
             }
 
-            if (value instanceof Map) {
-                Object valueEntry = getValueFromMapEntry(entry);
-                if (valueEntry != null) {
-                    output.put(label, valueEntry);
-                }
-            }
-
-            if (value instanceof ArrayList) {
-                output.put(label, extractJsonLdArray(value));
+            Object value = getValueFromMapEntry(entry);
+            if (value != null) {
+                output.put(label, value);
             }
         }
         return output;
