@@ -73,7 +73,7 @@ public final class ModelSparql {
      * @return SPARQL ResultSet with models
      * @throws QueryException
      */
-    public static ResultSet queryForModels(
+    public static ResultSet queryForModelSummaries(
         final int pageSize,
         final int pageNumber,
         final String endpointUrl
@@ -152,7 +152,7 @@ public final class ModelSparql {
      * @param queryResults Results from previous SPARQL query
      * @return             List of Maps for model data
     */
-    public static List<Map<String, Object>> getModelsFromResult(
+    public static List<Map<String, Object>> getModelSummariesFromResult(
         final ResultSet queryResults
     ) {
         List<Map<String, Object>> body = new ArrayList<>();

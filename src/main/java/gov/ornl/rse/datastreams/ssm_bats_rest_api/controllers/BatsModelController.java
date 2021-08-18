@@ -321,7 +321,7 @@ public class BatsModelController {
 
         ResultSet modelResults;
         try {
-            modelResults = ModelSparql.queryForModels(pageSize, pageNumber, endpointUrl);
+            modelResults = ModelSparql.queryForModelSummaries(pageSize, pageNumber, endpointUrl);
         } catch (QueryException ex) {
             return ResponseEntity.ok(Collections.EMPTY_MAP);
         }
@@ -339,14 +339,11 @@ public class BatsModelController {
             return ResponseEntity.ok(body);
         } else {
             // build the actual body
-            List<Map<String, Object>> models = ModelSparql.getModelsFromResult(modelResults);
+            List<Map<String, Object>> models;
+            models = ModelSparql.getModelSummariesFromResult(modelResults);
             String modelsUri = configUtils.getDatasetUri(datasetTitle) + "/models";
-            Map<String, Object> body = constructModelsBody(
-                models,
-                modelsUri,
-                pageSize,
-                pageNumber
-            );
+            Map<String, Object> body;
+            body = constructModelsBody(models, modelsUri, pageSize, pageNumber);
             return ResponseEntity.ok(body);
         }
     }
