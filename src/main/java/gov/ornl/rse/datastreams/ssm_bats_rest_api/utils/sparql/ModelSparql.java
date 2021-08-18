@@ -39,8 +39,49 @@ public final class ModelSparql {
     private ModelSparql() { }
 
     /**
+     * SPARQL query string for model summary.
+     *
+     * @param model Model URI to get model summary for
+     * @return String for part of SPARQL query
+     */
+    private static String queryStringForModelSummary(final String model) {
+        String query =
+            "SELECT ?title ?scidata_url ?modified ?created "
+            + "WHERE { "
+            + "  GRAPH <" + model + "> { "
+            + "    ?node1 dcterms:title ?_title . "
+            + "    ?node2 dcterm:modified ?modified . "
+            + "    ?node3 dcterm:created ?created . "
+            + "    ?scidata_url rdf:type sdo:scidataFramework . "
+            + "  } "
+            + "  BIND( xml:string(?_title) as ?title)"
+            + "}";
+        return query;
+    }
+
+    /**
+     * SPARQL query string for model summaries.
+     *
+     * @return String for part of the SPARQL query
+     */
+    private static String queryStringForModelSummaries() {
+        String query =
+        "SELECT ?model ?title ?scidata_url ?modified ?created "
+        + "WHERE { "
+        + "  GRAPH ?model { "
+        + "    ?node1 dcterms:title ?_title . "
+        + "    ?node2 dcterm:modified ?modified . "
+        + "    ?node3 dcterm:created ?created . "
+        + "    ?scidata_url rdf:type sdo:scidataFramework . "
+        + "  } "
+        + "  BIND( xml:string(?_title) as ?title)"
+        + "}";
+    return query;
+    }
+
+    /**
      * <p>
-     * Prepare to query a dataset for all of its model UUIDs.
+     * Prepare to a SPARQL query execution.
      * </p>
      * <p>
      * Note that the return value does not actually execute, as different
@@ -51,7 +92,7 @@ public final class ModelSparql {
      * @param queryStr literal query to call
      * @return a prepared query, ready to be executed
      */
-    public static QueryExecution prepareModelUuidQuery(
+    public static QueryExecution prepareSparqlQuery(
         final String endpointUrl,
         final String queryStr
     ) {
@@ -65,39 +106,90 @@ public final class ModelSparql {
     }
 
     /**
+     * Get model summary for a named graph via a mode URI.
+     *
+     * @param endpointUrl SPARQL endpoint to query for the named graph
+     * @param modelUri    Model URI for the named graph to get the summary for
+     * @return Map with a specific model summary for the named graph
+     * @throws QueryException
+     */
+    public static Map<String, Object> getModelSummary(
+        final String endpointUrl,
+        final String modelUri
+     ) throws QueryException {
+        String queryString = SparqlPrefix.queryPrefixesAll()
+            + queryStringForModelSummary(modelUri);
+
+        QueryExecution execution = prepareSparqlQuery(//NOPMD
+        // pmd does not recognize that this is always being closed
+            endpointUrl, queryString
+        );
+
+        ResultSet modelResults;
+        try {
+            modelResults = execution.execSelect();
+        } catch (QueryException ex) {
+            execution.close();
+            throw ex;
+        }
+
+        Map<String, Object> modelSummary = new LinkedHashMap<String, Object>();
+        while (modelResults.hasNext()) {
+            QuerySolution modelSolution = modelResults.next();
+            modelSummary = getModelSummaryFromQuery(modelSolution);
+        }
+        return modelSummary;
+    }
+
+    /**
      * Submit SPARQL query for models and return result set.
      *
      * @param pageSize    Page size for the returned model result set
      * @param pageNumber  Page number to use for the returned model result set
      * @param endpointUrl SPARQL endpoint URL to use for issuing the query
-     * @return SPARQL ResultSet with models
+     * @return SPARQL query execution for model summaries
      * @throws QueryException
      */
-    public static ResultSet queryForModelSummaries(
+    public static QueryExecution queryModelSummariesWithPagination(
         final int pageSize,
         final int pageNumber,
         final String endpointUrl
     ) throws QueryException {
         String queryString =
             SparqlPrefix.queryPrefixesAll()
-            + "SELECT ?model ?title ?scidata_url ?modified ?created "
-            + "WHERE { "
-            + "  GRAPH ?model { "
-            + "    ?node1 dcterms:title ?_title . "
-            + "    ?node2 dcterm:modified ?modified . "
-            + "    ?node3 dcterm:created ?created . "
-            + "    ?scidata_url rdf:type sdo:scidataFramework . "
-            + "  } "
-            + "  BIND( xml:string(?_title) as ?title)"
-            + "}"
+            + queryStringForModelSummaries()
             + "ORDER BY DESC(?modified) "
             + "OFFSET " + (pageNumber * pageSize - pageSize) + " "
             + "LIMIT " + pageSize;
 
-
-        QueryExecution execution = prepareModelUuidQuery(//NOPMD
+        QueryExecution execution = prepareSparqlQuery(//NOPMD
         // pmd does not recognize that this is always being closed
             endpointUrl, queryString
+        );
+        return execution;
+    }
+
+    /**
+     * Gets full models from dataset based on SPARQL query results.
+     *
+     * @param pageSize    Page size for the returned model result set
+     * @param pageNumber  Page number to use for the returned model result set
+     * @param endpointUrl SPARQL endpoint URL to use for issuing the query
+     * @param dataset     Apache Jena Dataset the models belong to
+     * @return            List of BatsModel for the full models
+    */
+    public static List<BatsModel> getFullModels(
+        final int pageSize,
+        final int pageNumber,
+        final String endpointUrl,
+        final CustomizedBatsDataSet dataset
+    ) {
+        List<BatsModel> body = new ArrayList<>();
+
+        QueryExecution execution = ModelSparql.queryModelSummariesWithPagination(//NOPMD
+            pageSize,
+            pageNumber,
+            endpointUrl
         );
 
         // immediately return 200 if the query was not valid
@@ -108,24 +200,9 @@ public final class ModelSparql {
             execution.close();
             throw ex;
         }
-        execution.close();
-        return modelResults;
-    }
 
-    /**
-     * Gets full models from dataset based on SPARQL query results.
-     *
-     * @param queryResults Results from previous SPARQL query
-     * @param dataset      Apache Jena Dataset the models belong to
-     * @return             List of BatsModel for the full models
-    */
-    public static List<BatsModel> getFullModelsFromResult(
-        final CustomizedBatsDataSet dataset,
-        final ResultSet queryResults
-    ) {
-        List<BatsModel> body = new ArrayList<>();
-        while (queryResults.hasNext()) {
-            QuerySolution solution = queryResults.next();
+        while (modelResults.hasNext()) {
+            QuerySolution solution = modelResults.next();
             RDFNode node = solution.get("?model");
             Model model = dataset.getModel(node.toString());
             try {
@@ -143,30 +220,65 @@ public final class ModelSparql {
                 );
             }
         }
+        execution.close();
         return body;
     }
 
     /**
-     * Gets model data based on SPARQL query results.
+     * Gets model summaries from SPARQL query results.
      *
-     * @param queryResults Results from previous SPARQL query
+     * @param pageSize    Page size for the returned model result set
+     * @param pageNumber  Page number to use for the returned model result set
+     * @param endpointUrl SPARQL endpoint URL to use for issuing the query
      * @return             List of Maps for model data
     */
-    public static List<Map<String, Object>> getModelSummariesFromResult(
-        final ResultSet queryResults
+    public static List<Map<String, Object>> getModelSummaries(
+        final int pageSize,
+        final int pageNumber,
+        final String endpointUrl
     ) {
         List<Map<String, Object>> body = new ArrayList<>();
-        while (queryResults.hasNext()) {
-            QuerySolution solution = queryResults.next();
-            Map<String, Object> map = new LinkedHashMap<String, Object>(); //NOPMD
+
+        QueryExecution execution = ModelSparql.queryModelSummariesWithPagination(//NOPMD
+            pageSize,
+            pageNumber,
+            endpointUrl
+        );
+
+        // immediately return 200 if the query was not valid
+        ResultSet modelResults;
+        try {
+            modelResults = execution.execSelect();
+        } catch (QueryException ex) {
+            execution.close();
+            throw ex;
+        }
+
+        while (modelResults.hasNext()) {
+            QuerySolution solution = modelResults.next();
+            Map<String, Object> map = getModelSummaryFromQuery(solution);
             map.put("uuid", solution.get("?model").toString());
-            map.put("title", solution.get("?title").toString());
-            map.put("url", solution.get("?scidata_url").toString());
-            map.put("created", solution.get("?created").toString());
-            map.put("modified", solution.get("?modified").toString());
             body.add(map);
         }
+        execution.close();
         return body;
+    }
+
+    /**
+     * Get a model summary as a map from a single SPARQL query solution.
+     *
+     * @param solution Single SPARQL query solution from a ResultSet to create the map
+     * @return Map of the model summary info
+     */
+    public static Map<String, Object> getModelSummaryFromQuery(
+        final QuerySolution solution
+    ) {
+        Map<String, Object> map = new LinkedHashMap<String, Object>();
+        map.put("title", solution.get("?title").toString());
+        map.put("url", solution.get("?scidata_url").toString());
+        map.put("created", solution.get("?created").toString());
+        map.put("modified", solution.get("?modified").toString());
+        return map;
     }
 
     /**
@@ -178,7 +290,7 @@ public final class ModelSparql {
      */
     public static ArrayNode getModelUuids(final String endpointUrl)
     throws QueryException {
-        QueryExecution execution = prepareModelUuidQuery(//NOPMD
+        QueryExecution execution = prepareSparqlQuery(//NOPMD
         // pmd does not recognize that this is always being closed
             endpointUrl,
             "SELECT DISTINCT ?model {GRAPH ?model { ?x ?y ?z }}"
@@ -220,7 +332,7 @@ public final class ModelSparql {
             "SELECT (count(distinct ?model) as ?count) WHERE {"
             + "GRAPH ?model { ?x ?y ?z }}";
         QueryExecution countAllExecution = // NOPMD
-            prepareModelUuidQuery(endpointUrl, countAllQueryString);
+            prepareSparqlQuery(endpointUrl, countAllQueryString);
 
         ResultSet countResults;
         try {

@@ -13,7 +13,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
 import org.apache.jena.query.QueryException;
-import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.DCTerms;
@@ -319,32 +318,36 @@ public class BatsModelController {
             + fuseki().getPort()
             + "/" + datasetTitle;
 
-        ResultSet modelResults;
-        try {
-            modelResults = ModelSparql.queryForModelSummaries(pageSize, pageNumber, endpointUrl);
-        } catch (QueryException ex) {
-            return ResponseEntity.ok(Collections.EMPTY_MAP);
-        }
 
         //Add each found model to the response
-        if (returnFull) {
-            CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-                datasetTitle,
-                fuseki()
-            );
-            List<BatsModel> body = ModelSparql.getFullModelsFromResult(
-                dataset,
-                modelResults
-            );
-            return ResponseEntity.ok(body);
-        } else {
-            // build the actual body
-            List<Map<String, Object>> models;
-            models = ModelSparql.getModelSummariesFromResult(modelResults);
-            String modelsUri = configUtils.getDatasetUri(datasetTitle) + "/models";
-            Map<String, Object> body;
-            body = constructModelsBody(models, modelsUri, pageSize, pageNumber);
-            return ResponseEntity.ok(body);
+        try {
+            if (returnFull) {
+                CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+                    datasetTitle,
+                    fuseki()
+                );
+                List<BatsModel> body = ModelSparql.getFullModels(
+                    pageSize,
+                    pageNumber,
+                    endpointUrl,
+                    dataset
+                );
+                return ResponseEntity.ok(body);
+            } else {
+                // build the actual body
+                List<Map<String, Object>> models;
+                models = ModelSparql.getModelSummaries(
+                    pageSize,
+                    pageNumber,
+                    endpointUrl
+                );
+                String modelsUri = configUtils.getDatasetUri(datasetTitle) + "/models";
+                Map<String, Object> body;
+                body = constructModelsBody(models, modelsUri, pageSize, pageNumber);
+                return ResponseEntity.ok(body);
+            }
+        } catch (QueryException ex) {
+            return ResponseEntity.ok(Collections.EMPTY_MAP);
         }
     }
 
@@ -441,7 +444,10 @@ public class BatsModelController {
                 Model newModel = dataset.getModel(modelUri);
                 return new BatsModel(modelUUID, RdfModelWriter.getJsonldForModel(newModel));
             } else {
-                String json = AbbreviatedJson.getJson(model);
+                String endpointUrl = fuseki().getHostname() + ":"
+                    + fuseki().getPort()
+                    + "/" + datasetTitle;
+                String json = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
                 return new BatsModel(modelUUID, json);
             }
         } catch (Exception e) {
