@@ -257,6 +257,13 @@ public final class ModelSparql {
         while (modelResults.hasNext()) {
             QuerySolution solution = modelResults.next();
             Map<String, Object> map = getModelSummaryFromQuery(solution);
+
+            // We do this outside of getModelSummaryFromQuery since for a named graph,
+            // we dont get ?model back in the query solution
+            String url = solution.get("?model").toString();
+            String[] bits = url.split("/");
+            String uuid = bits[bits.length - 1];
+            map.put("uuid", uuid);
             body.add(map);
         }
         execution.close();
@@ -277,12 +284,6 @@ public final class ModelSparql {
         map.put("url", solution.get("?scidata_url").toString());
         map.put("created", solution.get("?created").toString());
         map.put("modified", solution.get("?modified").toString());
-
-        String url = solution.get("?model").toString();
-        String[] bits = url.split("/");
-        String uuid = bits[bits.length - 1];
-        map.put("uuid", uuid);
-
         return map;
     }
 

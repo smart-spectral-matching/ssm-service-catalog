@@ -382,6 +382,10 @@ public final class AbbreviatedJson {
         Map<String, Object> map = ModelSparql.getModelSummary(endpointUrl, modelUri);
         map.put("full", map.get("url") + "?full=true");
 
+        String[] bits = modelUri.split("/");
+        String uuid = bits[bits.length - 1];
+        map.put("uuid", uuid);
+
         List<Map<String, Object>> dataseries = new ArrayList<Map<String, Object>>();
         Map<String, Object> ds1 = new HashMap<>();
         ds1.put("x-axis", getXAxis(model, 0));

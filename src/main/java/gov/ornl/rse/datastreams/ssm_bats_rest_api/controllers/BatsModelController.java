@@ -409,7 +409,7 @@ public class BatsModelController {
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public BatsModel getModel(
+    public ResponseEntity<?> getModel(
         @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
@@ -442,13 +442,17 @@ public class BatsModelController {
             if (full) {
                 // Return the full JSON-LD model
                 Model newModel = dataset.getModel(modelUri);
-                return new BatsModel(modelUUID, RdfModelWriter.getJsonldForModel(newModel));
+                BatsModel batsModel = new BatsModel(
+                    modelUUID,
+                    RdfModelWriter.getJsonldForModel(newModel)
+                );
+                return ResponseEntity.ok(batsModel);
             } else {
                 String endpointUrl = fuseki().getHostname() + ":"
                     + fuseki().getPort()
                     + "/" + datasetTitle;
                 String json = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
-                return new BatsModel(modelUUID, json);
+                return ResponseEntity.ok(json);
             }
         } catch (Exception e) {
             LOGGER.error(RESPONSE_MODEL_ERROR, e);
