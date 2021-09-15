@@ -10,11 +10,20 @@ services:
     volumes:
       - /opt/fuseki-TDB:/data/TDB
 
+  ssm-document-store:
+    build:
+      context: .
+      dockerfile: Dockerfile.mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
   ssm-bats-rest-api:
     build:
       context: .
       dockerfile: Dockerfile
     depends_on:
-       - ssm-fuseki
+      - ssm-fuseki
+      - ssm-document-store
     ports:
       - "8080:8080"
