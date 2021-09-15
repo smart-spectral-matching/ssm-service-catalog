@@ -312,6 +312,14 @@ public class BatsModelController {
         //) final String[] returnProperties
         // ) @Valid final String[] returnProperties
     ) {
+        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+            datasetTitle,
+            fuseki()
+        );
+
+        // Check if dataset exists
+        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
+
         // final PropertyEnum[]
         // pmd does not recognize that this will always be closed
         String endpointUrl = fuseki().getHostname() + ":"
@@ -322,10 +330,6 @@ public class BatsModelController {
         //Add each found model to the response
         try {
             if (returnFull) {
-                CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-                    datasetTitle,
-                    fuseki()
-                );
                 List<BatsModel> body = ModelSparql.getFullModels(
                     pageSize,
                     pageNumber,
@@ -390,7 +394,6 @@ public class BatsModelController {
             jsonPayload,
             JsonNode.class
         );
-
         return jsonldToBatsModel(jsonldNode, datasetTitle, modelUUID, dataset, null);
     }
 
