@@ -162,6 +162,14 @@ public class ITBatsDatasetController {
                 Void.class
             ).getStatusCode()
         );
+
+        Assertions.assertEquals(
+            HttpStatus.NOT_FOUND,
+            restTemplate.getForEntity(
+                createUrl("/datasets/pizza/models/uuids"),
+                Void.class
+            ).getStatusCode()
+        );
     }
 
     /**
