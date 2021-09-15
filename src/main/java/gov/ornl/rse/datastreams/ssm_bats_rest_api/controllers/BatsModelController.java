@@ -481,6 +481,14 @@ public class BatsModelController {
     public ResponseEntity<?> getUUIDs(@PathVariable("dataset_title")
         @Pattern(regexp = BatsDataset.TITLE_REGEX) final String datasetTitle) {
 
+        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+            datasetTitle,
+            fuseki()
+        );
+
+        // Check if dataset exists
+        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
+
         String endpointUrl = fuseki().getHostname() + ":"
             + fuseki().getPort()
             + "/" + datasetTitle;
