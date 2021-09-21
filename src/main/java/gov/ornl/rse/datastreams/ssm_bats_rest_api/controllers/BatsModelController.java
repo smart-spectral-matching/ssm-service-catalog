@@ -46,6 +46,8 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.ModelDocument;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AbbreviatedJson;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
@@ -77,6 +79,12 @@ public class BatsModelController {
     */
     @Autowired
     private ConfigUtils configUtils;
+
+    /**
+     * Document store repository for model documents.
+     */
+    @Autowired
+    private ModelDocumentRepository repository;
 
     /**
      * @return shorthand for the Fuseki configuration
@@ -217,7 +225,7 @@ public class BatsModelController {
         String scidataString = addBaseToContextToJsonLD(scidataNode.toString(), modelUri + "/");
 
         // Tree -> JSON -> Jena Model
-        LOGGER.info("Uploading model: " + modelUUID);
+        LOGGER.info("Uploading model to graph: " + modelUUID);
         StringReader reader = new StringReader(scidataString); //NOPMD
         Model model = ModelFactory.createDefaultModel();
         // TODO try to use Model.read(InputStream, String) here instead,
@@ -233,7 +241,7 @@ public class BatsModelController {
         // Jena Model -> BATS DataSet
         try {
             dataset.updateModel(modelUri, model);
-            LOGGER.info("Model uploaded!");
+            LOGGER.info("Model uploaded to graph!");
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
         }
@@ -394,7 +402,20 @@ public class BatsModelController {
             jsonPayload,
             JsonNode.class
         );
-        return jsonldToBatsModel(jsonldNode, datasetTitle, modelUUID, dataset, null);
+
+        // Add Model to graph database
+        BatsModel batsModel = jsonldToBatsModel(jsonldNode, datasetTitle, modelUUID, dataset, null);
+
+        // Add ModelDocument to document store
+        LOGGER.info("Uploading model to document store: " + modelUUID);
+        ModelDocument document = new ModelDocument();
+        document.setId(modelUUID);
+        document.setModelJsonld(jsonPayload);
+        document.setModelJson("{}");
+        repository.save(document);
+        LOGGER.info("Model uploaded to document store!");
+
+        return batsModel;
     }
 
     /**
