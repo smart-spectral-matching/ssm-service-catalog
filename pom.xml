@@ -210,15 +210,24 @@
                 </ports>
                 <volumes>
                   <bind>
-                    <volume>/opt/fuseki-TDB:/data/TDB</volume>
+                    <volume>./db-triple-store:/data/TDB</volume>
                   </bind>
                 </volumes>
-                <network>
-                  <mode>host</mode>
-                </network>
                 <wait>
                   <url>http://localhost:3030</url>
                 </wait>
+              </run>
+            </image>
+            <image>
+              <name>code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/mongo:4</name>
+              <run>
+                <ports>
+                  <port>27017:27017</port>
+                </ports>
+                <env>
+                  <MONGO_INITDB_ROOT_USERNAME>root</MONGO_INITDB_ROOT_USERNAME>
+                  <MONGO_INITDB_ROOT_PASSWORD>password</MONGO_INITDB_ROOT_PASSWORD>
+                </env>
               </run>
             </image>
           </images>
