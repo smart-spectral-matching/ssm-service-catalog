@@ -103,25 +103,25 @@ public class BatsModelController {
      * Error message for uploading model.
     */
     private static final String UPLOAD_MODEL_ERROR =
-        "Unable to upload model on the remote Fuseki server.";
+        "Unable to upload model.";
 
     /**
      * Error message for reading model.
     */
     private static final String READ_MODEL_ERROR =
-        "Unable to read model on the remote Fuseki server.";
+        "Unable to read model.";
 
     /**
      * Error message for deleting model.
     */
     private static final String DELETE_MODEL_ERROR =
-        "Unable to delete model on the remote Fuseki server.";
+        "Unable to delete model.";
 
     /**
      * Error message for creating response from model.
     */
     private static final String RESPONSE_MODEL_ERROR =
-    "Unable to create response for model from the remote Fuseki server.";
+    "Unable to create response for model.";
 
     /**
      * Returns modified input JSON-LD with `@graph` at top-level.
@@ -404,16 +404,35 @@ public class BatsModelController {
         );
 
         // Add Model to graph database
-        BatsModel batsModel = jsonldToBatsModel(jsonldNode, datasetTitle, modelUUID, dataset, null);
+        BatsModel batsModel;
+        try {
+            LOGGER.info("Uploading model to document store: " + modelUUID);
+            batsModel = jsonldToBatsModel(jsonldNode, datasetTitle, modelUUID, dataset, null);
+        } catch (Exception e) {
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Model unable to be uploaded to graph database"
+            );
+        }
 
         // Add ModelDocument to document store
-        LOGGER.info("Uploading model to document store: " + modelUUID);
-        ModelDocument document = new ModelDocument();
-        document.setId(modelUUID);
-        document.setModelJsonld(jsonPayload);
-        document.setModelJson("{}");
-        repository.save(document);
-        LOGGER.info("Model uploaded to document store!");
+        try {
+            LOGGER.info("Uploading model to document store: " + modelUUID);
+            ModelDocument document = new ModelDocument();
+            document.setId(modelUUID);
+            document.setModelJsonld(jsonPayload);
+            document.setModelJson("{}");
+            repository.save(document);
+            LOGGER.info("Model uploaded to document store!");
+        } catch (Exception e) {
+            deleteModel(datasetTitle, modelUUID);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Model unable to be uploaded to document store"
+            );
+        }
 
         return batsModel;
     }
