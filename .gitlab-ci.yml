@@ -26,6 +26,7 @@ test:
         - func_rse_docker_cleanup
         - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
         - docker pull ${CI_REGISTRY_IMAGE}/openjdk:11-jre-slim
+        - docker pull ${CI_REGISTRY_IMAGE}/mongo:4
         - docker pull ${CI_REGISTRY_IMAGE}/fuseki:${FUSEKI_VERSION}
         - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
@@ -39,6 +40,7 @@ coverage:
         - func_rse_docker_cleanup
         - docker login --username=$CI_REGISTRY_USER --password=$CI_REGISTRY_PASSWORD $CI_REGISTRY
         - docker pull ${CI_REGISTRY_IMAGE}/openjdk:11-jre-slim
+        - docker pull ${CI_REGISTRY_IMAGE}/mongo:4
         - docker pull ${CI_REGISTRY_IMAGE}/fuseki:${FUSEKI_VERSION}
         - docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test /bin/bash -c "mvn clean docker:build verify; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; printf \"%.2f %% covered\n\", 100*covered/instructions}' target/site/jacoco/jacoco.csv"
