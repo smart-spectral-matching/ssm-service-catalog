@@ -84,18 +84,42 @@ public final class AbbreviatedJson {
         final Object listObject
     ) {
         ArrayList<Object> output = new ArrayList<>();
-        if (listObject instanceof ArrayList) {
-            ArrayList<Map<String, Object>> listOfMaps =
-                (ArrayList<Map<String, Object>>) listObject;
 
-            for (Map<String, Object> map: listOfMaps) {
+        ArrayList<Map<String, Object>> listOfMaps;
+        try {
+            listOfMaps = (ArrayList<Map<String, Object>>) listObject;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(
+                "Unable to cast following to ArrayList<Map<String, Object>>: " + listObject
+            );
+        }
+
+        for (Object entry: listOfMaps) {
+            if (Map.class.isInstance(entry)) {
+                Map<String, Object> map = (Map<String, Object>) entry;
                 if (map.containsKey(VALUE_KEY)) {
-                    output.add(Double.parseDouble((String) map.get(VALUE_KEY)));
+                    Object value = map.get(VALUE_KEY);
+                    try {
+                        Double doubleValue = Double.parseDouble((String) value);
+                        output.add(doubleValue);
+                    } catch (NumberFormatException e) {
+                        output.add(value);
+                    }
                 } else {
-                    output.add(map);
+                    Object subMap = getMapValue(map);
+                    if (subMap != null) {
+                        output.add(subMap);
+                    }
                 }
+            } else if (String.class.isInstance(entry)) {
+                output.add((String) entry);
+            } else {
+                throw new ClassCastException(
+                    "Unable to cast following entry from JsonLd array: " + entry
+                );
             }
         }
+
         return output;
     }
 
@@ -111,15 +135,13 @@ public final class AbbreviatedJson {
         // Split JSON-LD format 'url#<label>'
         if (key.split(HASH_SPLITTER).length == 2) {
             label = key.split(HASH_SPLITTER)[1];
-        }
 
         // Split JSON-LD dcterms field format 'http://purl.org/dc/terms/<label>'
-        if (key.split(DCTERM).length == 2) {
+        } else if (key.split(DCTERM).length == 2) {
             label = key.split(DCTERM)[1];
-        }
 
         // Split JSON-LD dcterms field format 'https://purl.org/dc/terms/<label>'
-        if (key.split(DCTERMS).length == 2) {
+        } else if (key.split(DCTERMS).length == 2) {
             label = key.split(DCTERMS)[1];
         }
 
@@ -129,19 +151,19 @@ public final class AbbreviatedJson {
     /**
      * Gets the object from a map value of a key-value pair.
      *
-     * @param valueMap Map from value of a key-value pair
+     * @param value Map from value of a key-value pair
      * @return Object for the value
      */
-    private static Object getMapValue(final Map<String, Object>  valueMap) {
-        if (valueMap.containsKey(VALUE_KEY)) {
-            return valueMap.get(VALUE_KEY);
+    private static Object getMapValue(final Map<String, Object> value) {
+        if (value.containsKey(VALUE_KEY)) {
+            return value.get(VALUE_KEY);
         }
 
-        if (valueMap.containsKey(LIST_KEY)) {
-            return extractJsonLdArray(valueMap.get(LIST_KEY));
+        if (value.containsKey(LIST_KEY)) {
+            return extractJsonLdArray(value.get(LIST_KEY));
         }
 
-        Map<String, Object> tempMap = extractJsonLdMap(valueMap);
+        Map<String, Object> tempMap = extractJsonLdMap(value);
         if (!tempMap.isEmpty()) {
             return tempMap;
         }
@@ -313,12 +335,8 @@ public final class AbbreviatedJson {
         for (Map<String, Object> facetMap: facetsList) {
             tempMap = new HashMap<String, Object>(); //NOPMD
             for (Map.Entry<String, Object> entry : facetMap.entrySet()) {
-                String label = getJsonLdLabel(entry.getKey());
-                if (label.isEmpty()) {
-                    continue;
-                }
                 Object value = getValueFromMapEntry(entry);
-                tempMap.put(label, value);
+                tempMap.put(entry.getKey(), value);
             }
             output.add(tempMap);
         }
