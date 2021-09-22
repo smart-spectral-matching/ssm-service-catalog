@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
@@ -44,6 +43,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers.advice.NotFoundException;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
@@ -117,12 +117,6 @@ public class BatsModelController {
     */
     private static final String DELETE_MODEL_ERROR =
         "Unable to delete model.";
-
-    /**
-     * Error message for creating response from model.
-    */
-    private static final String RESPONSE_MODEL_ERROR =
-    "Unable to create response for model.";
 
     /**
      * Returns modified input JSON-LD with `@graph` at top-level.
@@ -226,13 +220,16 @@ public class BatsModelController {
         String scidataString = addBaseToContextToJsonLD(scidataNode.toString(), modelUri + "/");
 
         // Tree -> JSON -> Jena Model
-        LOGGER.info("Uploading model to graph: " + modelUUID);
+        LOGGER.info("Creating model: " + modelUUID);
         StringReader reader = new StringReader(scidataString); //NOPMD
         Model model = ModelFactory.createDefaultModel();
+        LOGGER.info("  Default model made...");
         // TODO try to use Model.read(InputStream, String) here instead,
         // to avoid possible character encoding issues
+        LOGGER.info("  Reading JSON-LD...);
         model.read(reader, null, "JSON-LD");
         reader.close();
+        LOGGER.info("  Reading complete!);
         // add metadata information
         final String now = DateUtils.now();
         model.createResource(JsonUtils.METADATA_URI)
@@ -240,6 +237,7 @@ public class BatsModelController {
             .addProperty(DCTerms.modified, now);
 
         // Jena Model -> BATS DataSet
+        LOGGER.info("Uploading model to graph: " + modelUUID);
         try {
             dataset.updateModel(modelUri, model);
             LOGGER.info("Model uploaded to graph!");
@@ -407,7 +405,7 @@ public class BatsModelController {
         // Add Model to graph database
         BatsModel batsModel;
         try {
-            LOGGER.info("Uploading model to document store: " + modelUUID);
+            LOGGER.info("Uploading model to graph database: " + modelUUID);
             batsModel = jsonldToBatsModel(jsonldNode, datasetTitle, modelUUID, dataset, null);
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
@@ -452,10 +450,9 @@ public class BatsModelController {
      * READ Model w/ given UUID in Dataset collection.
      *
      * @param datasetTitle Title for Dataset collection that Model belonds to
-     * @param modelUUID   UUID for Model to retrieve from the Dataset
-     * @param full        Boolean flag to return either full JSON-LD
-     *  or abbreviated JSON model
-     * @return            BatsModel for given Model UUID
+     * @param modelUUID    UUID for Model to retrieve from the Dataset
+     * @param format       Format to return the model ["graph", "json", "jsonld"]
+     * @return             BatsModel for given Model UUID
     */
     @RequestMapping(
         value = "/{dataset_title}/models/{model_uuid}",
@@ -468,9 +465,9 @@ public class BatsModelController {
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
-        @RequestParam(name = "full", defaultValue = "false")
-        final boolean full
-    ) {
+        @RequestParam(name = "format", defaultValue = "json")
+        final String format
+    ) throws IOException {
         CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
             datasetTitle,
             fuseki()
@@ -480,27 +477,27 @@ public class BatsModelController {
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
         // Either return full model or the abbrev. version from full model
-        try {
-            if (full) {
-                // Return the full JSON-LD model
-                String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-                Model newModel = dataset.getModel(modelUri);
-                BatsModel batsModel = new BatsModel(
-                    modelUUID,
-                    RdfModelWriter.getJsonldForModel(newModel)
+
+        if (format.equals("graph") || format.equals("full")) {
+            // Return the full JSON-LD model
+            String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
+            Model newModel = dataset.getModel(modelUri);
+            if (newModel == null) {
+                LOGGER.error(READ_MODEL_ERROR);
+                throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Model " + modelUUID + " Not Found"
                 );
-                return ResponseEntity.ok(batsModel);
-            } else {
-                Optional<ModelDocument> e = repository.findById(modelUUID);
-                ModelDocument modelDocument = e.get();
-                return ResponseEntity.ok(modelDocument.getModelJson());
             }
-        } catch (Exception e) {
-            LOGGER.error(RESPONSE_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unable to create response for model: " + modelUUID
+            BatsModel batsModel = new BatsModel(
+                modelUUID,
+                RdfModelWriter.getJsonldForModel(newModel)
             );
+            return ResponseEntity.ok(batsModel);
+        } else {
+            ModelDocument modelDocument = repository.findById(modelUUID)
+                                                    .orElseThrow(NotFoundException::new);
+            return ResponseEntity.ok(modelDocument.getModelJson());
         }
     }
 
