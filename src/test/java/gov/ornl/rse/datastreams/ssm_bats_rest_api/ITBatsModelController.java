@@ -83,17 +83,19 @@ public class ITBatsModelController {
      *
      * @param datasetTitle Title for the Dataset the model belongs to
      * @param modelUUID   UUID for the Model
-     * @param full        Boolean flag if we want a full model
+     * @param format      Format return for model
      * @return            Full URI for the Model
     */
     private String getModelUri(
         final String datasetTitle,
         final String modelUUID,
-        final boolean full
+        final String format
     ) {
         String uri = getDatasetUri(datasetTitle) + "/models/" + modelUUID;
-        if (full) {
-            uri += "?full=true";
+        if (format == "full" || format == "graph") {
+            uri += "?format=graph";
+        } else if (format == "json") {
+            uri += "?format=json";
         }
         return uri;
     }
@@ -109,21 +111,7 @@ public class ITBatsModelController {
         final String datasetTitle,
         final String modelUUID
     ) {
-        return getModelUri(datasetTitle, modelUUID, true);
-    }
-
-    /**
-     * Returns uri to abbrviated model given the Dataset title and Model UUID.
-     *
-     * @param datasetTitle Title for the Dataset the model belongs to
-     * @param modelUUID   UUID for the Model
-     * @return            Full URI for the Model
-    */
-    private String getModelUriAbbreviated(
-        final String datasetTitle,
-        final String modelUUID
-    ) {
-        return getModelUri(datasetTitle, modelUUID, false);
+        return getModelUri(datasetTitle, modelUUID, "full");
     }
 
     /**
