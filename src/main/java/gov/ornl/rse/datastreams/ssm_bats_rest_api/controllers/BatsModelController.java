@@ -367,7 +367,7 @@ public class BatsModelController {
      * CREATE a new Model in the Dataset collection.
      *
      * @param datasetTitle Title for Dataset collection to add the new Model
-     * @param jsonPayload JSON-LD of new Model
+     * @param jsonldPayload JSON-LD of new Model
      * @return            BatsModel for created Model in the Dataset
     */
     @RequestMapping(
@@ -379,7 +379,7 @@ public class BatsModelController {
     public BatsModel createModel(
         @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
         final String datasetTitle,
-        @RequestBody final String jsonPayload
+        @RequestBody final String jsonldPayload
     ) throws
         IOException,
         NoSuchAlgorithmException,
@@ -399,7 +399,7 @@ public class BatsModelController {
         // JSON -> Tree
         LOGGER.info("createModel: Extracting JSON-LD -> model");
         JsonNode jsonldNode = MAPPER.readValue(
-            jsonPayload,
+            jsonldPayload,
             JsonNode.class
         );
 
@@ -418,11 +418,26 @@ public class BatsModelController {
 
         // Add ModelDocument to document store
         try {
-            LOGGER.info("Uploading model to document store: " + modelUUID);
+            // Create abbreviated json
+            LOGGER.info("Creating abbreviated json for document store");
+            String endpointUrl = fuseki().getHostname() + ":"
+            + fuseki().getPort()
+            + "/" + datasetTitle;
+            String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
+            Model model = dataset.getModel(modelUri);
+            String abbrvJson = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
+
             ModelDocument document = new ModelDocument();
             document.setId(modelUUID);
-            document.setModelJsonld(jsonPayload);
-            document.setModelJson("{}");
+            document.setModelJsonld(jsonldPayload);
+            document.setModelJson(abbrvJson);
+
+            JsonNode abbrvNode = MAPPER.readTree(abbrvJson);
+            System.out.println(
+                MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(abbrvNode)
+            );
+
+            LOGGER.info("Uploading model to document store: " + modelUUID);
             repository.save(document);
             LOGGER.info("Model uploaded to document store!");
         } catch (Exception e) {
