@@ -138,6 +138,7 @@ public final class ModelSparql {
             QuerySolution modelSolution = modelResults.next();
             modelSummary = getModelSummaryFromQuery(modelSolution);
         }
+        execution.close();
         return modelSummary;
     }
 
