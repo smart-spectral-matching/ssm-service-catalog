@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
@@ -428,14 +429,9 @@ public class BatsModelController {
             String abbrvJson = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
 
             ModelDocument document = new ModelDocument();
-            document.setId(modelUUID);
+            document.setModelId(modelUUID);
             document.setModelJsonld(jsonldPayload);
             document.setModelJson(abbrvJson);
-
-            JsonNode abbrvNode = MAPPER.readTree(abbrvJson);
-            System.out.println(
-                MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(abbrvNode)
-            );
 
             LOGGER.info("Uploading model to document store: " + modelUUID);
             repository.save(document);
@@ -483,22 +479,11 @@ public class BatsModelController {
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
-        // Get the dataset's model
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-        LOGGER.info("Pulling model: " + modelUUID);
-        Model model = dataset.getModel(modelUri);
-        if (model == null) {
-            LOGGER.error(READ_MODEL_ERROR);
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Model " + modelUUID + " Not Found"
-            );
-        }
-
         // Either return full model or the abbrev. version from full model
         try {
             if (full) {
                 // Return the full JSON-LD model
+                String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
                 Model newModel = dataset.getModel(modelUri);
                 BatsModel batsModel = new BatsModel(
                     modelUUID,
@@ -506,11 +491,9 @@ public class BatsModelController {
                 );
                 return ResponseEntity.ok(batsModel);
             } else {
-                String endpointUrl = fuseki().getHostname() + ":"
-                    + fuseki().getPort()
-                    + "/" + datasetTitle;
-                String json = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
-                return ResponseEntity.ok(json);
+                Optional<ModelDocument> e = repository.findById(modelUUID);
+                ModelDocument modelDocument = e.get();
+                return ResponseEntity.ok(modelDocument.getModelJson());
             }
         } catch (Exception e) {
             LOGGER.error(RESPONSE_MODEL_ERROR, e);
