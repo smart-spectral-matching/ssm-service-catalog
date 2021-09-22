@@ -1,6 +1,7 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -268,7 +269,21 @@ public final class AbbreviatedJson {
     throws
         JsonProcessingException {
         String typeFilter = SDO + HASH_SPLITTER + "scientificData";
-        return (String) getTypedFrameFilter(model, typeFilter).get(0).get("property");
+        List<Map<String, Object>> scientificDataList = getTypedFrameFilter(model, typeFilter);
+
+        String output = "";
+        String propertyKey = "property";
+
+        if (scientificDataList.size() == 0) {
+            return output;
+        }
+
+        if (!(scientificDataList.get(0).containsKey(propertyKey))) {
+            return output;
+        }
+
+        output = (String) scientificDataList.get(0).get(propertyKey);
+        return output;
     }
 
     /**
@@ -281,7 +296,21 @@ public final class AbbreviatedJson {
     throws
         JsonProcessingException {
         String typeFilter = SDO + HASH_SPLITTER + "scidataFramework";
-        return (String) getTypedFrameFilter(model, typeFilter).get(0).get("description");
+        List<Map<String, Object>> scidataFrameworkList = getTypedFrameFilter(model, typeFilter);
+
+        String output = "";
+        String descriptionKey = "description";
+
+        if (scidataFrameworkList.size() == 0) {
+            return output;
+        }
+
+        if (!(scidataFrameworkList.get(0).containsKey(descriptionKey))) {
+            return output;
+        }
+
+        output = (String) scidataFrameworkList.get(0).get(descriptionKey);
+        return output;
     }
 
     /**
@@ -307,7 +336,13 @@ public final class AbbreviatedJson {
     throws
         JsonProcessingException {
         String typeFilter = SDO + HASH_SPLITTER + "methodology";
-        return getTypedFrameFilter(model, typeFilter).get(0);
+        List<Map<String, Object>> methodologyList = getTypedFrameFilter(model, typeFilter);
+
+        if (methodologyList.size() == 0) {
+            return Collections.emptyMap();
+        }
+
+        return methodologyList.get(0);
     }
 
     /**
@@ -320,7 +355,13 @@ public final class AbbreviatedJson {
     throws
         JsonProcessingException {
         String typeFilter = SDO + HASH_SPLITTER + "system";
-        Map<String, Object> hasFacetsMap = getTypedFrameFilter(model, typeFilter).get(0);
+        List<Map<String, Object>> systemList = getTypedFrameFilter(model, typeFilter);
+
+        if (systemList.size() == 0) {
+            return Collections.emptyList();
+        }
+
+        Map<String, Object> hasFacetsMap = systemList.get(0);
 
         // Get the sub list for "hasSystemFacet", which has the actual facet values
         List<Map<String, Object>> facetsList = new ArrayList<Map<String, Object>>();
@@ -354,7 +395,13 @@ public final class AbbreviatedJson {
     throws
         JsonProcessingException {
         String typeFilter = SDO + HASH_SPLITTER + "independent";
-        return getTypedFrameFilter(model, typeFilter).get(element);
+        List<Map<String, Object>> independentList = getTypedFrameFilter(model, typeFilter);
+
+        if (independentList.size() <= element) {
+            return Collections.emptyMap();
+        }
+
+        return independentList.get(element);
     }
 
     /**
@@ -368,20 +415,13 @@ public final class AbbreviatedJson {
     throws
         JsonProcessingException {
         String typeFilter = SDO + HASH_SPLITTER + "dependent";
-        return getTypedFrameFilter(model, typeFilter).get(element);
-    }
+        List<Map<String, Object>> dependentList = getTypedFrameFilter(model, typeFilter);
 
-    /**
-     * Returns empty filter for testing.
-     *
-     * @param model Apache Jena Model to return as JSON-LD
-     * @return      Empty filter result
-    */
-    public static Map<String, Object> getEmptyFilter(final Model model)
-    throws
-        JsonProcessingException {
-        String typeFilter = SDO + "#FOOBAR";
-        return getTypedFrameFilter(model, typeFilter).get(0);
+        if (dependentList.size() <= element) {
+            return Collections.emptyMap();
+        }
+
+        return dependentList.get(element);
     }
 
     /**
