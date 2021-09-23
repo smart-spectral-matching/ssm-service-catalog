@@ -226,10 +226,10 @@ public class BatsModelController {
         LOGGER.info("  Default model made...");
         // TODO try to use Model.read(InputStream, String) here instead,
         // to avoid possible character encoding issues
-        LOGGER.info("  Reading JSON-LD...);
+        LOGGER.info("  Reading JSON-LD...");
         model.read(reader, null, "JSON-LD");
         reader.close();
-        LOGGER.info("  Reading complete!);
+        LOGGER.info("  Reading complete!");
         // add metadata information
         final String now = DateUtils.now();
         model.createResource(JsonUtils.METADATA_URI)
@@ -688,7 +688,7 @@ public class BatsModelController {
         final String datasetTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
-    ) {
+    ) throws IOException, NoSuchAlgorithmException {
         CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
             datasetTitle,
             fuseki()
@@ -697,13 +697,55 @@ public class BatsModelController {
         // Check if dataset exists
         DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
 
-        // Delete the dataset's model
+        // Cache old data for rollback
+        ModelDocument modelDocument;
+        try {
+             modelDocument = repository.findById(modelUUID)
+                                       .orElseThrow(NotFoundException::new);
+        } catch (Exception e) {
+            LOGGER.error(READ_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                READ_MODEL_ERROR
+            );
+        }
+        String oldJsonld = modelDocument.getModelJsonld();
+        JsonNode oldJsonldNode;
+        try {
+            oldJsonldNode = MAPPER.readValue(oldJsonld, JsonNode.class);
+        } catch (JsonProcessingException e) {
+            LOGGER.error(READ_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                READ_MODEL_ERROR
+            );
+        }
+
+
+        // Delete model from graph DB
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-        LOGGER.info("Deleting model: " + modelUUID);
+        LOGGER.info("Deleting model: " + modelUUID + " from graph database");
         try {
             dataset.deleteModel(modelUri);
         } catch (Exception e) {
             LOGGER.error(DELETE_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Model unable to be deleted from graph database"
+            );
+        }
+
+        // Delete model from document store
+        LOGGER.info("Deleting model: " + modelUUID + " from document store");
+        try {
+            repository.delete(
+                repository.findById(modelUUID).orElseThrow(NotFoundException::new)
+            );
+        } catch (Exception e) {
+            // Rolling back graph database deletion of model
+            LOGGER.error("Unable to delete model in document store: " + modelUUID);
+            LOGGER.error("Rolling back delete from graph database for model: " + modelUUID);
+            jsonldToBatsModel(oldJsonldNode, datasetTitle, modelUUID, dataset, null);
         }
     }
 }
