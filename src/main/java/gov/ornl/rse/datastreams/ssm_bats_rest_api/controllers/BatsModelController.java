@@ -554,6 +554,7 @@ public class BatsModelController {
 
         // Either return full model or the abbrev. version from full model
 
+        // Get graph json-ld for model
         if (format.equals("graph") || format.equals("full")) {
             // Return the full JSON-LD model
             CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
@@ -575,16 +576,23 @@ public class BatsModelController {
                 RdfModelWriter.getJsonldForModel(newModel)
             );
             return ResponseEntity.ok(batsModel);
+        }
+
+        // Get document from document store
+        ModelDocument modelDocument;
+        try {
+            modelDocument = repository.findById(modelUUID).get();
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Model " + modelUUID + " Not Found"
+            );
+        }
+
+        // Return either JSON-LD or abbreviated JSON from document
+        if (format.equals("jsonld")) {
+            return ResponseEntity.ok(modelDocument.getModelJsonld());
         } else {
-            ModelDocument modelDocument;
-            try {
-                modelDocument = repository.findById(modelUUID).get();
-            } catch (Exception e) {
-                throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Model " + modelUUID + " Not Found"
-                );
-            }
             return ResponseEntity.ok(modelDocument.getModelJson());
         }
     }
