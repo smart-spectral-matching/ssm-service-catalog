@@ -90,15 +90,17 @@ public final class DatasetUtils {
     /**
      * Checks if Apache Jena Dataset exists in Fuseki database and log.
      *
-     * @param dataset      Dataset to check for existence in Fuseki database
+     * @param datasetTitle Dataset title to check for existence in Fuseki database
      * @param fusekiObject Fuseki object that holds the Fuseki database info
      * @param logger       Logger to send message to
      */
     public static void checkDataSetExists(
-        final DataSet dataset,
+        final String datasetTitle,
         final Fuseki fusekiObject,
         final Logger logger
     ) {
+        CustomizedBatsDataSet dataset = initDataset(datasetTitle, fusekiObject);
+
         logger.info("Checking dataset: " + dataset.getName());
         DataSetQueryStatus code = doesDataSetExist(dataset, fusekiObject);
         if (code == DataSetQueryStatus.DOES_NOT_EXIST) {

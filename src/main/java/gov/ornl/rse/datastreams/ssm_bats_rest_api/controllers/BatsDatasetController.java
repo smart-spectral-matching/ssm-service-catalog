@@ -211,7 +211,7 @@ public class BatsDatasetController {
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
 
-        DatasetUtils.checkDataSetExists(dataset, fuseki(), LOGGER);
+        DatasetUtils.checkDataSetExists(title, fuseki(), LOGGER);
 
         return new BatsDataset(dataset.getName());
     }
