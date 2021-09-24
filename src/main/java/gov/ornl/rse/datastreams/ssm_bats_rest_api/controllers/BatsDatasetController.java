@@ -29,9 +29,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers.advice.NotFoundException;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
 
 @RestController
 @RequestMapping("/datasets")
@@ -50,6 +53,12 @@ public class BatsDatasetController {
      */
     @Autowired
     private ApplicationConfig appConfig;
+
+    /**
+     * Document store repository for model documents.
+     */
+    @Autowired
+    private ModelDocumentRepository repository;
 
     /**
      * Class ObjectMapper.
@@ -230,6 +239,19 @@ public class BatsDatasetController {
         dataset.setName(title);
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
+
+        // Delete models from document store
+        String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + title;
+
+        ArrayNode uuidArray = ModelSparql.getModelUuids(endpointUrl);
+        for (JsonNode modelUuidNode: uuidArray) {
+            String modelUUID = modelUuidNode.asText();
+            String uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
+            LOGGER.info("Deleting model: " + uuid + " from document store");
+            repository.delete(repository.findById(uuid).orElseThrow(NotFoundException::new));
+        }
+
+        // Delete dataset collection from graph database
         dataset.delete();
         LOGGER.info("Deleted dataset: " + dataset.getName());
     }
