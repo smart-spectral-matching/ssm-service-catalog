@@ -311,7 +311,6 @@ public final class ModelSparql {
             execution.close();
             throw ex;
         }
-        execution.close();
 
         //The JSON response being built
         ArrayNode uuidArray = new ArrayNode(new JsonNodeFactory(false));
@@ -322,6 +321,7 @@ public final class ModelSparql {
             RDFNode node = solution.get("?model");
             uuidArray.add(node.toString());
         }
+        execution.close();
         return uuidArray;
     }
 
