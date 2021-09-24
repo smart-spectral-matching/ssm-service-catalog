@@ -515,7 +515,12 @@ public class BatsModelController {
             // Rollback graph database insert of model
             LOGGER.error("Unable to create model in document store: " + modelUUID);
             LOGGER.error("Rolling back create from graph database for model: " + modelUUID);
-            deleteModel(datasetTitle, modelUUID);
+            CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+                datasetTitle,
+                fuseki()
+            );
+            String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
+            dataset.deleteModel(modelUri);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
                 HttpStatus.BAD_GATEWAY,
