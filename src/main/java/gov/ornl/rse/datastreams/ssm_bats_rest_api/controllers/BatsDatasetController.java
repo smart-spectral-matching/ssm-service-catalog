@@ -9,6 +9,7 @@ import java.util.Scanner;
 import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
+import org.apache.jena.query.QueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -243,12 +244,17 @@ public class BatsDatasetController {
         // Delete models from document store
         String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + title;
 
-        ArrayNode uuidArray = ModelSparql.getModelUuids(endpointUrl);
-        for (JsonNode modelUuidNode: uuidArray) {
-            String modelUUID = modelUuidNode.asText();
-            String uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
-            LOGGER.info("Deleting model: " + uuid + " from document store");
-            repository.delete(repository.findById(uuid).orElseThrow(NotFoundException::new));
+        ArrayNode uuidArray;
+        try {
+            uuidArray = ModelSparql.getModelUuids(endpointUrl);
+            for (JsonNode modelUuidNode: uuidArray) {
+                String modelUUID = modelUuidNode.asText();
+                String uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
+                LOGGER.info("Deleting model: " + uuid + " from document store");
+                repository.delete(repository.findById(uuid).orElseThrow(NotFoundException::new));
+            }
+        } catch (QueryException ex) {
+            LOGGER.info("No models to delete for datset.");
         }
 
         // Delete dataset collection from graph database
