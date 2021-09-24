@@ -359,48 +359,35 @@ public class BatsModelController {
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
-    private void uploadToDocumentStoreWithGraphDatabaseRollback(
+    private void uploadToDocumentStore(
         final String datasetTitle,
         final String modelUUID,
         final String jsonldPayload
     ) throws NoSuchAlgorithmException, IOException {
-        try {
-            // Check if dataset exists
-            CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-                datasetTitle,
-                fuseki()
-            );
-            DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
+        // Check if dataset exists
+        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
+            datasetTitle,
+            fuseki()
+        );
+        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
 
-            // Create abbreviated json
-            LOGGER.info("Creating abbreviated json for document store");
-            String endpointUrl = fuseki().getHostname() + ":"
-            + fuseki().getPort()
-            + "/" + datasetTitle;
-            String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-            Model model = dataset.getModel(modelUri);
-            String abbrvJson = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
+        // Create abbreviated json
+        LOGGER.info("Creating abbreviated json for document store");
+        String endpointUrl = fuseki().getHostname() + ":"
+        + fuseki().getPort()
+        + "/" + datasetTitle;
+        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
+        Model model = dataset.getModel(modelUri);
+        String abbrvJson = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
 
-            // Create document
-            ModelDocument document = new ModelDocument();
-            document.setModelId(modelUUID);
-            document.setModelJsonld(jsonldPayload);
-            document.setModelJson(abbrvJson);
+        // Create document
+        ModelDocument document = new ModelDocument();
+        document.setModelId(modelUUID);
+        document.setModelJsonld(jsonldPayload);
+        document.setModelJson(abbrvJson);
 
-            // Upload to document store
-            LOGGER.info("Uploading model to document store: " + modelUUID);
-            repository.save(document);
-            LOGGER.info("Model uploaded to document store!");
-
-        } catch (Exception e) {
-            // Rollback graph database insert of model
-            deleteModel(datasetTitle, modelUUID);
-            LOGGER.error(UPLOAD_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
-                "Model unable to be uploaded to document store"
-            );
-        }
+        // Upload to document store
+        repository.save(document);
     }
 
     /**
@@ -520,7 +507,21 @@ public class BatsModelController {
         }
 
         // Add ModelDocument to document store
-        uploadToDocumentStoreWithGraphDatabaseRollback(datasetTitle, modelUUID, jsonld);
+        LOGGER.info("Uploading model to document store: " + modelUUID);
+        try {
+            uploadToDocumentStore(datasetTitle, modelUUID, jsonld);
+            LOGGER.info("Model uploaded to document store!");
+        } catch (Exception e) {
+            // Rollback graph database insert of model
+            LOGGER.error("Unable to create model in document store: " + modelUUID);
+            LOGGER.error("Rolling back create from graph database for model: " + modelUUID);
+            deleteModel(datasetTitle, modelUUID);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Model unable to be uploaded to document store"
+            );
+        }
 
         return batsModel;
     }
@@ -661,8 +662,6 @@ public class BatsModelController {
         LOGGER.info("Getting rollback json-ld for update");
         String oldJsonld = getRollbackJsonld(modelUUID);
 
-        System.out.println("oldJsonld: " + oldJsonld);
-
         /*
         Get the dataset's model. We want to extract the created timestamp,
         instead of updating it from user params or deleting it.
@@ -698,10 +697,25 @@ public class BatsModelController {
         BatsModel batsModel = uploadToGraphDatabase(datasetTitle, modelUUID, model);
 
         // Add updated model to document store
+        LOGGER.info("Uploading model to document store: " + modelUUID);
         String jsonldForDocument = transformJsonld(datasetTitle, modelUUID, jsonldPayload);
-        uploadToDocumentStoreWithGraphDatabaseRollback(
-            datasetTitle, modelUUID, jsonldForDocument
-        );
+        try {
+            uploadToDocumentStore(datasetTitle, modelUUID, jsonldForDocument);
+            LOGGER.info("Model uploaded to document store!");
+        } catch (Exception e) {
+            // Rollback graph database to original model
+            LOGGER.error("Unable to update model in document store: " + modelUUID);
+            LOGGER.error("Rolling back update from graph database for model: " + modelUUID);
+            Model oldModel = jsonldToModel(
+                oldJsonld, datasetTitle, modelUUID, createdTimeNode.textValue()
+            );
+            uploadToGraphDatabase(datasetTitle, modelUUID, oldModel);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Model unable to be uploaded to document store"
+            );
+        }
 
         return ResponseEntity.ok(batsModel);
     }
@@ -781,7 +795,23 @@ public class BatsModelController {
         }
 
         // Add updated model to document store
-        uploadToDocumentStoreWithGraphDatabaseRollback(datasetTitle, modelUUID, mergedModelJsonld);
+        try {
+            uploadToDocumentStore(datasetTitle, modelUUID, mergedModelJsonld);
+            LOGGER.info("Model uploaded to document store!");
+        } catch (Exception e) {
+            // Rollback graph database to original model
+            LOGGER.error("Unable to update model in document store: " + modelUUID);
+            LOGGER.error("Rolling back update from graph database for model: " + modelUUID);
+            Model model = jsonldToModel(
+                modelJsonld, datasetTitle, modelUUID, createdTimeNode.textValue()
+            );
+            uploadToGraphDatabase(datasetTitle, modelUUID, model);
+            LOGGER.error(UPLOAD_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Model unable to be uploaded to document store"
+            );
+        }
 
         return ResponseEntity.ok(mergedBatsModel);
     }
@@ -838,6 +868,11 @@ public class BatsModelController {
             LOGGER.error("Rolling back delete from graph database for model: " + modelUUID);
             Model model = jsonldToModel(oldJsonld, datasetTitle, modelUUID, null);
             uploadToGraphDatabase(datasetTitle, modelUUID, model);
+            LOGGER.error(DELETE_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Model unable to be deleted from document database"
+            );
         }
     }
 }
