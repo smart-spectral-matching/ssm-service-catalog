@@ -44,7 +44,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers.advice.NotFoundException;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
@@ -302,8 +301,7 @@ public class BatsModelController {
     private String getRollbackJsonld(final String modelUUID) {
         ModelDocument modelDocument;
         try {
-                modelDocument = repository.findById(modelUUID)
-                                        .orElseThrow(NotFoundException::new);
+            modelDocument = repository.findById(modelUUID).get();
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
@@ -872,9 +870,7 @@ public class BatsModelController {
         // Delete model from document store
         LOGGER.info("Deleting model: " + modelUUID + " from document store");
         try {
-            repository.delete(
-                repository.findById(modelUUID).orElseThrow(NotFoundException::new)
-            );
+            repository.delete(repository.findById(modelUUID).get());
         } catch (Exception e) {
             // Rolling back graph database deletion of model
             LOGGER.error("Unable to delete model in document store: " + modelUUID);

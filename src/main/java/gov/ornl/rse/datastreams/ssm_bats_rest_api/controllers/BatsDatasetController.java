@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers.advice.NotFoundException;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
@@ -251,7 +250,7 @@ public class BatsDatasetController {
                 String modelUUID = modelUuidNode.asText();
                 String uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
                 LOGGER.info("Deleting model: " + uuid + " from document store");
-                repository.delete(repository.findById(uuid).orElseThrow(NotFoundException::new));
+                repository.delete(repository.findById(uuid).get());
             }
         } catch (QueryException ex) {
             LOGGER.info("No models to delete for datset.");
