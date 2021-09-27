@@ -98,7 +98,7 @@ public final class DatasetUtils {
         final String datasetTitle,
         final Fuseki fusekiObject,
         final Logger logger
-    ) {
+    ) throws ResponseStatusException {
         CustomizedBatsDataSet dataset = initDataset(datasetTitle, fusekiObject);
 
         logger.info("Checking dataset: " + dataset.getName());

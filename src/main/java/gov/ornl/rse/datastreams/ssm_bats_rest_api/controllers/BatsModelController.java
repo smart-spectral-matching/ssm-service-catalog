@@ -527,7 +527,7 @@ public class BatsModelController {
             dataset.deleteModel(modelUri);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR
+                HttpStatus.INTERNAL_SERVER_ERROR,
                 "Model unable to be uploaded to document store"
             );
         }
