@@ -298,14 +298,16 @@ public class BatsModelController {
      * @param modelUUID Model UUID to grab JSON-LD for
      * @return JSON-LD for model's JSON-LD
      */
-    private String getRollbackJsonld(final String modelUUID) {
+    private String getRollbackJsonld(
+        final String modelUUID
+    ) throws ResponseStatusException {
         ModelDocument modelDocument;
         try {
             modelDocument = repository.findById(modelUUID).get();
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                HttpStatus.NOT_FOUND,
                 READ_MODEL_ERROR
             );
         }
@@ -325,7 +327,7 @@ public class BatsModelController {
         final String datasetTitle,
         final String modelUUID,
         final Model  model
-    ) throws IOException {
+    ) throws IOException, ResponseStatusException {
         CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
             datasetTitle,
             fuseki()
@@ -342,6 +344,10 @@ public class BatsModelController {
             LOGGER.info("Model uploaded to graph!");
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                UPLOAD_MODEL_ERROR
+            );
         }
 
         Model newModel = dataset.getModel(modelUri);
@@ -499,7 +505,7 @@ public class BatsModelController {
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
+                HttpStatus.INTERNAL_SERVER_ERROR,
                 "Model unable to be uploaded to graph database"
             );
         }
@@ -521,7 +527,7 @@ public class BatsModelController {
             dataset.deleteModel(modelUri);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
+                HttpStatus.INTERNAL_SERVER_ERROR
                 "Model unable to be uploaded to document store"
             );
         }
@@ -723,7 +729,7 @@ public class BatsModelController {
             uploadToGraphDatabase(datasetTitle, modelUUID, oldModel);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
+                HttpStatus.INTERNAL_SERVER_ERROR,
                 "Model unable to be uploaded to document store"
             );
         }
@@ -800,7 +806,7 @@ public class BatsModelController {
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
+                HttpStatus.INTERNAL_SERVER_ERROR,
                 "Model unable to be uploaded to graph database"
             );
         }
@@ -819,7 +825,7 @@ public class BatsModelController {
             uploadToGraphDatabase(datasetTitle, modelUUID, model);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
+                HttpStatus.INTERNAL_SERVER_ERROR,
                 "Model unable to be uploaded to document store"
             );
         }
@@ -862,7 +868,7 @@ public class BatsModelController {
         } catch (Exception e) {
             LOGGER.error(DELETE_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
+                HttpStatus.INTERNAL_SERVER_ERROR,
                 "Model unable to be deleted from graph database"
             );
         }
@@ -879,7 +885,7 @@ public class BatsModelController {
             uploadToGraphDatabase(datasetTitle, modelUUID, model);
             LOGGER.error(DELETE_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.BAD_GATEWAY,
+                HttpStatus.INTERNAL_SERVER_ERROR,
                 "Model unable to be deleted from document database"
             );
         }
