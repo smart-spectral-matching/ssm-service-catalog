@@ -23,11 +23,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
@@ -244,16 +246,21 @@ public class BatsDatasetController {
         String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + title;
 
         ArrayNode uuidArray;
+        String uuid = "";
         try {
             uuidArray = ModelSparql.getModelUuids(endpointUrl);
             for (JsonNode modelUuidNode: uuidArray) {
                 String modelUUID = modelUuidNode.asText();
-                String uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
+                uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
                 LOGGER.info("Deleting model: " + uuid + " from document store");
                 repository.delete(repository.findById(uuid).get());
             }
         } catch (QueryException ex) {
             LOGGER.info("No models to delete for datset.");
+        } catch (Exception ex) {
+            String message = "Unable to delete model: " + uuid + " from document store.";
+            LOGGER.error(message);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
         }
 
         // Delete dataset collection from graph database
