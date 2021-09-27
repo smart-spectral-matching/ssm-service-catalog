@@ -96,6 +96,8 @@ public class ITBatsModelController {
             uri += "?format=graph";
         } else if (format == "json") {
             uri += "?format=json";
+        } else if (format == "jsonld") {
+            uri += "?format=jsonld";
         }
         return uri;
     }
@@ -376,7 +378,7 @@ public class ITBatsModelController {
     */
     @Test
     public void testGetSimpleFullModel() throws Exception {
-        String datasetTitle = createDataset("testGetSimpleModel");
+        String datasetTitle = createDataset("testGetSimpleFullModel");
         String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
         String modelUri = getModelUriFull(datasetTitle, modelUUID);
 
@@ -414,7 +416,7 @@ public class ITBatsModelController {
     */
     @Test
     public void testGetSciDataFullModel() throws Exception {
-        String datasetTitle = createDataset("testGetSciDataModel");
+        String datasetTitle = createDataset("testGetSciDataFullModel");
         String modelUUID = createModel(datasetTitle, scidataInputJSONLD());
         String modelUri = getModelUriFull(datasetTitle, modelUUID);
 
