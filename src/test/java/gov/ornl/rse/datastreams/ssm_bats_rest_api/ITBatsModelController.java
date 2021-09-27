@@ -92,11 +92,11 @@ public class ITBatsModelController {
         final String format
     ) {
         String uri = getDatasetUri(datasetTitle) + "/models/" + modelUUID;
-        if (format == "full" || format == "graph") {
+        if (format.equals("full") || format.equals("graph")) {
             uri += "?format=graph";
-        } else if (format == "json") {
+        } else if (format.equals("json")) {
             uri += "?format=json";
-        } else if (format == "jsonld") {
+        } else if (format.equals("jsonld")) {
             uri += "?format=jsonld";
         }
         return uri;
