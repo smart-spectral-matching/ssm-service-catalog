@@ -10,6 +10,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Pattern;
 
 import org.apache.jena.query.QueryException;
+import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
@@ -61,6 +63,13 @@ public class BatsDatasetController {
      */
     @Autowired
     private ModelDocumentRepository repository;
+
+    /**
+     * Configuration utilities.
+    */
+    @Autowired
+    private ConfigUtils configUtils;
+
 
     /**
      * Class ObjectMapper.
@@ -245,23 +254,46 @@ public class BatsDatasetController {
         // Delete models from document store
         String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + title;
 
-        ArrayNode uuidArray;
-        String uuid = "";
+        // Get the Model UUID list for the dataset
+        ArrayNode uuidArray = MAPPER.createArrayNode();
         try {
             uuidArray = ModelSparql.getModelUuids(endpointUrl);
-            for (JsonNode modelUuidNode: uuidArray) {
-                String modelUUID = modelUuidNode.asText();
-                uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
-                LOGGER.info("Deleting model: " + uuid + " from document store");
-                repository.delete(repository.findById(uuid).get());
-            }
         } catch (QueryException ex) {
             LOGGER.info("No models to delete for datset.");
-        } catch (Exception ex) {
-            String message = "Unable to delete model: " + uuid + " from document store.";
-            LOGGER.error(message);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
         }
+
+        // Loop to delete the models from dataset
+        for (JsonNode modelUuidNode: uuidArray) {
+            String modelUUID = modelUuidNode.asText();
+            String uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
+            String modelUri = configUtils.getModelUri(title, uuid);
+
+            // Get model for rollback
+            Model model = dataset.getModel(modelUri);
+
+            // Delete model from graph database
+            LOGGER.info("Deleting model: " + uuid + " from graph database");
+            try {
+                dataset.deleteModel(modelUri);
+            } catch (Exception ex) {
+                String message = "Unable to delete model: " + uuid + " from graph database.";
+                LOGGER.error(message);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
+            }
+
+            // Delete model from document store (rollback graph database if fails)
+            LOGGER.info("Deleting model: " + uuid + " from document store");
+            try {
+                repository.delete(repository.findById(uuid).get());
+            } catch (Exception ex) {
+                String message = "Unable to delete model: " + uuid + " from document store.";
+                LOGGER.error(message);
+                dataset.updateModel(modelUri, model);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
+            }
+
+        }
+
 
         // Delete dataset collection from graph database
         dataset.delete();
