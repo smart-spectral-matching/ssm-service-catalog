@@ -46,6 +46,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuse
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.ModelDocument;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
@@ -555,7 +556,7 @@ public class BatsModelController {
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
         @RequestParam(name = "format", defaultValue = "json")
-        final String format
+        final BatsModelFormats format
     ) throws IOException {
 
         // Check if dataset exists
@@ -564,7 +565,7 @@ public class BatsModelController {
         // Either return full model or the abbrev. version from full model
 
         // Get graph json-ld for model
-        if (format.equals("graph") || format.equals("full")) {
+        if (format == BatsModelFormats.GRAPH || format == BatsModelFormats.FULL) {
             // Return the full JSON-LD model
             CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
                 datasetTitle,
@@ -599,7 +600,7 @@ public class BatsModelController {
         }
 
         // Return either JSON-LD or abbreviated JSON from document
-        if (format.equals("jsonld")) {
+        if (format == BatsModelFormats.JSONLD) {
             return ResponseEntity.ok(modelDocument.getModelJsonld());
         } else {
             return ResponseEntity.ok(modelDocument.getModelJson());
