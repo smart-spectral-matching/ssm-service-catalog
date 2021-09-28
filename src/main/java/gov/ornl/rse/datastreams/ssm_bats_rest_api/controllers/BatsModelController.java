@@ -304,13 +304,12 @@ public class BatsModelController {
     ) throws ResponseStatusException {
         ModelDocument modelDocument;
         try {
-            modelDocument = repository.findById(modelUUID).orElseThrow();
-        } catch (Exception e) {
-            LOGGER.error(READ_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                READ_MODEL_ERROR
+            modelDocument = repository.findById(modelUUID).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
             );
+        } catch (Exception e) {
+            LOGGER.error(READ_MODEL_ERROR, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
         return modelDocument.getModelJsonld();
     }
