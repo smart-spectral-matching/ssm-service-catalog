@@ -1,1 +1,0 @@
-FROM code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/mongo:4
