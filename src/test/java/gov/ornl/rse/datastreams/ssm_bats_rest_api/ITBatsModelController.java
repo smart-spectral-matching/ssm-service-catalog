@@ -3,6 +3,7 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 import javax.servlet.ServletContext;
 
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -92,13 +94,7 @@ public class ITBatsModelController {
         final String format
     ) {
         String uri = getDatasetUri(datasetTitle) + "/models/" + modelUUID;
-        if (format.equals("full") || format.equals("graph")) {
-            uri += "?format=graph";
-        } else if (format.equals("json")) {
-            uri += "?format=json";
-        } else if (format.equals("jsonld")) {
-            uri += "?format=jsonld";
-        }
+        uri += "?format=" + format.toUpperCase(Locale.getDefault());
         return uri;
     }
 
