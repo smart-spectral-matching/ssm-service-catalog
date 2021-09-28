@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
