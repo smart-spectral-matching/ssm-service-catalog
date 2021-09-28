@@ -86,14 +86,7 @@ public final class AbbreviatedJson {
     ) {
         ArrayList<Object> output = new ArrayList<>();
 
-        ArrayList<Map<String, Object>> listOfMaps;
-        try {
-            listOfMaps = (ArrayList<Map<String, Object>>) listObject;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(
-                "Unable to cast following to ArrayList<Map<String, Object>>: " + listObject
-            );
-        }
+        ArrayList<Map<String, Object>> listOfMaps = (ArrayList<Map<String, Object>>) listObject;
 
         for (Object entry: listOfMaps) {
             if (Map.class.isInstance(entry)) {
