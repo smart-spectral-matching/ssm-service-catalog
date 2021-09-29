@@ -251,10 +251,11 @@ public class BatsDatasetController {
         dataset.setHost(fuseki().getHostname());
         dataset.setPort(fuseki().getPort());
 
-        // Delete models from document store
-        String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + title;
+        // Make sure the dataset exists before trying to delete it
+        DatasetUtils.checkDataSetExists(title, fuseki(), LOGGER);
 
         // Get the Model UUID list for the dataset
+        String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + title;
         ArrayNode uuidArray = MAPPER.createArrayNode();
         try {
             uuidArray = ModelSparql.getModelUuids(endpointUrl);
