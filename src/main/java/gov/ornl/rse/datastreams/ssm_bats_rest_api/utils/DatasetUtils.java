@@ -110,7 +110,7 @@ public final class DatasetUtils {
         } else if (
             code == DataSetQueryStatus.BAD_CONNECTION || code == DataSetQueryStatus.BAD_URL
         ) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error accessing dataset " + dataset.getName() + "!");
         }
         logger.info("Dataset " + dataset.getName() + " exists!");
