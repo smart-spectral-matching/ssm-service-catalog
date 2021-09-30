@@ -6,14 +6,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.ornl.rse.bats.DataSet;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 
-public final class DatasetUtils {
+public class DatasetUtils {
 
     /**
      * Status from checking if Fuseki Dataset exists. {@link #EXISTS}
@@ -42,29 +45,56 @@ public final class DatasetUtils {
     }
 
     /**
-     * Static methods only.
-     */
-    private DatasetUtils() { }
+     * Setup logger for DatasetUtils.
+    */
+    private static final Logger LOGGER = LoggerFactory.getLogger(
+        DatasetUtils.class
+    );
 
     /**
-     * Return if given Apache Jena Dataset exists in Fuseki database.
+     * Configuration from properties.
+    */
+    @Autowired
+    private ApplicationConfig appConfig;
+
+    /**
+     * @return shorthand for the Fuseki configuration
+     */
+    private Fuseki fuseki() {
+        return appConfig.getFuseki();
+    }
+
+    /**
+     * Initialize Apache Jena Dataset connection via BATS.
      *
-     * @param dataset      Dataset to check for existence in Fuseki database
-     * @param fusekiObject Fuseki object that holds the Fuseki database info
+     * @param datasetTitle Dataset title
+     * @return BATS dataset with name, Fuseki host, and Fuseki port configured
+     */
+    private CustomizedBatsDataSet initDatasetConnection(final String datasetTitle) {
+        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
+        dataset.setName(datasetTitle);
+        dataset.setHost(fuseki().getHostname());
+        dataset.setPort(fuseki().getPort());
+        return dataset;
+    }
+
+    /**
+     * Return if given Apache Jena Dataset exists in Apache Fuseki / TDB database.
+     *
+     * @param dataset      Dataset to check for existence in Apache Fuseki / TDB database
      * @return DataSetQueryStatus; dataset status
      */
-    public static DataSetQueryStatus doesDataSetExist(
-        final DataSet dataset,
-        final Fuseki fusekiObject
+    private DataSetQueryStatus doesDataSetExist(
+        final DataSet dataset
     ) {
         // Construct Fuseki API URL for the specific dataset
         URL url = null;
 
         try {
             url = new URL(
-                    fusekiObject.getHostname()
+                    fuseki().getHostname()
                     + ":"
-                    + fusekiObject.getPort()
+                    + fuseki().getPort()
                     + "/$/datasets/"
                     + dataset.getName());
         } catch (MalformedURLException e) {
@@ -88,21 +118,17 @@ public final class DatasetUtils {
     }
 
     /**
-     * Checks if Apache Jena Dataset exists in Fuseki database and log.
+     * Asserts / checks if Apache Jena Dataset exists in Apache Fuseki / TDB database.
      *
-     * @param datasetTitle Dataset title to check for existence in Fuseki database
-     * @param fusekiObject Fuseki object that holds the Fuseki database info
-     * @param logger       Logger to send message to
+     * @param datasetTitle Dataset title to check for existence in Apache Fuseki / TDB database
      */
-    public static void checkDataSetExists(
-        final String datasetTitle,
-        final Fuseki fusekiObject,
-        final Logger logger
+    private void assertDataSetExists(
+        final String datasetTitle
     ) throws ResponseStatusException {
-        CustomizedBatsDataSet dataset = initDataset(datasetTitle, fusekiObject);
+        CustomizedBatsDataSet dataset = initDatasetConnection(datasetTitle);
 
-        logger.info("Checking dataset: " + dataset.getName());
-        DataSetQueryStatus code = doesDataSetExist(dataset, fusekiObject);
+        LOGGER.info("Checking dataset: " + dataset.getName());
+        DataSetQueryStatus code = doesDataSetExist(dataset);
         if (code == DataSetQueryStatus.DOES_NOT_EXIST) {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
@@ -113,24 +139,14 @@ public final class DatasetUtils {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error accessing dataset " + dataset.getName() + "!");
         }
-        logger.info("Dataset " + dataset.getName() + " exists!");
+        LOGGER.info("Dataset " + dataset.getName() + " exists!");
     }
 
-    /**
-     * Initialize BATS dataset connection.
-     *
-     * @param datasetTitle Dataset title from user parameter
-     * @param fusekiObject Fuseki object that holds the Fuseki database info
-     * @return Bats dataset with name, Fuseki host, and Fuseki port configured
-     */
-    public static CustomizedBatsDataSet initDataset(
-        final String datasetTitle,
-        final Fuseki fusekiObject
-    ) {
-        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
-        dataset.setName(datasetTitle);
-        dataset.setHost(fusekiObject.getHostname());
-        dataset.setPort(fusekiObject.getPort());
+    public CustomizedBatsDataSet getDataset(
+        final String datasetTitle
+    ) throws ResponseStatusException {
+        CustomizedBatsDataSet dataset = initDatasetConnection(datasetTitle);
+        assertDataSetExists(datasetTitle);
         return dataset;
     }
 
