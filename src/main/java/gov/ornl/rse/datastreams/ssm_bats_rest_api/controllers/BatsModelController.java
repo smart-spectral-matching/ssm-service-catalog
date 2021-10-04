@@ -54,6 +54,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AbbreviatedJson;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.ModelUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
@@ -81,6 +82,18 @@ public class BatsModelController {
     */
     @Autowired
     private ConfigUtils configUtils;
+
+    /**
+     * Dataset utilities.
+    */
+    @Autowired
+    private DatasetUtils datasetUtils;
+
+    /**
+     * Model utilities.
+    */
+    @Autowired
+    private ModelUtils modelUtils;
 
     /**
      * Document store repository for model documents.
@@ -219,20 +232,15 @@ public class BatsModelController {
      * Converts SciData JSON-LD payload into Model.
      *
      * @param jsonld           SciData JSON-LD to convert to Model
-     * @param datasetTitle     Title of the dataset collection this model belongs to
      * @param modelUUID        UUID of output model
      * @param priorCreatedTime Get value from prior model if updating, null if creating
      * @return                 BatsModel of the JSON-LD
     */
     private Model jsonldToModel(
         final String jsonld,
-        final String datasetTitle,
         final String modelUUID,
         final String priorCreatedTime
     ) throws IOException, NoSuchAlgorithmException, UnsupportedEncodingException {
-        // Check if dataset exists
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
-
         // transform from JSON-LD string to Jena Model
         LOGGER.info("Creating model: " + modelUUID);
         StringReader reader = new StringReader(jsonld); //NOPMD
@@ -328,13 +336,7 @@ public class BatsModelController {
         final String modelUUID,
         final Model  model
     ) throws IOException, ResponseStatusException {
-        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-            datasetTitle,
-            fuseki()
-        );
-
-        // Check if dataset exists
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
+        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // Jena Model -> BATS Model
         LOGGER.info("Uploading model to graph: " + modelUUID);
@@ -368,20 +370,13 @@ public class BatsModelController {
         final String modelUUID,
         final String jsonldPayload
     ) throws NoSuchAlgorithmException, IOException {
-        // Check if dataset exists
-        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-            datasetTitle,
-            fuseki()
-        );
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
-
         // Create abbreviated json
         LOGGER.info("Creating abbreviated json for document store");
         String endpointUrl = fuseki().getHostname() + ":"
         + fuseki().getPort()
         + "/" + datasetTitle;
+        Model model = modelUtils.getModel(datasetTitle, modelUUID);
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-        Model model = dataset.getModel(modelUri);
         String abbrvJson = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
 
         // Create document
@@ -423,11 +418,12 @@ public class BatsModelController {
         //) final String[] returnProperties
         // ) @Valid final String[] returnProperties
     ) {
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
+        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // final PropertyEnum[]
         // pmd does not recognize that this will always be closed
-        String endpointUrl = fuseki().getHostname() + ":"
+        String endpointUrl = fuseki().getHostname()
+            + ":"
             + fuseki().getPort()
             + "/" + datasetTitle;
 
@@ -435,10 +431,6 @@ public class BatsModelController {
         //Add each found model to the response
         try {
             if (returnFull) {
-                CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-                    datasetTitle,
-                    fuseki()
-                );
                 List<BatsModel> body = ModelSparql.getFullModels(
                     pageSize,
                     pageNumber,
@@ -485,9 +477,8 @@ public class BatsModelController {
         IOException,
         NoSuchAlgorithmException,
         UnsupportedEncodingException {
-
         // Check if dataset exists
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
+        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // Create Model UUID
         String modelUUID = UUIDGenerator.generateUUID();
@@ -500,7 +491,7 @@ public class BatsModelController {
         BatsModel batsModel;
         try {
             LOGGER.info("Uploading model to graph database: " + modelUUID);
-            Model model = jsonldToModel(jsonld, datasetTitle, modelUUID, null);
+            Model model = jsonldToModel(jsonld, modelUUID, null);
             batsModel = uploadToGraphDatabase(datasetTitle, modelUUID, model);
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
@@ -519,10 +510,6 @@ public class BatsModelController {
             // Rollback graph database insert of model
             LOGGER.error("Unable to create model in document store: " + modelUUID);
             LOGGER.error("Rolling back create from graph database for model: " + modelUUID);
-            CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-                datasetTitle,
-                fuseki()
-            );
             String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
             dataset.deleteModel(modelUri);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
@@ -556,33 +543,13 @@ public class BatsModelController {
         final String modelUUID,
         @RequestParam(name = "format", defaultValue = "json")
         final BatsModelFormats format
-    ) throws IOException {
-
-        // Check if dataset exists
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
-
-        // Either return full model or the abbrev. version from full model
-
-        // Get graph json-ld for model
+    ) throws IOException, ResponseStatusException {
+        // Return full, graph JSON-LD of model
         if (format == BatsModelFormats.GRAPH || format == BatsModelFormats.FULL) {
-            // Return the full JSON-LD model
-            CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-                datasetTitle,
-                fuseki()
-            );
-
-            String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-            Model newModel = dataset.getModel(modelUri);
-            if (newModel == null) {
-                LOGGER.error(READ_MODEL_ERROR);
-                throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Model " + modelUUID + " Not Found"
-                );
-            }
+            Model model = modelUtils.getModel(datasetTitle, modelUUID);
             BatsModel batsModel = new BatsModel(
                 modelUUID,
-                RdfModelWriter.getJsonldForModel(newModel)
+                RdfModelWriter.getJsonldForModel(model)
             );
             return ResponseEntity.ok(batsModel);
         }
@@ -622,7 +589,7 @@ public class BatsModelController {
         @Pattern(regexp = BatsDataset.TITLE_REGEX) final String datasetTitle
     ) {
         // Check if dataset exists
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
+        datasetUtils.getDataset(datasetTitle);
 
         String endpointUrl = fuseki().getHostname() + ":"
             + fuseki().getPort()
@@ -673,7 +640,7 @@ public class BatsModelController {
         UnsupportedEncodingException {
 
         // Check if dataset exists
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
+        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // Cache old data for rollback
         LOGGER.info("Getting rollback json-ld for update");
@@ -686,10 +653,6 @@ public class BatsModelController {
         LOGGER.info("Pulling model for create time: " + modelUUID);
         String modelJsonld;
         try {
-            CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-                datasetTitle,
-                fuseki()
-            );
             String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
             Model model = dataset.getModel(modelUri);
             modelJsonld = RdfModelWriter.getJsonldForModel(model);
@@ -708,9 +671,7 @@ public class BatsModelController {
 
         // Add updated model to graph database
         String jsonldForGraph = transformJsonld(datasetTitle, modelUUID, jsonldPayload);
-        Model model = jsonldToModel(
-            jsonldForGraph, datasetTitle, modelUUID, createdTimeNode.textValue()
-        );
+        Model model = jsonldToModel(jsonldForGraph, modelUUID, createdTimeNode.textValue());
         BatsModel batsModel = uploadToGraphDatabase(datasetTitle, modelUUID, model);
 
         // Add updated model to document store
@@ -723,9 +684,7 @@ public class BatsModelController {
             // Rollback graph database to original model
             LOGGER.error("Unable to update model in document store: " + modelUUID);
             LOGGER.error("Rolling back update from graph database for model: " + modelUUID);
-            Model oldModel = jsonldToModel(
-                oldJsonld, datasetTitle, modelUUID, createdTimeNode.textValue()
-            );
+            Model oldModel = jsonldToModel(oldJsonld, modelUUID, createdTimeNode.textValue());
             uploadToGraphDatabase(datasetTitle, modelUUID, oldModel);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
@@ -758,20 +717,10 @@ public class BatsModelController {
         final String modelUUID,
         @RequestBody final String jsonPayload
     ) throws IOException, NoSuchAlgorithmException {
-
-        // Check if dataset exists
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
-
-        // Get the model
-        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-            datasetTitle,
-            fuseki()
-        );
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Pulling model: " + modelUUID);
         String modelJsonld;
         try {
-            Model model = dataset.getModel(modelUri);
+            Model model = modelUtils.getModel(datasetTitle, modelUUID);
             modelJsonld = RdfModelWriter.getJsonldForModel(model);
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
@@ -799,9 +748,7 @@ public class BatsModelController {
         BatsModel mergedBatsModel;
         try {
             LOGGER.info("Uploading model to graph database: " + modelUUID);
-            Model model = jsonldToModel(
-                mergedModelJsonld, datasetTitle, modelUUID, createdTimeNode.textValue()
-            );
+            Model model = jsonldToModel(mergedModelJsonld, modelUUID, createdTimeNode.textValue());
             mergedBatsModel = uploadToGraphDatabase(datasetTitle, modelUUID, model);
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
@@ -819,9 +766,7 @@ public class BatsModelController {
             // Rollback graph database to original model
             LOGGER.error("Unable to update model in document store: " + modelUUID);
             LOGGER.error("Rolling back update from graph database for model: " + modelUUID);
-            Model model = jsonldToModel(
-                modelJsonld, datasetTitle, modelUUID, createdTimeNode.textValue()
-            );
+            Model model = jsonldToModel(modelJsonld, modelUUID, createdTimeNode.textValue());
             uploadToGraphDatabase(datasetTitle, modelUUID, model);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
@@ -850,17 +795,12 @@ public class BatsModelController {
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
     ) throws IOException, NoSuchAlgorithmException {
-        // Check if dataset exists
-        DatasetUtils.checkDataSetExists(datasetTitle, fuseki(), LOGGER);
+        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // Cache old data for rollback
         String oldJsonld = getRollbackJsonld(modelUUID);
 
         // Delete model from graph DB
-        CustomizedBatsDataSet dataset = DatasetUtils.initDataset(
-            datasetTitle,
-            fuseki()
-        );
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         LOGGER.info("Deleting model: " + modelUUID + " from graph database");
         try {
@@ -881,7 +821,7 @@ public class BatsModelController {
             // Rolling back graph database deletion of model
             LOGGER.error("Unable to delete model in document store: " + modelUUID);
             LOGGER.error("Rolling back delete from graph database for model: " + modelUUID);
-            Model model = jsonldToModel(oldJsonld, datasetTitle, modelUUID, null);
+            Model model = jsonldToModel(oldJsonld, modelUUID, null);
             uploadToGraphDatabase(datasetTitle, modelUUID, model);
             LOGGER.error(DELETE_MODEL_ERROR, e);
             throw new ResponseStatusException(

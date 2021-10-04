@@ -70,6 +70,12 @@ public class BatsDatasetController {
     @Autowired
     private ConfigUtils configUtils;
 
+    /**
+     * Dataset utilities.
+    */
+    @Autowired
+    private DatasetUtils datasetUtils;
+
 
     /**
      * Class ObjectMapper.
@@ -116,16 +122,11 @@ public class BatsDatasetController {
         String title = batsDataset.getTitle();
 
         // Setup the database connection
-        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
-        dataset.setName(title);
-        dataset.setHost(fuseki().getHostname());
-        dataset.setPort(fuseki().getPort());
+        CustomizedBatsDataSet dataset = datasetUtils.initDatasetConnection(title);
 
         // Check that a Dataset with this same title doesn't already exist
-        DatasetUtils.DataSetQueryStatus code = DatasetUtils.doesDataSetExist(
-            dataset,
-            fuseki()
-        );
+        DatasetUtils.DataSetQueryStatus code = datasetUtils.doesDataSetExist(dataset);
+
         if (code == DatasetUtils.DataSetQueryStatus.EXISTS) {
             throw new ResponseStatusException(
                 HttpStatus.CONFLICT,
@@ -226,13 +227,7 @@ public class BatsDatasetController {
         @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
         throws
             ResponseStatusException {
-        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
-        dataset.setName(title);
-        dataset.setHost(fuseki().getHostname());
-        dataset.setPort(fuseki().getPort());
-
-        DatasetUtils.checkDataSetExists(title, fuseki(), LOGGER);
-
+        CustomizedBatsDataSet dataset = datasetUtils.getDataset(title);
         return new BatsDataset(dataset.getName());
     }
 
@@ -246,13 +241,7 @@ public class BatsDatasetController {
     public void deleteDataSet(@PathVariable("title")
         @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
         throws Exception {
-        CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
-        dataset.setName(title);
-        dataset.setHost(fuseki().getHostname());
-        dataset.setPort(fuseki().getPort());
-
-        // Make sure the dataset exists before trying to delete it
-        DatasetUtils.checkDataSetExists(title, fuseki(), LOGGER);
+        CustomizedBatsDataSet dataset = datasetUtils.getDataset(title);
 
         // Get the Model UUID list for the dataset
         String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + title;
