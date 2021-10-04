@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.ornl.rse.bats.DataSet;
@@ -16,6 +17,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 
+@Component
 public class DatasetUtils {
 
     /**
@@ -70,7 +72,7 @@ public class DatasetUtils {
      * @param datasetTitle Dataset title
      * @return BATS dataset with name, Fuseki host, and Fuseki port configured
      */
-    private CustomizedBatsDataSet initDatasetConnection(final String datasetTitle) {
+    public CustomizedBatsDataSet initDatasetConnection(final String datasetTitle) {
         CustomizedBatsDataSet dataset = new CustomizedBatsDataSet();
         dataset.setName(datasetTitle);
         dataset.setHost(fuseki().getHostname());
@@ -84,7 +86,7 @@ public class DatasetUtils {
      * @param dataset      Dataset to check for existence in Apache Fuseki / TDB database
      * @return DataSetQueryStatus; dataset status
      */
-    private DataSetQueryStatus doesDataSetExist(
+    public DataSetQueryStatus doesDataSetExist(
         final DataSet dataset
     ) {
         // Construct Fuseki API URL for the specific dataset
@@ -120,13 +122,11 @@ public class DatasetUtils {
     /**
      * Asserts / checks if Apache Jena Dataset exists in Apache Fuseki / TDB database.
      *
-     * @param datasetTitle Dataset title to check for existence in Apache Fuseki / TDB database
+     * @param dataset Dataset to check for existence in Apache Fuseki / TDB database
      */
     private void assertDataSetExists(
-        final String datasetTitle
+        final CustomizedBatsDataSet dataset
     ) throws ResponseStatusException {
-        CustomizedBatsDataSet dataset = initDatasetConnection(datasetTitle);
-
         LOGGER.info("Checking dataset: " + dataset.getName());
         DataSetQueryStatus code = doesDataSetExist(dataset);
         if (code == DataSetQueryStatus.DOES_NOT_EXIST) {
@@ -142,11 +142,18 @@ public class DatasetUtils {
         LOGGER.info("Dataset " + dataset.getName() + " exists!");
     }
 
+    /**
+     * Get Dataset with given title.
+     *
+     * @param datasetTitle Title of dataset to get
+     * @return CustomizedBatsDataset object for the dataset title given
+     * @throws ResponseStatusException
+     */
     public CustomizedBatsDataSet getDataset(
         final String datasetTitle
     ) throws ResponseStatusException {
         CustomizedBatsDataSet dataset = initDatasetConnection(datasetTitle);
-        assertDataSetExists(datasetTitle);
+        assertDataSetExists(dataset);
         return dataset;
     }
 
