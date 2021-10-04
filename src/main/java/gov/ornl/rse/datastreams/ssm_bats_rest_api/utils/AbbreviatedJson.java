@@ -86,10 +86,12 @@ public final class AbbreviatedJson {
     ) {
         ArrayList<Object> output = new ArrayList<>();
 
+        @SuppressWarnings("unchecked")
         ArrayList<Map<String, Object>> listOfMaps = (ArrayList<Map<String, Object>>) listObject;
 
         for (Object entry: listOfMaps) {
             if (Map.class.isInstance(entry)) {
+                @SuppressWarnings("unchecked")
                 Map<String, Object> map = (Map<String, Object>) entry;
                 if (map.containsKey(VALUE_KEY)) {
                     Object value = map.get(VALUE_KEY);
@@ -181,7 +183,9 @@ public final class AbbreviatedJson {
 
         // Return early if not an instance of a map
         if (value instanceof Map) {
-            return getMapValue((Map<String, Object>) value);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> valueMap = (Map<String, Object>) value;
+            return getMapValue(valueMap);
         }
 
         if (value instanceof ArrayList) {
@@ -344,9 +348,13 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      System facets for abbreviated JSON for the Model provided
     */
-    public static List<Map<String, Object>> getFacets(final Model model)
-    throws
-        JsonProcessingException {
+    public static List<Map<String, Object>> getFacets(
+        final Model model
+    ) throws JsonProcessingException {
+        // Initialize output
+        List<Map<String, Object>> output = new ArrayList<Map<String, Object>>();
+
+        // Get the system facets
         String typeFilter = SDO + HASH_SPLITTER + "system";
         List<Map<String, Object>> systemList = getTypedFrameFilter(model, typeFilter);
 
@@ -356,14 +364,16 @@ public final class AbbreviatedJson {
 
         Map<String, Object> hasFacetsMap = systemList.get(0);
 
-        // Get the sub list for "hasSystemFacet", which has the actual facet values
-        List<Map<String, Object>> facetsList = new ArrayList<Map<String, Object>>();
-        if (hasFacetsMap.get("hasSystemFacet") instanceof List) {
-            facetsList = (List<Map<String, Object>>) hasFacetsMap.get("hasSystemFacet");
+        // Return empty output list if we don't have system facets list
+        if (!(hasFacetsMap.get("hasSystemFacet") instanceof List)) {
+            return output;
         }
 
-        // Construct the output facets list of maps from the "hasSystemFacet" list
-        List<Map<String, Object>> output = new ArrayList<Map<String, Object>>();
+        // Construct the facets list for output
+        Object facetsObject = hasFacetsMap.get("hasSystemFacet");
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> facetsList = (List<Map<String, Object>>) facetsObject;
 
         Map<String, Object> tempMap;
         for (Map<String, Object> facetMap: facetsList) {
