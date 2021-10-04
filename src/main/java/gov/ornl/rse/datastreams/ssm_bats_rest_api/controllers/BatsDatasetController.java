@@ -118,7 +118,7 @@ public class BatsDatasetController {
     @ResponseBody
     public BatsDataset  createDataSet(
         @Valid @RequestBody final BatsDataset batsDataset
-    ) throws Exception {
+    ) throws ResponseStatusException, Exception {
         String title = batsDataset.getTitle();
 
         // Setup the database connection
