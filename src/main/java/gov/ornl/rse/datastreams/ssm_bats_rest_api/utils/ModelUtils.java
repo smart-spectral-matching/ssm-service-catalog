@@ -5,11 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 
+@Component
 public class ModelUtils {
     /**
      * Setup logger for ModelUtils.
