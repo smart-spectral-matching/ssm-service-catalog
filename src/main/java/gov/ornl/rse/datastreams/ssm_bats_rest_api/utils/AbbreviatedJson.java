@@ -11,6 +11,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.JsonLDWriteContext;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -39,6 +41,58 @@ public final class AbbreviatedJson {
      * Constructor set to private since this is a utility class.
     */
     private AbbreviatedJson() { }
+
+    /**
+     * Exception to handle unprocessable JSON-LD entries.
+     */
+    private static class AbbreviatedJsonException extends Exception {
+        /**
+         * Get PMD to shut up about class implementing Serializable needs a UID.
+         */
+        private static final long serialVersionUID = 10L;
+
+        /**
+         * Key for the bad JSON-LD entry.
+         */
+        private String badKey;
+
+        /**
+         * Value of the key for the bad JSON-LD entry.
+         */
+        private Object badValue;
+
+        /**
+         * Getter for bad key.
+         * @return Bad key
+         */
+        public String getBadKey() {
+            return this.badKey;
+        }
+
+        /**
+         * Setter for bad key.
+         * @param badKey New bad key
+         */
+        public void setBadKey(final String badKey) {
+            this.badKey = badKey;
+        }
+
+        /**
+         * Getter for bad value.
+         * @return Bad value
+         */
+        public Object getBadValue() {
+            return this.badValue;
+        }
+
+        /**
+         * Setter for bad value.
+         * @param badValue New bad value
+         */
+        public void setBadValue(final Object badValue) {
+            this.badValue = badValue;
+        }
+    }
 
     /**
      * Class ObjectMapper.
@@ -80,10 +134,11 @@ public final class AbbreviatedJson {
      *
      * @param listObject Object with list in JSON-LD format to create output list from
      * @return List of values extracted from inputList
+     * @throws AbbreviatedJsonException
      */
     private static ArrayList<Object> extractJsonLdArray(
         final Object listObject
-    ) {
+    ) throws AbbreviatedJsonException {
         ArrayList<Object> output = new ArrayList<>();
 
         @SuppressWarnings("unchecked")
@@ -110,9 +165,7 @@ public final class AbbreviatedJson {
             } else if (String.class.isInstance(entry)) {
                 output.add((String) entry);
             } else {
-                throw new ClassCastException(
-                    "Unable to cast following entry from JsonLd array: " + entry
-                );
+                throw new AbbreviatedJsonException();
             }
         }
 
@@ -150,7 +203,9 @@ public final class AbbreviatedJson {
      * @param value Map from value of a key-value pair
      * @return Object for the value
      */
-    private static Object getMapValue(final Map<String, Object> value) {
+    private static Object getMapValue(
+        final Map<String, Object> value
+    ) throws AbbreviatedJsonException {
         if (value.containsKey(VALUE_KEY)) {
             return value.get(VALUE_KEY);
         }
@@ -174,7 +229,7 @@ public final class AbbreviatedJson {
      */
     private static Object getValueFromMapEntry(
         final Map.Entry<String, Object> entry
-    ) {
+    ) throws AbbreviatedJsonException {
         Object value = entry.getValue();
         // If a basic key-value, where value is string, add and return before we get to map
         if (value instanceof String || value instanceof Integer) {
@@ -182,10 +237,16 @@ public final class AbbreviatedJson {
         }
 
         // Return early if not an instance of a map
+
         if (value instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> valueMap = (Map<String, Object>) value;
-            return getMapValue(valueMap);
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> valueMap = (Map<String, Object>) value;
+                return getMapValue(valueMap);
+            } catch (AbbreviatedJsonException e) {
+                e.setBadKey(entry.getKey());
+                e.setBadValue(value);
+            }
         }
 
         if (value instanceof ArrayList) {
@@ -202,7 +263,7 @@ public final class AbbreviatedJson {
      */
     private static Map<String, Object> extractJsonLdMap(
         final Map<String, Object> inputMap
-    ) {
+    ) throws AbbreviatedJsonException {
         Map<String, Object> output = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : inputMap.entrySet()) {
             String label = getJsonLdLabel(entry.getKey());
@@ -225,7 +286,9 @@ public final class AbbreviatedJson {
      * @param node Input JsonNode
      * @return     Map element for the abbrievated JSON
      */
-    private static Map<String, Object> transformNodeToMap(final JsonNode node) {
+    private static Map<String, Object> transformNodeToMap(
+        final JsonNode node
+    ) throws AbbreviatedJsonException {
         TypeReference<Map<String, Object>> mapType = new TypeReference<Map<String, Object>>() { };
         Map<String, Object> map = MAPPER.convertValue(node, mapType);
         Map<String, Object> output = extractJsonLdMap(map);
@@ -242,7 +305,7 @@ public final class AbbreviatedJson {
     private static List<Map<String, Object>> getTypedFrameFilter(
         final Model model,
         final String typeFilter
-    ) throws JsonProcessingException {
+    ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFrame = "{\"@type\" : \"" + typeFilter + "\"}";
         String fullJson = getFramedJsonLd(model, typeFrame);
         JsonNode graphNode = MAPPER.readTree(fullJson).get("@graph");
@@ -262,9 +325,9 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      Property for abbreviated JSON for the Model provided
     */
-    public static String getProperty(final Model model)
-    throws
-        JsonProcessingException {
+    public static String getProperty(
+        final Model model
+    ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = SDO + HASH_SPLITTER + "scientificData";
         List<Map<String, Object>> scientificDataList = getTypedFrameFilter(model, typeFilter);
 
@@ -289,9 +352,9 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      Description for abbreviated JSON for the Model provided
     */
-    public static String getDescription(final Model model)
-    throws
-        JsonProcessingException {
+    public static String getDescription(
+        final Model model
+    ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = SDO + HASH_SPLITTER + "scidataFramework";
         List<Map<String, Object>> scidataFrameworkList = getTypedFrameFilter(model, typeFilter);
 
@@ -316,9 +379,9 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      Sources for abbreviated JSON for the Model provided
     */
-    public static List<Map<String, Object>> getSources(final Model model)
-    throws
-        JsonProcessingException {
+    public static List<Map<String, Object>> getSources(
+        final Model model
+    ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = DCTERM + "source";
         return getTypedFrameFilter(model, typeFilter);
     }
@@ -329,9 +392,9 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      Methodology for abbreviated JSON for the Model provided
     */
-    public static Map<String, Object> getMethodology(final Model model)
-    throws
-        JsonProcessingException {
+    public static Map<String, Object> getMethodology(
+        final Model model
+    ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = SDO + HASH_SPLITTER + "methodology";
         List<Map<String, Object>> methodologyList = getTypedFrameFilter(model, typeFilter);
 
@@ -350,7 +413,7 @@ public final class AbbreviatedJson {
     */
     public static List<Map<String, Object>> getFacets(
         final Model model
-    ) throws JsonProcessingException {
+    ) throws JsonProcessingException, AbbreviatedJsonException {
         // Initialize output
         List<Map<String, Object>> output = new ArrayList<Map<String, Object>>();
 
@@ -394,9 +457,10 @@ public final class AbbreviatedJson {
      * @param element Element to pull from returned list
      * @return      X-axis for abbreviated JSON for the Model provided
     */
-    public static Map<String, Object> getXAxis(final Model model, final int element)
-    throws
-        JsonProcessingException {
+    public static Map<String, Object> getXAxis(
+        final Model model,
+        final int element
+    ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = SDO + HASH_SPLITTER + "independent";
         List<Map<String, Object>> independentList = getTypedFrameFilter(model, typeFilter);
 
@@ -414,9 +478,10 @@ public final class AbbreviatedJson {
      * @param element Element to pull from returned list
      * @return      Y-axis for abbreviated JSON for the Model provided
     */
-    public static Map<String, Object> getYAxis(final Model model, final int element)
-    throws
-        JsonProcessingException {
+    public static Map<String, Object> getYAxis(
+        final Model model,
+        final int element
+    ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = SDO + HASH_SPLITTER + "dependent";
         List<Map<String, Object>> dependentList = getTypedFrameFilter(model, typeFilter);
 
@@ -441,31 +506,42 @@ public final class AbbreviatedJson {
         final String modelUri
     ) throws JsonProcessingException {
         Map<String, Object> map = ModelSparql.getModelSummary(endpointUrl, modelUri);
-        map.put("full", map.get("url") + "?full=true");
 
-        String[] bits = modelUri.split("/");
-        String uuid = bits[bits.length - 1];
-        map.put("uuid", uuid);
+        try {
+            map.put("full", map.get("url") + "?full=true");
 
-        List<Map<String, Object>> dataseries = new ArrayList<Map<String, Object>>();
-        Map<String, Object> ds1 = new HashMap<>();
-        ds1.put("x-axis", getXAxis(model, 0));
-        ds1.put("y-axis", getYAxis(model, 0));
-        dataseries.add(ds1);
+            String[] bits = modelUri.split("/");
+            String uuid = bits[bits.length - 1];
+            map.put("uuid", uuid);
 
-        Map<String, Object> system = new HashMap<>();
-        system.put("facets", getFacets(model));
+            List<Map<String, Object>> dataseries = new ArrayList<Map<String, Object>>();
+            Map<String, Object> ds1 = new HashMap<>();
+            ds1.put("x-axis", getXAxis(model, 0));
+            ds1.put("y-axis", getYAxis(model, 0));
+            dataseries.add(ds1);
 
-        Map<String, Object> scidata = new HashMap<>();
-        scidata.put("property", getProperty(model));
-        scidata.put("description", getDescription(model));
-        scidata.put("sources", getSources(model));
+            Map<String, Object> system = new HashMap<>();
+            system.put("facets", getFacets(model));
 
-        scidata.put("methodology", getMethodology(model));
-        scidata.put("system", system);
-        scidata.put("dataseries", dataseries);
+            Map<String, Object> scidata = new HashMap<>();
+            scidata.put("property", getProperty(model));
+            scidata.put("description", getDescription(model));
+            scidata.put("sources", getSources(model));
 
-        map.put("scidata", scidata);
+            scidata.put("methodology", getMethodology(model));
+            scidata.put("system", system);
+            scidata.put("dataseries", dataseries);
+
+            map.put("scidata", scidata);
+        } catch (AbbreviatedJsonException e) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Unable to process JSON-LD for key: "
+                    + e.getBadKey()
+                    + " with value: "
+                    + e.getBadValue()
+            );
+        }
 
         return MAPPER.writeValueAsString(map);
     }
