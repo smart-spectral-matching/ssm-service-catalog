@@ -347,7 +347,7 @@ public class BatsModelController {
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                HttpStatus.BAD_REQUEST,
                 UPLOAD_MODEL_ERROR
             );
         }
