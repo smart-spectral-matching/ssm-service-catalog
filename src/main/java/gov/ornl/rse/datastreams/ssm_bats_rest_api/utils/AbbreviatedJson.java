@@ -151,10 +151,15 @@ public final class AbbreviatedJson {
                 if (map.containsKey(VALUE_KEY)) {
                     Object value = map.get(VALUE_KEY);
                     try {
-                        Double doubleValue = Double.parseDouble((String) value);
-                        output.add(doubleValue);
-                    } catch (NumberFormatException e) {
-                        output.add(value);
+                        Long longValue = Long.parseLong((String) value);
+                        output.add(longValue);
+                    } catch (NumberFormatException exLong) {
+                        try {
+                            Double doubleValue = Double.parseDouble((String) value);
+                            output.add(doubleValue);
+                        } catch (NumberFormatException exDouble) {
+                            output.add(value);
+                        }
                     }
                 } else {
                     Object subMap = getMapValue(map);
@@ -326,7 +331,7 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      Property for abbreviated JSON for the Model provided
     */
-    public static String getProperty(
+    private static String getProperty(
         final Model model
     ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = SDO + HASH_SPLITTER + "scientificData";
@@ -353,7 +358,7 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      Description for abbreviated JSON for the Model provided
     */
-    public static String getDescription(
+    private static String getDescription(
         final Model model
     ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = SDO + HASH_SPLITTER + "scidataFramework";
@@ -380,7 +385,7 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      Sources for abbreviated JSON for the Model provided
     */
-    public static List<Map<String, Object>> getSources(
+    private static List<Map<String, Object>> getSources(
         final Model model
     ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = DCTERM + "source";
@@ -393,7 +398,7 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      Methodology for abbreviated JSON for the Model provided
     */
-    public static Map<String, Object> getMethodology(
+    private static Map<String, Object> getMethodology(
         final Model model
     ) throws JsonProcessingException, AbbreviatedJsonException {
         String typeFilter = SDO + HASH_SPLITTER + "methodology";
@@ -412,7 +417,7 @@ public final class AbbreviatedJson {
      * @param model Apache Jena Model to return as JSON-LD
      * @return      System facets for abbreviated JSON for the Model provided
     */
-    public static List<Map<String, Object>> getFacets(
+    private static List<Map<String, Object>> getFacets(
         final Model model
     ) throws JsonProcessingException, AbbreviatedJsonException {
         // Initialize output
@@ -458,7 +463,7 @@ public final class AbbreviatedJson {
      * @param element Element to pull from returned list
      * @return      X-axis for abbreviated JSON for the Model provided
     */
-    public static Map<String, Object> getXAxis(
+    private static Map<String, Object> getXAxis(
         final Model model,
         final int element
     ) throws JsonProcessingException, AbbreviatedJsonException {
@@ -479,7 +484,7 @@ public final class AbbreviatedJson {
      * @param element Element to pull from returned list
      * @return      Y-axis for abbreviated JSON for the Model provided
     */
-    public static Map<String, Object> getYAxis(
+    private static Map<String, Object> getYAxis(
         final Model model,
         final int element
     ) throws JsonProcessingException, AbbreviatedJsonException {
