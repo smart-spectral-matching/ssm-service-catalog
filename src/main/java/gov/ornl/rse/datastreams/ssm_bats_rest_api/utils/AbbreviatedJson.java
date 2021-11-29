@@ -246,6 +246,7 @@ public final class AbbreviatedJson {
             } catch (AbbreviatedJsonException e) {
                 e.setBadKey(entry.getKey());
                 e.setBadValue(value);
+                throw e;
             }
         }
 
