@@ -125,20 +125,20 @@ public final class ModelSparql {
             endpointUrl, queryString
         );
 
-        ResultSet modelResults;
+        Map<String, Object> modelSummary = new LinkedHashMap<String, Object>();
+        ResultSet modelResults = execution.execSelect();
         try {
-            modelResults = execution.execSelect();
+            while (modelResults.hasNext()) {
+                QuerySolution modelSolution = modelResults.next();
+                modelSummary = getModelSummaryFromQuery(modelSolution);
+            }
         } catch (QueryException ex) {
-            execution.close();
             throw ex;
+        } finally {
+            execution.close();
+            modelResults.close();
         }
 
-        Map<String, Object> modelSummary = new LinkedHashMap<String, Object>();
-        while (modelResults.hasNext()) {
-            QuerySolution modelSolution = modelResults.next();
-            modelSummary = getModelSummaryFromQuery(modelSolution);
-        }
-        execution.close();
         return modelSummary;
     }
 
@@ -194,34 +194,34 @@ public final class ModelSparql {
         );
 
         // immediately return 200 if the query was not valid
-        ResultSet modelResults;
+        ResultSet modelResults  = execution.execSelect();
         try {
-            modelResults = execution.execSelect();
+            while (modelResults.hasNext()) {
+                QuerySolution solution = modelResults.next();
+                RDFNode node = solution.get("?model");
+                Model model = dataset.getModel(node.toString());
+                try {
+                    body.add(
+                        new BatsModel(//NOPMD
+                            node.toString(),
+                            RdfModelWriter.getJsonldForModel(model)
+                        )
+                    );
+                } catch (IOException e) {
+                    LOGGER.error(
+                        "Unable to parse JSONLD from model {} dataset {}",
+                        node.toString(),
+                        dataset.getName()
+                    );
+                }
+            }
         } catch (QueryException ex) {
-            execution.close();
             throw ex;
+        } finally {
+            execution.close();
+            modelResults.close();
         }
 
-        while (modelResults.hasNext()) {
-            QuerySolution solution = modelResults.next();
-            RDFNode node = solution.get("?model");
-            Model model = dataset.getModel(node.toString());
-            try {
-                body.add(
-                    new BatsModel(//NOPMD
-                        node.toString(),
-                        RdfModelWriter.getJsonldForModel(model)
-                    )
-                );
-            } catch (IOException e) {
-                LOGGER.error(
-                    "Unable to parse JSONLD from model {} dataset {}",
-                    node.toString(),
-                    dataset.getName()
-                );
-            }
-        }
-        execution.close();
         return body;
     }
 
@@ -247,27 +247,26 @@ public final class ModelSparql {
         );
 
         // immediately return 200 if the query was not valid
-        ResultSet modelResults;
+        ResultSet modelResults = execution.execSelect();
         try {
-            modelResults = execution.execSelect();
+            while (modelResults.hasNext()) {
+                QuerySolution solution = modelResults.next();
+                Map<String, Object> map = getModelSummaryFromQuery(solution);
+
+                // We do this outside of getModelSummaryFromQuery since for a named graph,
+                // we dont get ?model back in the query solution
+                String url = solution.get("?model").toString();
+                String[] bits = url.split("/");
+                String uuid = bits[bits.length - 1];
+                map.put("uuid", uuid);
+                body.add(map);
+            }
         } catch (QueryException ex) {
-            execution.close();
             throw ex;
+        } finally {
+            execution.close();
+            modelResults.close();
         }
-
-        while (modelResults.hasNext()) {
-            QuerySolution solution = modelResults.next();
-            Map<String, Object> map = getModelSummaryFromQuery(solution);
-
-            // We do this outside of getModelSummaryFromQuery since for a named graph,
-            // we dont get ?model back in the query solution
-            String url = solution.get("?model").toString();
-            String[] bits = url.split("/");
-            String uuid = bits[bits.length - 1];
-            map.put("uuid", uuid);
-            body.add(map);
-        }
-        execution.close();
         return body;
     }
 
@@ -303,25 +302,24 @@ public final class ModelSparql {
             "SELECT DISTINCT ?model {GRAPH ?model { ?x ?y ?z }}"
         );
 
-        // immediately return 200 if the query was not valid
-        ResultSet results;
-        try {
-            results = execution.execSelect();
-        } catch (QueryException ex) {
-            execution.close();
-            throw ex;
-        }
-
-        //The JSON response being built
+        // Build JSON response; immediately return 200 if the query was not valid
         ArrayNode uuidArray = new ArrayNode(new JsonNodeFactory(false));
-
-        //Add each found model to the response
-        while (results.hasNext()) {
-            QuerySolution solution = results.next();
-            RDFNode node = solution.get("?model");
-            uuidArray.add(node.toString());
+        ResultSet results  = execution.execSelect();
+        try {
+            while (results.hasNext()) {
+                QuerySolution solution = results.next();
+                RDFNode node = solution.get("?model");
+                uuidArray.add(node.toString());
+            }
+        } catch (QueryException ex) {
+            throw ex;
+        } finally {
+            execution.close();
+            results.close();
         }
+
         execution.close();
+        results.close();
         return uuidArray;
     }
 
@@ -341,22 +339,21 @@ public final class ModelSparql {
         QueryExecution countAllExecution = // NOPMD
             prepareSparqlQuery(endpointUrl, countAllQueryString);
 
-        ResultSet countResults;
-        try {
-            countResults = countAllExecution.execSelect();
-        } catch (QueryException ex) {
-            countAllExecution.close();
-            throw ex;
-        }
-        countAllExecution.close();
-
         // Extracting out the model count from the result
         int totalResults = 0;
-        while (countResults.hasNext()) {
-            QuerySolution countSolution = countResults.next();
-            totalResults = Integer.parseInt(countSolution.get("?count")
-                .asLiteral()
-                .getLexicalForm());
+        ResultSet countResults = countAllExecution.execSelect();
+        try {
+            while (countResults.hasNext()) {
+                QuerySolution countSolution = countResults.next();
+                totalResults = Integer.parseInt(countSolution.get("?count")
+                    .asLiteral()
+                    .getLexicalForm());
+            }
+        } catch (QueryException ex) {
+            throw ex;
+        } finally {
+            countResults.close();
+            countAllExecution.close();
         }
 
         return totalResults;
