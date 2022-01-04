@@ -215,3 +215,6 @@ $RECYCLE.BIN/
 
 # Database directories
 db-*
+
+# git-version-maven-plugin temp pom file for versioning
+pom.xml.new-version
