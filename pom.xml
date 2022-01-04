@@ -173,6 +173,21 @@
     <plugins>
 
       <plugin>
+        <groupId>me.ccampo</groupId>
+        <artifactId>git-version-maven-plugin</artifactId>
+        <version>0.1.0</version> <!-- Use the latest stable version if possible -->
+        <extensions>true</extensions>
+        <configuration>
+          <strategy hint="git">
+            <nonQualifierBranches>master</nonQualifierBranches>
+            <preReleaseStage>dev</preReleaseStage>
+            <dirtyQualifier>uncommitted</dirtyQualifier>
+            <snapshot>false</snapshot>
+          </strategy>
+        </configuration>
+      </plugin>
+
+      <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
