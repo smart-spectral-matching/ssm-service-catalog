@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.ornl.rse.bats.DataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
@@ -87,7 +86,7 @@ public class DatasetUtils {
      * @return DataSetQueryStatus; dataset status
      */
     public DataSetQueryStatus doesDataSetExist(
-        final DataSet dataset
+        final CustomizedBatsDataSet dataset
     ) {
         // Construct Fuseki API URL for the specific dataset
         URL url = null;
