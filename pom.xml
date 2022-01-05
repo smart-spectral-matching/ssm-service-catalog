@@ -179,7 +179,7 @@
         <extensions>true</extensions>
         <configuration>
           <strategy hint="git">
-            <nonQualifierBranches>master</nonQualifierBranches>
+            <nonQualifierBranches>main,qa</nonQualifierBranches>
             <preReleaseStage>dev</preReleaseStage>
             <dirtyQualifier>uncommitted</dirtyQualifier>
             <snapshot>false</snapshot>
