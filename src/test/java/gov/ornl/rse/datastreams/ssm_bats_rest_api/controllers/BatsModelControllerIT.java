@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ITBatsModelController {
+public class BatsModelControllerIT {
 
     /**
      * Object Mapper reused for all tests.

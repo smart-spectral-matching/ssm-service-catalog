@@ -39,7 +39,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 @SpringBootTest
 @WebAppConfiguration
 @AutoConfigureMockMvc
-public class ITBatsModelControllerMVC {
+public class BatsModelControllerMvcIT {
 
     /**
      * Object mapper.
