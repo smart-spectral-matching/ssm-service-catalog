@@ -18,7 +18,7 @@ lint:
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test /bin/bash -c "mvn validate"
         - func_rse_docker_cleanup
     tags:
-        - rse-ssm-builder
+        - rse-multi-builder
 
 test:
     stage: test
@@ -32,7 +32,7 @@ test:
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
         - func_rse_docker_cleanup
     tags:
-        - rse-ssm-builder
+        - rse-multi-builder
 
 coverage:
     stage: test
@@ -46,7 +46,7 @@ coverage:
         - docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test /bin/bash -c "mvn clean docker:build verify; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; printf \"%.2f %% covered\n\", 100*covered/instructions}' target/site/jacoco/jacoco.csv"
         - func_rse_docker_cleanup
     tags:
-        - rse-ssm-builder
+        - rse-multi-builder
 
 .build:
     stage: build
@@ -58,7 +58,7 @@ coverage:
         - docker push $CONTAINER_API_URL/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
         - docker push $CONTAINER_API_URL/$CI_COMMIT_REF_NAME:latest
     tags:
-        - rse-ssm-builder
+        - rse-multi-builder
 
 build-dev:
     extends: .build
