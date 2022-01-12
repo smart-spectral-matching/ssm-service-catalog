@@ -263,40 +263,44 @@ public class BatsModelController {
     /**
      * Construct the body response for the GET method of models.
      *
-     * @param models     List of models from SPARQL query
+     * @param endpointUrl URI used to query Fuseki for the count
+     * @param models     Generic object, representing list of models from SPARQL query
      * @param modelsUri  Uri to use for the models
      * @param pageSize   Size of the pages for pagination
      * @param pageNumber Page number for pagination
+     * @param returnFull boolean for returning full model or not
      * @return Body for JSON response as a Map for list of models
      */
     private Map<String, Object> constructModelsBody(
-        final List<Map<String, Object>> models,
+        final String endpointUrl,
+        final Object models,
         final String modelsUri,
         final int pageSize,
-        final int pageNumber
-    ) {
-        Map<String, Object> body = new LinkedHashMap<>();
+        final int pageNumber,
+        final boolean returnFull
+    ) throws QueryException {
+        final Map<String, Object> body = new LinkedHashMap<>();
+        final int modelCount = ModelSparql.getModelCount(endpointUrl);
         /*
         cheeky way to avoid the division twice,
         compare Option 1 vs Option 2 here:
         https://stackoverflow.com/a/21830188
         */
-        int modelCount = models.size();
         final int totalPages = (modelCount - 1) / pageSize + 1;
 
         body.put("data", models);
 
         // TODO remember to update the values with the full URI once this is changed
         body.put("first", modelsUri + "?pageNumber=1&pageSize="
-            + pageSize + "&returnFull=false");
+            + pageSize + "&returnFull=" + returnFull);
         body.put("previous", modelsUri + "?pageNumber="
             + (pageNumber > 1 ? pageNumber - 1 : 1) + "&pageSize="
-            + pageSize + "&returnFull=false");
+            + pageSize + "&returnFull=" + returnFull);
         body.put("next", modelsUri + "?pageNumber="
             + (pageNumber < totalPages ? pageNumber + 1 : totalPages)
-            + "&pageSize=" + pageSize + "&returnFull=false");
+            + "&pageSize=" + pageSize + "&returnFull=" + returnFull);
         body.put("last", modelsUri + "?pageNumber=" + totalPages
-            + "&pageSize=" + pageSize + "&returnFull=false");
+            + "&pageSize=" + pageSize + "&returnFull=" + returnFull);
         body.put("total", modelCount);
         return body;
     }
@@ -428,27 +432,30 @@ public class BatsModelController {
             + "/" + datasetTitle;
 
 
+        String modelsUri = configUtils.getDatasetUri(datasetTitle) + "/models";
         //Add each found model to the response
         try {
             if (returnFull) {
-                List<BatsModel> body = ModelSparql.getFullModels(
+                List<BatsModel> models = ModelSparql.getFullModels(
                     pageSize,
                     pageNumber,
                     endpointUrl,
                     dataset
                 );
+                Map<String, Object> body = constructModelsBody(
+                    endpointUrl, models, modelsUri,
+                    pageSize, pageNumber, returnFull);
                 return ResponseEntity.ok(body);
             } else {
                 // build the actual body
-                List<Map<String, Object>> models;
-                models = ModelSparql.getModelSummaries(
+                List<Map<String, Object>> models = ModelSparql.getModelSummaries(
                     pageSize,
                     pageNumber,
                     endpointUrl
                 );
-                String modelsUri = configUtils.getDatasetUri(datasetTitle) + "/models";
-                Map<String, Object> body;
-                body = constructModelsBody(models, modelsUri, pageSize, pageNumber);
+                Map<String, Object> body = constructModelsBody(
+                    endpointUrl, models, modelsUri,
+                    pageSize, pageNumber, returnFull);
                 return ResponseEntity.ok(body);
             }
         } catch (QueryException ex) {

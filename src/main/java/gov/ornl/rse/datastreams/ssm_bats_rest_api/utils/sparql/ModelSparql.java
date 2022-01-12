@@ -10,7 +10,6 @@ import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryException;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
@@ -102,7 +101,7 @@ public final class ModelSparql {
 
         //Prepare to execute the query against the given dataset
         Query query = sparql.asQuery();
-        return QueryExecutionFactory.sparqlService(endpointUrl, query);
+        return QueryExecution.service(endpointUrl).query(query).build();
     }
 
     /**
@@ -184,7 +183,7 @@ public final class ModelSparql {
         final int pageNumber,
         final String endpointUrl,
         final CustomizedBatsDataSet dataset
-    ) {
+    ) throws QueryException {
         List<BatsModel> body = new ArrayList<>();
 
         QueryExecution execution = ModelSparql.queryModelSummariesWithPagination(//NOPMD
@@ -237,7 +236,7 @@ public final class ModelSparql {
         final int pageSize,
         final int pageNumber,
         final String endpointUrl
-    ) {
+    ) throws QueryException {
         List<Map<String, Object>> body = new ArrayList<>();
 
         QueryExecution execution = ModelSparql.queryModelSummariesWithPagination(//NOPMD
