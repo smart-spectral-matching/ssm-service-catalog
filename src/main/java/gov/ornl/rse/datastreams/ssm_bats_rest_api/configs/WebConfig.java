@@ -1,10 +1,10 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
+package ssm.catalog.configs;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers.converters.BatsModelFormatsConverter;
+import ssm.catalog.controllers.converters.BatsModelFormatsConverter;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

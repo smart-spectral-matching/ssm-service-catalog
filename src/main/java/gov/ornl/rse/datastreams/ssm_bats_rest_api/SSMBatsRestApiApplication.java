@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api;
+package ssm.catalog;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
+import ssm.catalog.configs.ConfigUtils;
 
 /**
  * Main class for Spring App - BATS REST API.

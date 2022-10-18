@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
+package ssm.catalog.configs;
 
 import java.util.Arrays;
 import java.util.Set;

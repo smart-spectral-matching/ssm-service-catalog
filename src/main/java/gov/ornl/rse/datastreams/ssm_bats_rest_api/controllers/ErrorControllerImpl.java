@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
+package ssm.catalog.controllers;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

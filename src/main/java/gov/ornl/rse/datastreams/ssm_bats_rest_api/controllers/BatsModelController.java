@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
+package ssm.catalog.controllers;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -41,23 +41,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.ModelDocument;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AbbreviatedJson;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.ModelUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.RdfModelWriter;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.UUIDGenerator;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
+import ssm.catalog.configs.ApplicationConfig;
+import ssm.catalog.configs.ApplicationConfig.Fuseki;
+import ssm.catalog.configs.ConfigUtils;
+import ssm.catalog.models.BatsDataset;
+import ssm.catalog.models.BatsModel;
+import ssm.catalog.models.BatsModelFormats;
+import ssm.catalog.models.CustomizedBatsDataSet;
+import ssm.catalog.models.ModelDocument;
+import ssm.catalog.repositories.ModelDocumentRepository;
+import ssm.catalog.utils.AbbreviatedJson;
+import ssm.catalog.utils.DatasetUtils;
+import ssm.catalog.utils.DateUtils;
+import ssm.catalog.utils.JsonUtils;
+import ssm.catalog.utils.ModelUtils;
+import ssm.catalog.utils.RdfModelWriter;
+import ssm.catalog.utils.UUIDGenerator;
+import ssm.catalog.utils.sparql.ModelSparql;
 
 @RestController
 @RequestMapping("/datasets")

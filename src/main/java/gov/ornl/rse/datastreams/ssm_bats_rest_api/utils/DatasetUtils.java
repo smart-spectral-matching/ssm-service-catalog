@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.utils;
+package ssm.catalog.utils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -12,9 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
+import ssm.catalog.configs.ApplicationConfig;
+import ssm.catalog.configs.ApplicationConfig.Fuseki;
+import ssm.catalog.models.CustomizedBatsDataSet;
 
 @Component
 public class DatasetUtils {

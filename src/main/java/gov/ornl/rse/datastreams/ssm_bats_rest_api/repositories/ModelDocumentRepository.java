@@ -1,8 +1,8 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories;
+package ssm.catalog.repositories;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.ModelDocument;
+import ssm.catalog.models.ModelDocument;
 
 public interface ModelDocumentRepository extends MongoRepository<ModelDocument, String> {
     /**

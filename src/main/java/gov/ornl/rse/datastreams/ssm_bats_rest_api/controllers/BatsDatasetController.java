@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
+package ssm.catalog.controllers;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -31,14 +31,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
+import ssm.catalog.configs.ApplicationConfig;
+import ssm.catalog.configs.ApplicationConfig.Fuseki;
+import ssm.catalog.configs.ConfigUtils;
+import ssm.catalog.models.BatsDataset;
+import ssm.catalog.models.CustomizedBatsDataSet;
+import ssm.catalog.repositories.ModelDocumentRepository;
+import ssm.catalog.utils.DatasetUtils;
+import ssm.catalog.utils.sparql.ModelSparql;
 
 @RestController
 @RequestMapping("/datasets")

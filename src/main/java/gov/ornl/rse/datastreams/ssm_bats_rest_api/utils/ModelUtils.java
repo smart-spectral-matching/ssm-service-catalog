@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.utils;
+package ssm.catalog.utils;
 
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
+import ssm.catalog.configs.ConfigUtils;
+import ssm.catalog.models.CustomizedBatsDataSet;
 
 @Component
 public class ModelUtils {

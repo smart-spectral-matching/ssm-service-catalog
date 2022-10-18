@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
+package ssm.catalog.models;
 
 import org.bson.Document;
 import org.springframework.data.annotation.Id;

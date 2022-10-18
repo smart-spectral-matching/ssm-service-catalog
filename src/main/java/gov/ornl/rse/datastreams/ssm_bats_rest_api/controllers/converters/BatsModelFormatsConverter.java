@@ -1,10 +1,10 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers.converters;
+package ssm.catalog.controllers.converters;
 
 import java.util.Locale;
 
 import org.springframework.core.convert.converter.Converter;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
+import ssm.catalog.models.BatsModelFormats;
 
 public class BatsModelFormatsConverter implements Converter<String, BatsModelFormats> {
 

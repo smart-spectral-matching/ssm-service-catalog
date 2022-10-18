@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql;
+package ssm.catalog.utils.sparql;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.RdfModelWriter;
+import ssm.catalog.models.BatsModel;
+import ssm.catalog.models.CustomizedBatsDataSet;
+import ssm.catalog.utils.RdfModelWriter;
 
 public final class ModelSparql {
     /**

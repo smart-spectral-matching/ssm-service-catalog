@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
+package ssm.catalog.models;
 
 import java.net.HttpURLConnection;
 import java.net.URL;

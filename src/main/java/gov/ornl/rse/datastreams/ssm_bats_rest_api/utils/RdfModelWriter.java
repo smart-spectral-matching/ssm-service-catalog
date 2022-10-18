@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.utils;
+package ssm.catalog.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

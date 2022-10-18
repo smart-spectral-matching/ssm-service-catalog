@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql;
+package ssm.catalog.utils.sparql;
 
 /**
  * Enum class to hold the SPARQL PREFIXES we use for queries.

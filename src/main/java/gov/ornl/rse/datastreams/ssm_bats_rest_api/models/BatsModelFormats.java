@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
+package ssm.catalog.models;
 
 /**
  * Formats to return for Models.

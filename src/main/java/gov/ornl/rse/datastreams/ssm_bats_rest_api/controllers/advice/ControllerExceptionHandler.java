@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers.advice;
+package ssm.catalog.controllers.advice;
 
 import java.net.URI;
 import java.util.List;
