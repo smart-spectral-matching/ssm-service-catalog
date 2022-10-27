@@ -27,7 +27,7 @@ public class CustomizedBatsDataSetIT {
      *
      * @param dataSet the dataset to check
      */
-    private void checkDataSetCreationOnServer(final CustomizedBatsDataSet dataSet) {
+    private void checkDataSetCreationOnServer(final CustomizedCollection dataSet) {
         // Create the dataset
         try {
             dataSet.create();
@@ -64,13 +64,13 @@ public class CustomizedBatsDataSetIT {
     public void testCreate() {
 
         // Create a default, empty data set with the default name
-        CustomizedBatsDataSet dataSet = new CustomizedBatsDataSet();
+        CustomizedCollection dataSet = new CustomizedCollection();
         // Check the data set creation
         checkDataSetCreationOnServer(dataSet);
 
         // Configure the name and some other details of a dataset and test that
         // functionality
-        CustomizedBatsDataSet dataSet2 = new CustomizedBatsDataSet();
+        CustomizedCollection dataSet2 = new CustomizedCollection();
         String uuidString = UUID.randomUUID().toString();
         String name = "dataSetTest" + "." + uuidString;
         dataSet2.setName(name);
@@ -101,7 +101,7 @@ public class CustomizedBatsDataSetIT {
     @Test
     public void testDelete() throws Exception {
         // Create a default, empty data set with the default name
-        CustomizedBatsDataSet dataSet = new CustomizedBatsDataSet();
+        CustomizedCollection dataSet = new CustomizedCollection();
         // Check the data set creation
         checkDataSetCreationOnServer(dataSet);
 
@@ -126,7 +126,7 @@ public class CustomizedBatsDataSetIT {
     @Test
     public void testModels() {
         // Create a new data set
-        CustomizedBatsDataSet dataSet = new CustomizedBatsDataSet();
+        CustomizedCollection dataSet = new CustomizedCollection();
         checkDataSetCreationOnServer(dataSet);
 
         // Put something in it
@@ -171,7 +171,7 @@ public class CustomizedBatsDataSetIT {
     public void testJenaDataSetLoad() {
 
         // Create a new data set
-        CustomizedBatsDataSet referenceDataSet = new CustomizedBatsDataSet();
+        CustomizedCollection referenceDataSet = new CustomizedCollection();
         checkDataSetCreationOnServer(referenceDataSet);
 
         // Put something in it
@@ -184,7 +184,7 @@ public class CustomizedBatsDataSetIT {
         referenceDataSet.updateModel("testModel", model);
 
         // Load the contents from the server into a new, empty data set
-        CustomizedBatsDataSet loadedSet = new CustomizedBatsDataSet();
+        CustomizedCollection loadedSet = new CustomizedCollection();
         loadedSet.setHost(referenceDataSet.getHost());
         loadedSet.setPort(referenceDataSet.getPort());
         loadedSet.setName(referenceDataSet.getName());

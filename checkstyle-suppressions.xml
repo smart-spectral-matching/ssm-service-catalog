@@ -5,13 +5,13 @@
   "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 
 <suppressions>
-  <suppress checks="HideUtilityClassConstructor" files="SSMBatsRestApiApplication.java" lines="1-9999"/>
+  <suppress checks="HideUtilityClassConstructor" files="SSMCatalogApplication.java" lines="1-9999"/>
   <!-- trick to suppress ImportOrder spacing between imports -->
   <suppress message="separation in import" />
   <!-- suppress this warning for getMaskedTypeName -->
   <suppress checks="CyclomaticComplexity" files="ControllerExceptionHandler.java" lines="170-220" />
   <!-- suppress this warning for queryModels -->
-  <suppress checks="CyclomaticComplexity" files="BatsModelController.java" lines="364-464" />
+  <suppress checks="CyclomaticComplexity" files="DatasetController.java" lines="364-464" />
   <!-- suppress this warning for clearTimestamps (recursive method) -->
   <suppress checks="CyclomaticComplexity" files="JsonUtils.java" lines="32-64,71-108" />
 </suppressions>
