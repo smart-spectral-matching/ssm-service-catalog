@@ -1,5 +1,6 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -61,6 +62,11 @@ public class ApplicationConfig {
     }
 
     /**
+     * The authorization type. Valid values are "none" and "keycloak".
+     */
+    private String authorization;
+
+    /**
      * <p>
      * Hostname + port of the REST API server. Examples:
      * </p>
@@ -77,10 +83,28 @@ public class ApplicationConfig {
     private final Fuseki fuseki = new Fuseki();
 
     /**
+     * Getter for the Authorization type.
+     *
+     * @return The authorization type the API will use.
+     */
+    public AuthorizationType getAuthorization() {
+        return EnumUtils.getEnumIgnoreCase(AuthorizationType.class, authorization);
+    }
+
+    /**
      * @return host for the REST API server
      */
     public String getHost() {
         return host;
+    }
+
+    /**
+     * Setter for the authorization type.
+     *
+     * @param authorization
+     */
+    void setAuthorization(final String authorization) {
+        this.authorization = authorization;
     }
 
     /**

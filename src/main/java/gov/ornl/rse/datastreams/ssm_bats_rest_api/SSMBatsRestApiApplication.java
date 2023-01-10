@@ -10,13 +10,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 
 /**
  * Main class for Spring App - BATS REST API.
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 public class SSMBatsRestApiApplication {
 
     /**
