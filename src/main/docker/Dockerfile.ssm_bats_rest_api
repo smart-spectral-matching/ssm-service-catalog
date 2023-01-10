@@ -1,4 +1,4 @@
-FROM code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/maven:3.6-openjdk-11-slim
+FROM maven:3.6-openjdk-11-slim
 ARG APP_DIR="/home/app"
 WORKDIR ${APP_DIR}
 COPY *.xml ${APP_DIR}/
