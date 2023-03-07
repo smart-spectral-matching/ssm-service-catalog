@@ -39,7 +39,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    needs: [lint]
+    needs: [code-checks]
     steps:
       -
         name: Checkout
