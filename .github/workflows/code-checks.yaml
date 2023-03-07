@@ -19,19 +19,19 @@ jobs:
         uses: actions/checkout@v3
       - 
         name: Build contianer
-        run: docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
+        run: docker build -f src/main/docker/Dockerfile.ssm_catalog -t ssm-catalog-test .
 
       - 
         name: Lint
-        run: docker run ssm-bats-test /bin/bash -c "mvn validate"
+        run: docker run ssm-catalog-test /bin/bash -c "mvn validate"
 
       - 
         name: Test
-        run: docker run ssm-bats-test /bin/bash -c "mvn clean test"
+        run: docker run ssm-catalog-test /bin/bash -c "mvn clean test"
 
       -
         name: Coverage
-        run: docker run ssm-bats-test /bin/bash -c "mvn clean test; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; printf \"%.2f %% covered\n\", 100*covered/instructions}' target/site/jacoco/jacoco.csv"
+        run: docker run ssm-catalog-test /bin/bash -c "mvn clean test; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; printf \"%.2f %% covered\n\", 100*covered/instructions}' target/site/jacoco/jacoco.csv"
 
   publish-container-image:
     strategy:
