@@ -1,22 +1,14 @@
-# SSM BATS REST API service
+# SSM Catalog Service
 
-This is a Spring Boot REST Web Service for [BATS](https://github.com/jayjaybillings/bats)(Basic Artifact Tracking System).
-
-
-| Branch | Build | Coverage |
-|--------|-------|----------|
-| DEV    | [![DEV](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/dev/pipeline.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/pipelines/dev/latest) | [![coverage report](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/dev/coverage.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/commits/dev) |
-| QA    | [![DEV](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/qa/pipeline.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/pipelines/qa/latest) | [![coverage report](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/qa/coverage.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/commits/qa) |
-| PROD    | [![DEV](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/main/pipeline.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/pipelines/main/latest) | [![coverage report](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/badges/qa/coverage.svg)](https://code.ornl.gov/rse/datastreams/ssm/backend/ssm-bats-rest-api/-/commits/qa) |
-
-
+This service is the data catalog via a REST API.
 
 ## Getting Started
+
+First, you need to [login to the GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
 
 The fastest way to spin up a working setup is to use docker-compose top-level file:
 
 ```
-docker login code.ornl.gov:4567
 docker-compose up
 ```
 
@@ -65,9 +57,8 @@ One thing is you need to spin up a Fuseki server for the database.
 
 You can do so via:
 ```
-docker login code.ornl.gov:4567
-docker pull code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/fuseki
-docker run -p 3030:3030 code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/fuseki
+docker pull fuseki
+docker run -p 3030:3030 fuseki
 ```
 
 ### Coverage Report
@@ -89,7 +80,6 @@ target/site/jacoco/index.html
 To build the image with `<image_name>` set to `ssm-bats-rest-api` for example below, use:
 
 ```
-docker login code.ornl.gov:4567
 docker build -t ssm-bats-rest-api .
 ```
 
@@ -106,7 +96,6 @@ Then, the web service is up and running at `localhost:8080`
 You can use docker compose to spin up a container for both services (REST API + Fuseki server):
 
 ```
-docker login code.ornl.gov:4567
 docker-compose up
 ```
 
@@ -115,7 +104,6 @@ docker-compose up
 To run tests, use:
 
 ```
-docker login code.ornl.gov:4567
 docker build -f src/main/docker/Dockerfile.ssm_bats_rest_api -t ssm-bats-test .
 docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-bats-test
 ```

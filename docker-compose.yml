@@ -1,7 +1,6 @@
 version: '3'
 services:
   ssm-fuseki:
-    # image: code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/fuseki:latest
     build:
       context: ./src/main/docker
       dockerfile: Dockerfile.fuseki
@@ -12,7 +11,7 @@ services:
       - ./db-triple-store:/data/TDB
 
   ssm-document-store:
-    image: code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/mongo:4
+    image: mongo:4
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
