@@ -27,11 +27,11 @@ jobs:
 
       - 
         name: Test
-        run: docker run ssm-bats-test /bin/bash -c "mvn clean docker:build verify"
+        run: docker run ssm-bats-test /bin/bash -c "mvn clean test"
 
       -
         name: Coverage
-        run: docker run ssm-bats-test /bin/bash -c "mvn clean docker:build verify; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; printf \"%.2f %% covered\n\", 100*covered/instructions}' target/site/jacoco/jacoco.csv"
+        run: docker run ssm-bats-test /bin/bash -c "mvn clean test; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; printf \"%.2f %% covered\n\", 100*covered/instructions}' target/site/jacoco/jacoco.csv"
 
   publish-container-image:
     strategy:
