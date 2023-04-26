@@ -212,7 +212,7 @@
         <configuration>
           <images>
             <image>
-              <name>code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/fuseki:3.17.0</name>
+              <name>fuseki:3.17.0</name>
               <run>
                 <ports>
                   <port>3030:3030</port>
@@ -228,7 +228,7 @@
               </run>
             </image>
             <image>
-              <name>code.ornl.gov:4567/rse/datastreams/ssm/backend/ssm-bats-rest-api/mongo:4</name>
+              <name>mongo:4</name>
               <run>
                 <ports>
                   <port>27017:27017</port>
