@@ -6,7 +6,7 @@ This service is the data catalog via a REST API.
 
 First, you need to [login to the GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
 
-The fastest way to spin up a working setup is to use docker compose top-level file:
+The fastest way to spin up a working setup is to use `docker-compose.yml` top-level file:
 
 ```
 docker compose up
