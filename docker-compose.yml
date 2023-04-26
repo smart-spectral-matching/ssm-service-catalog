@@ -17,9 +17,9 @@ services:
       - "8080:8080"
     environment:
       FEDERATE_LDAP: "true"
-      GOOGLE_CLIENT_ID: 308694469630-7l6odifs3dc88arbh5cia6ud7v4h2suo.apps.googleusercontent.com
+      GOOGLE_CLIENT_ID: XXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com
       GOOGLE_IDP: "true"
-      GOOGLE_SECRET: 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
+      GOOGLE_SECRET: XXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXX
       HOSTNAME: ssm-keycloak
       KC_DB: postgres
       KC_DB_PASSWORD: postgres
@@ -27,8 +27,8 @@ services:
       KC_DB_USERNAME: postgres
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      LDAP_URL: ldaps://ldapu.ornl.gov
-      USERSDN: "dc=ornl,dc=gov"
+      LDAP_URL: ldaps://LDAP_HOST
+      USERSDN: "dc=example,dc=com"
 
   ssm-fuseki:
     build:
