@@ -6,10 +6,10 @@ This service is the data catalog via a REST API.
 
 First, you need to [login to the GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
 
-The fastest way to spin up a working setup is to use docker-compose top-level file:
+The fastest way to spin up a working setup is to use docker compose top-level file:
 
 ```
-docker-compose up
+docker compose up
 ```
 
 You can use both "bare metal" and docker during testing
@@ -96,7 +96,7 @@ Then, the web service is up and running at `localhost:8080`
 You can use docker compose to spin up a container for both services (REST API + Fuseki server):
 
 ```
-docker-compose up
+docker compose up
 ```
 
 #### Testing
