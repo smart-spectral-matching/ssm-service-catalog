@@ -91,13 +91,15 @@ docker run -p 8080:8080 ssm-bats-rest-api
 
 Then, the web service is up and running at `localhost:8080`
 
-#### BATS REST API + Fuseki server
+#### BATS REST API + Fuseki server + Keycloak
 
-You can use docker compose to spin up a container for both services (REST API + Fuseki server):
+You can use docker compose to spin up a container for both services (REST API + Fuseki server + Keycloak):
 
 ```
 docker compose up
 ```
+
+A sample Docker image for Keycloak can be found in the Deployments repo and must be built seprately. To activate the OIDC authentication, set the values in the appropriate application-foo.properties file appropriately use the sample values in the base application.properties file.
 
 #### Testing
 

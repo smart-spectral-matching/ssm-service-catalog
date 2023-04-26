@@ -63,7 +63,6 @@ public class ErrorControllerImpl implements ErrorController {
     /**
      * {@inheritDoc}
      */
-    @Override
     public String getErrorPath() {
         return ERROR_PATH;
     }
