@@ -227,6 +227,9 @@
           <images>
             <image>
               <name>fuseki:4.8.0</name>
+              <build>
+                <dockerFile>Dockerfile.fuseki</dockerFile>
+              </build>
               <run>
                 <ports>
                   <port>3030:3030</port>

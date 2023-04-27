@@ -67,6 +67,11 @@ public class ApplicationConfig {
     private String authorization;
 
     /**
+     * Nested Fuseki configuration.
+     */
+    private final Fuseki fuseki = new Fuseki();
+
+    /**
      * <p>
      * Hostname + port of the REST API server. Examples:
      * </p>
@@ -78,17 +83,19 @@ public class ApplicationConfig {
      */
     private String host;
     /**
-     * Nested Fuseki configuration.
-     */
-    private final Fuseki fuseki = new Fuseki();
-
-    /**
      * Getter for the Authorization type.
      *
      * @return The authorization type the API will use.
      */
     public AuthorizationType getAuthorization() {
         return EnumUtils.getEnumIgnoreCase(AuthorizationType.class, authorization);
+    }
+
+    /**
+     * @return nested Fuseki config
+     */
+    public Fuseki getFuseki() {
+        return fuseki;
     }
 
     /**
@@ -116,12 +123,4 @@ public class ApplicationConfig {
     void setHost(final String host) {
         this.host = host;
     }
-
-    /**
-     * @return nested Fuseki config
-     */
-    public Fuseki getFuseki() {
-        return fuseki;
-    }
-
 }
