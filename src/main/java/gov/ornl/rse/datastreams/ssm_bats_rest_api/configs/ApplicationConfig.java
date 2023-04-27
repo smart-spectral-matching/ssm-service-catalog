@@ -12,6 +12,60 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationConfig {
 
     /**
+     * Configuration properties for File Converter service.
+     */
+    public static class FileConverter {
+        /**
+         * Hostname for the file converter service.
+         */
+        private String hostname;
+
+        /**
+         * File converter service port.
+         */
+        private Integer port;
+
+        /**
+         * @return File converter server hostname
+         */
+        public String getHostname() {
+            return hostname;
+        }
+
+        /**
+         * Set the file converter server hostname.
+         *
+         * @param hostname
+         */
+        void setHostname(final String hostname) {
+            this.hostname = hostname;
+        }
+
+        /**
+         * @return File converter server port
+         */
+        public Integer getPort() {
+            return port;
+        }
+
+        /**
+         * Set the file converter server hostname.
+         *
+         * @param port
+         */
+        void setPort(final Integer port) {
+            this.port = port;
+        }
+
+        /**
+         * @return Hostname and port of file converter service
+         */
+        public String getHost() {
+            return hostname + ":" + port;
+        }
+    }
+
+    /**
      * Configuration properties relating to Fuseki.
      */
     public static class Fuseki {
