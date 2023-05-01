@@ -3,77 +3,83 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 import java.util.Locale;
 
 import javax.servlet.ServletContext;
+
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class BatsDatasetControllerIT {
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@WebAppConfiguration
+@AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class BatsDatasetControllerIT {
     /**
      * Object Mapper reused for all tests.
      */
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
-     * Java servlet context.
+     * Web context.
+     */
+    @Autowired
+    private WebApplicationContext webContext;
+
+    /**
+     * The mock agent used to make requests to endpoints.
+     */
+    private MockMvc mockMvc;
+
+    /**
+     * Server context.
      */
     @Autowired
     private ServletContext servletContext;
 
     /**
-     * Setup test rest template.
-    */
+     * Application configuration from application.properties.
+     */
     @Autowired
-    private TestRestTemplate restTemplate;
+    private ApplicationConfig applicationConfig;
 
     /**
-     * Setup local server port for testing.
-    */
-    @LocalServerPort
-    private int port;
-
-    /**
-     * Constant base url.
-    */
-    private static final String BASE_URL = "http://localhost";
-
-    /**
-     * Create url using base url.
-     *
-     * @param path Path of URL to append to base url
-     * @return     Concatenated base url, servlet root context, and path
-    */
-    private String createUrl(final String path) {
-        return BASE_URL + ":" + port
-          + servletContext.getContextPath() + path;
+     * Non-static method run before each @Test. Define the MockMVC agent.
+     */
+    @BeforeAll
+    public void setUp() {
+        mockMvc = MockMvcBuilders
+            .webAppContextSetup(webContext)
+            .apply(springSecurity())
+            .build();
     }
 
     /**
-     * Helper function to create HTTP body.
      *
-     * @param mediaType Content Type for the body data
-     * @param body      Data to be posted
-     * @return properly formatted body for post statement (with HTTP headers)
-    */
-    private HttpEntity<Object> makeBody(
-        final MediaType mediaType,
-        final Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(mediaType);
-        return new HttpEntity<>(body, headers);
+     * @return base Dataset URI for POSTing (with trailing slash)
+     */
+    private String getDatasetUri() {
+        return servletContext.getContextPath() + "/datasets/";
     }
 
     /**
@@ -88,7 +94,6 @@ public class BatsDatasetControllerIT {
         return dataset.toString();
     }
 
-
     /**
      * Utility function to create a Dataset.
      *
@@ -97,14 +102,14 @@ public class BatsDatasetControllerIT {
     */
     private String createDataset(final String title) throws Exception {
         String datasetJson = getDatasetData(title);
-        String jsonString = restTemplate.postForEntity(
-            createUrl("/datasets"),
-            makeBody(MediaType.APPLICATION_JSON, datasetJson),
-            String.class).getBody();
 
-        String datasetTitle  = MAPPER.readTree(jsonString)
-                                     .get("title")
-                                     .asText();
+        String response = mockMvc.perform(post(getDatasetUri())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(datasetJson))
+        .andExpect(status().isCreated())
+        .andReturn().getResponse().getContentAsString();
+        final String datasetTitle = MAPPER.readTree(response).get("title").asText();
+
         return datasetTitle;
     }
 
@@ -113,33 +118,34 @@ public class BatsDatasetControllerIT {
     */
     @Test
     public void testGetDataset() throws Exception {
-        String title = "testGetDataset";
-        String titleLower = createDataset(title);
+        final String title = "testGetDataset";
+        final String titleLower = createDataset(title);
 
         // Test using the returned title from POST
-        ResponseEntity<String> responseLower = restTemplate.getForEntity(
-            createUrl("/datasets/" + titleLower),
-            String.class
-        );
-        Assertions.assertEquals(
-            HttpStatus.OK,
-            responseLower.getStatusCode()
-        );
-        String json = responseLower.getBody();
-        Assertions.assertTrue(json.contains("\"title\":\"" + titleLower + "\""));
+        String responseLower = mockMvc.perform(
+            get(getDatasetUri() + titleLower)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+        final String datasetTitleLower = MAPPER.readTree(responseLower).get("title").asText();
+        Assertions.assertTrue(datasetTitleLower.contains(titleLower));
 
         // Test case-insenstive
-        ResponseEntity<String> response = restTemplate.getForEntity(
-            createUrl("/datasets/" + title),
-            String.class
-        );
-        Assertions.assertEquals(
-            HttpStatus.OK,
-            response.getStatusCode()
-        );
+        String response = mockMvc.perform(
+            get(getDatasetUri() + title)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
 
-        json = response.getBody();
-        Assertions.assertTrue(json.contains("\"title\":\"" + titleLower + "\""));
+        final String datasetTitle = MAPPER.readTree(response).get("title").asText();
+        Assertions.assertTrue(datasetTitle.contains(titleLower));
     }
 
     /**
@@ -147,29 +153,23 @@ public class BatsDatasetControllerIT {
     */
     @Test
     public void testGetDataSetNotFound() throws Exception {
-        Assertions.assertEquals(
-            HttpStatus.NOT_FOUND,
-            restTemplate.getForEntity(
-                createUrl("/datasets/pizza"),
-                Void.class
-            ).getStatusCode()
-        );
+        mockMvc.perform(
+            get(getDatasetUri() + "pizza")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+        .andExpect(status().isNotFound());
 
-        Assertions.assertEquals(
-            HttpStatus.NOT_FOUND,
-            restTemplate.getForEntity(
-                createUrl("/datasets/pizza/models"),
-                Void.class
-            ).getStatusCode()
-        );
+        mockMvc.perform(
+            get(getDatasetUri() + "pizza/models")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+        .andExpect(status().isNotFound());
 
-        Assertions.assertEquals(
-            HttpStatus.NOT_FOUND,
-            restTemplate.getForEntity(
-                createUrl("/datasets/pizza/models/uuids"),
-                Void.class
-            ).getStatusCode()
-        );
+        mockMvc.perform(
+            get(getDatasetUri() + "pizza/models/uuids")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+        .andExpect(status().isNotFound());
     }
 
     /**
@@ -180,19 +180,21 @@ public class BatsDatasetControllerIT {
         String title = "testCreateDataset-foo";
         String datasetJson = getDatasetData(title);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-            createUrl("/datasets"),
-            makeBody(MediaType.APPLICATION_JSON, datasetJson),
-            String.class
-        );
-        Assertions.assertEquals(
-            HttpStatus.CREATED,
-            response.getStatusCode()
-        );
+        System.out.println("\n\n");
+        System.out.println("Dataset title: " + title);
+        System.out.println("Dataset JSON body: " + datasetJson);
+        System.out.println("Auth Type: " + applicationConfig.getAuthorization());
+        System.out.println("\n\n");
 
-        String json = response.getBody();
-        Assertions.assertTrue(json.contains("\"title\":"));
-        Assertions.assertTrue(json.contains(title.toLowerCase(new Locale("en"))));
+        String response = mockMvc.perform(post(getDatasetUri())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(datasetJson))
+        .andExpect(status().isCreated())
+        .andReturn().getResponse().getContentAsString();
+
+        String datasetTitle = MAPPER.readTree(response).get("title").asText();
+        Assertions.assertTrue(response.contains("\"title\":"));
+        Assertions.assertTrue(datasetTitle.contains(title.toLowerCase(new Locale("en"))));
     }
 
     /**
@@ -201,24 +203,19 @@ public class BatsDatasetControllerIT {
     @Test
     public void testForInvalidDatasetTitle() throws Exception {
         String datasetJsonNumbers = getDatasetData("testForInvalidDatasetTitle-99");
-        Assertions.assertEquals(
-            HttpStatus.BAD_REQUEST,
-            restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJsonNumbers),
-                String.class
-            ).getStatusCode()
-        );
+
+        String response = mockMvc.perform(post(getDatasetUri())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(datasetJsonNumbers))
+        .andExpect(status().isBadRequest())
+        .andReturn().getResponse().getContentAsString();
 
         String datasetJsonHyphen = getDatasetData("testForInvalidDatasetTitle_foo");
-        Assertions.assertEquals(
-            HttpStatus.BAD_REQUEST,
-            restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJsonHyphen),
-                String.class
-            ).getStatusCode()
-        );
+        response = mockMvc.perform(post(getDatasetUri())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(datasetJsonHyphen))
+        .andExpect(status().isBadRequest())
+        .andReturn().getResponse().getContentAsString();
     }
 
     /**
@@ -231,25 +228,19 @@ public class BatsDatasetControllerIT {
 
         // Upper-case test
         String datasetJson = getDatasetData(title);
-        Assertions.assertEquals(
-            HttpStatus.CONFLICT,
-            restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJson),
-                String.class
-            ).getStatusCode()
-        );
+        String response = mockMvc.perform(post(getDatasetUri())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(datasetJson))
+        .andExpect(status().isConflict())
+        .andReturn().getResponse().getContentAsString();
 
         // Lower-case test
         datasetJson = getDatasetData(title.toLowerCase(new Locale("en")));
-        Assertions.assertEquals(
-            HttpStatus.CONFLICT,
-            restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJson),
-                String.class
-            ).getStatusCode()
-        );
+        response = mockMvc.perform(post(getDatasetUri())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(datasetJson))
+        .andExpect(status().isConflict())
+        .andReturn().getResponse().getContentAsString();
     }
 
     /**
@@ -260,26 +251,14 @@ public class BatsDatasetControllerIT {
         // Test using the title returned from POST
         String title = "testDeleteDataSet";
         String titleLowerCase = createDataset(title);
-        Assertions.assertEquals(
-            HttpStatus.NO_CONTENT,
-            restTemplate.exchange(
-                createUrl("/datasets/" + titleLowerCase),
-                HttpMethod.DELETE,
-                HttpEntity.EMPTY,
-                Void.class
-            ).getStatusCode()
-        );
+        mockMvc.perform(
+            delete(getDatasetUri() + "/" + titleLowerCase)
+        ).andExpect(status().isNoContent());
 
         // Test for case-insensitive
         createDataset(title);
-        Assertions.assertEquals(
-            HttpStatus.NO_CONTENT,
-            restTemplate.exchange(
-                createUrl("/datasets/" + title),
-                HttpMethod.DELETE,
-                HttpEntity.EMPTY,
-                Void.class
-            ).getStatusCode()
-        );
+        mockMvc.perform(
+            delete(getDatasetUri() + "/" + title)
+        ).andExpect(status().isNoContent());
     }
 }
