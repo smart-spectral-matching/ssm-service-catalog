@@ -1,5 +1,6 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -49,12 +50,15 @@ public class OIDCLoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
             // Configure the request matcher to secure all pages except logon
             http.authorizeRequests(authorizeRequests -> authorizeRequests
-                .antMatchers("/logon").permitAll()
-                .anyRequest().authenticated())
-                .oauth2Login(e -> e.permitAll())
-                .logout(e -> e.logoutSuccessHandler(handler))
-                .oauth2ResourceServer()
-                .jwt();
+                    .antMatchers("/logon").permitAll()
+                    .anyRequest().authenticated()
+            )
+            .oauth2Login(e -> e.permitAll())
+            .logout(e -> e.logoutSuccessHandler(handler))
+            .oauth2ResourceServer()
+            .jwt();
+        } else if (applicationConfig.getAuthorization().equals(AuthorizationType.NONE)) {
+            http.authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().permitAll());
         }
     }
 
