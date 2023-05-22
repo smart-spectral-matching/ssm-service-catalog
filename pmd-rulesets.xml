@@ -13,7 +13,6 @@
 
   <rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP" />
   <rule ref="category/java/bestpractices.xml/CheckResultSet" />
-  <rule ref="category/java/bestpractices.xml/UnusedImports" />
   <rule ref="category/java/bestpractices.xml/UnusedFormalParameter" />
   <rule ref="category/java/bestpractices.xml/UnusedLocalVariable" />
   <rule ref="category/java/bestpractices.xml/UnusedPrivateField" />
@@ -24,14 +23,15 @@
     </properties>
   </rule>
 
-  <rule ref="category/java/codestyle.xml/DontImportJavaLang" />
-  <rule ref="category/java/codestyle.xml/DuplicateImports" />
+  <rule ref="category/java/codestyle.xml/EmptyControlStatement" />
   <rule ref="category/java/codestyle.xml/ExtendsObject" />
   <rule ref="category/java/codestyle.xml/ForLoopShouldBeWhileLoop" />
   <rule ref="category/java/codestyle.xml/TooManyStaticImports" />
   <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName" />
+  <rule ref="category/java/codestyle.xml/UnnecessaryImport" />
   <rule ref="category/java/codestyle.xml/UnnecessaryModifier" />
   <rule ref="category/java/codestyle.xml/UnnecessaryReturn" />
+  <rule ref="category/java/codestyle.xml/UnnecessarySemicolon" />
   <rule ref="category/java/codestyle.xml/UselessParentheses" />
   <rule ref="category/java/codestyle.xml/UselessQualifiedThis" />
 
@@ -55,14 +55,13 @@
   <rule ref="category/java/errorprone.xml/AvoidLosingExceptionInformation" />
   <rule ref="category/java/errorprone.xml/AvoidMultipleUnaryOperators" />
   <rule ref="category/java/errorprone.xml/AvoidUsingOctalValues" />
-  <rule ref="category/java/errorprone.xml/BadComparison" />
+  <rule ref="category/java/errorprone.xml/ComparisonWithNaN" />
   <rule ref="category/java/errorprone.xml/BrokenNullCheck" />
   <rule ref="category/java/errorprone.xml/CheckSkipResult" />
   <rule ref="category/java/errorprone.xml/ClassCastExceptionWithToArray" />
   <rule ref="category/java/errorprone.xml/CloneMethodMustBePublic" />
   <rule ref="category/java/errorprone.xml/CloneMethodMustImplementCloneable" />
   <rule ref="category/java/errorprone.xml/CloneMethodReturnTypeMustMatchClassName" />
-  <rule ref="category/java/errorprone.xml/CloneThrowsCloneNotSupportedException" />
   <rule ref="category/java/errorprone.xml/CloseResource" />
   <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals" />
   <rule ref="category/java/errorprone.xml/ConstructorCallsOverridableMethod" />
@@ -75,26 +74,16 @@
   <rule ref="category/java/errorprone.xml/DontImportSun" />
   <rule ref="category/java/errorprone.xml/DontUseFloatTypeForLoopIndices" />
   <rule ref="category/java/errorprone.xml/EmptyCatchBlock" />
-  <rule ref="category/java/errorprone.xml/EmptyFinallyBlock" />
-  <rule ref="category/java/errorprone.xml/EmptyIfStmt" />
-  <rule ref="category/java/errorprone.xml/EmptyInitializer" />
-  <rule ref="category/java/errorprone.xml/EmptyStatementBlock" />
-  <rule ref="category/java/errorprone.xml/EmptyStatementNotInLoop" />
-  <rule ref="category/java/errorprone.xml/EmptySwitchStatements" />
-  <rule ref="category/java/errorprone.xml/EmptySynchronizedBlock" />
-  <rule ref="category/java/errorprone.xml/EmptyTryBlock" />
-  <rule ref="category/java/errorprone.xml/EmptyWhileStmt" />
   <rule ref="category/java/errorprone.xml/EqualsNull" />
   <rule ref="category/java/errorprone.xml/IdempotentOperations" />
-  <rule ref="category/java/errorprone.xml/ImportFromSamePackage" />
   <rule ref="category/java/errorprone.xml/InstantiationToGetClass" />
   <rule ref="category/java/errorprone.xml/InvalidLogMessageFormat" />
+  <rule ref="category/java/errorprone.xml/ImplicitSwitchFallThrough" />
   <rule ref="category/java/errorprone.xml/JumbledIncrementer" />
   <rule ref="category/java/errorprone.xml/JUnitSpelling" />
   <rule ref="category/java/errorprone.xml/JUnitStaticSuite" />
   <rule ref="category/java/errorprone.xml/MethodWithSameNameAsEnclosingClass" />
   <rule ref="category/java/errorprone.xml/MisplacedNullCheck" />
-  <rule ref="category/java/errorprone.xml/MissingBreakInSwitch" />
   <rule ref="category/java/errorprone.xml/MissingSerialVersionUID" />
   <rule ref="category/java/errorprone.xml/MissingStaticMethodInNonInstantiatableClass" />
   <rule ref="category/java/errorprone.xml/MoreThanOneLogger" />
@@ -103,7 +92,7 @@
   <rule ref="category/java/errorprone.xml/NullAssignment" />
   <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode" />
   <rule ref="category/java/errorprone.xml/ProperCloneImplementation" />
-  <rule ref="category/java/errorprone.xml/ReturnEmptyArrayRatherThanNull" />
+  <rule ref="category/java/errorprone.xml/ReturnEmptyCollectionRatherThanNull" />
   <rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock" />
   <rule ref="category/java/errorprone.xml/SimpleDateFormatNeedsLocale" />
   <rule ref="category/java/errorprone.xml/SingleMethodSingleton" />
@@ -155,7 +144,6 @@
   <rule ref="category/java/performance.xml/AvoidCalendarDateCreation" />
   <rule ref="category/java/performance.xml/AvoidFileStream" />
   <rule ref="category/java/performance.xml/AvoidInstantiatingObjectsInLoops" />
-  <rule ref="category/java/performance.xml/AvoidUsingShortType" />
   <rule ref="category/java/performance.xml/BigIntegerInstantiation" />
   <rule ref="category/java/performance.xml/ConsecutiveAppendsShouldReuse" />
   <rule ref="category/java/performance.xml/ConsecutiveLiteralAppends" />
@@ -164,7 +152,6 @@
   <rule ref="category/java/performance.xml/InsufficientStringBufferDeclaration" />
   <rule ref="category/java/performance.xml/OptimizableToArrayCall" />
   <rule ref="category/java/performance.xml/RedundantFieldInitializer" />
-  <rule ref="category/java/performance.xml/SimplifyStartsWith" />
   <rule ref="category/java/performance.xml/StringInstantiation" />
   <rule ref="category/java/performance.xml/StringToString" />
   <rule ref="category/java/performance.xml/TooFewBranchesForASwitchStatement">
@@ -172,7 +159,6 @@
         <property name="minimumNumberCaseForASwitch" value="3" />
     </properties>
   </rule>
-  <rule ref="category/java/performance.xml/UnnecessaryWrapperObjectCreation" />
   <rule ref="category/java/performance.xml/UseArrayListInsteadOfVector" />
   <rule ref="category/java/performance.xml/UseArraysAsList" />
   <rule ref="category/java/performance.xml/UseIndexOfChar" />
