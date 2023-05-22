@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @EnableWebSecurity
 @Configuration
-public class OIDCLoginSecurityConfig {
+public class SecurityConfig {
 
     /**
      * Application configuration from application.properties.
