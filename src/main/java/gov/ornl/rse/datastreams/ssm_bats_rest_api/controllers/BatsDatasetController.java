@@ -6,9 +6,6 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.Scanner;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-
 import org.apache.jena.query.QueryException;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
@@ -39,6 +36,9 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequestMapping("/datasets")

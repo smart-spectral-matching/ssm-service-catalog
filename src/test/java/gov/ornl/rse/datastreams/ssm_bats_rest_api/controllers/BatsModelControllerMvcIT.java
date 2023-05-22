@@ -7,8 +7,6 @@ import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.stream.StreamSupport;
 
-import javax.servlet.ServletContext;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -34,6 +32,8 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
+
+import jakarta.servlet.ServletContext;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest

@@ -17,7 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
@@ -97,8 +96,7 @@ public final class AbbreviatedJson {
     /**
      * Class ObjectMapper.
     */
-    private static final ObjectMapper MAPPER = new ObjectMapper()
-        .disable(MapperFeature.IGNORE_MERGE_FOR_UNMERGEABLE);
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
      * SciData Ontology string for RDF frame filtering.

@@ -66,7 +66,7 @@ public enum SparqlPrefix {
      *
      * @return Label for the prefix
      */
-    public String label() {
+    public String getLabel() {
         return label;
     }
 
@@ -75,7 +75,7 @@ public enum SparqlPrefix {
      *
      * @return IRI for the prefix
      */
-    public String iri() {
+    public String getIri() {
         return iri;
     }
 

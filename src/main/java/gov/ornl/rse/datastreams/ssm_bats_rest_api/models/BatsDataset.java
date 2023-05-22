@@ -1,6 +1,6 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
 
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * Representation of a BATS Dataset for Apache Jena Dataset

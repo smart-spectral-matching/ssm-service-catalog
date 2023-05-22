@@ -10,7 +10,7 @@ public final class UUIDGenerator {
     /**
      * Constructor set to private since this is a utility class.
     */
-    private UUIDGenerator() { };
+    private UUIDGenerator() { }
 
     /**
      * Hex array to use for generating UUID.

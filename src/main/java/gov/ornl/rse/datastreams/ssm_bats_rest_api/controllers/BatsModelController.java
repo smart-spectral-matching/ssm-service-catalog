@@ -9,9 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
-
 import org.apache.jena.query.QueryException;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -36,7 +33,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -58,6 +54,9 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.ModelUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.RdfModelWriter;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.UUIDGenerator;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequestMapping("/datasets")
@@ -111,8 +110,7 @@ public class BatsModelController {
     /**
      * Class ObjectMapper.
     */
-    private static final ObjectMapper MAPPER = new ObjectMapper()
-        .disable(MapperFeature.IGNORE_MERGE_FOR_UNMERGEABLE);
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
      * Error message for uploading model.

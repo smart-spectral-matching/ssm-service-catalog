@@ -2,8 +2,6 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api;
 
 import java.util.Locale;
 
-import javax.servlet.ServletContext;
-
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,6 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
+
+import jakarta.servlet.ServletContext;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -176,6 +177,7 @@ public class BatsDatasetControllerIT {
      * Test to create a Dataset.
     */
     @Test
+    @WithAnonymousUser
     public void testCreateDataSet() throws Exception {
         String title = "testCreateDataset-foo";
         String datasetJson = getDatasetData(title);

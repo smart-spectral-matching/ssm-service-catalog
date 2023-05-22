@@ -3,11 +3,11 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 import java.util.Arrays;
 import java.util.Set;
 
-import javax.servlet.ServletContext;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import jakarta.servlet.ServletContext;
 
 /**
  * Generic configuration utilities derived from the Spring environment
@@ -35,7 +35,6 @@ public class ConfigUtils {
      */
     @Autowired
     private ServletContext servletContext;
-
     /**
      * Application config.
      */
