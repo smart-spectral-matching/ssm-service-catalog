@@ -116,7 +116,10 @@ public final class ModelSparql {
         final String endpointUrl,
         final String modelUri
      ) throws QueryException {
+
+        // For some reason, uploading fails with http, getting fails with https
         String queryString = SparqlPrefix.queryPrefixesAll()
+        .replace("https://purl.org", "http://purl.org")
             + queryStringForModelSummary(modelUri);
 
         QueryExecution execution = prepareSparqlQuery(//NOPMD
@@ -155,8 +158,11 @@ public final class ModelSparql {
         final int pageNumber,
         final String endpointUrl
     ) throws QueryException {
+
+        // For some reason, uploading fails with http, getting fails with https
         String queryString =
             SparqlPrefix.queryPrefixesAll()
+            .replace("https://purl.org", "http://purl.org")
             + queryStringForModelSummaries()
             + "ORDER BY DESC(?modified) "
             + "OFFSET " + (pageNumber * pageSize - pageSize) + " "
