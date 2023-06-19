@@ -41,6 +41,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.AuthorizationHandler;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.Permissions;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
@@ -442,9 +445,45 @@ public class BatsModelController {
                     endpointUrl,
                     dataset
                 );
-                Map<String, Object> body = constructModelsBody(
-                    endpointUrl, models, modelsUri,
-                    pageSize, pageNumber, returnFull);
+                
+                // The data to be sent back to the user
+                Map<String, Object> body;
+                
+                AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+                
+                // Skip authorization checking if authorization is not enabled or no user is logged in.
+                if(authHandler != null) {
+                    
+                    String user = AuthorizationUtils.getUser();
+                    
+                    if(user != null) {
+
+                        // List of models the user has authorization to read
+                        ArrayList<BatsModel> authorizedModels = new ArrayList<BatsModel>();
+                        
+                        // Get each model that the user has access to and put it in the list
+                        for(UniquelyIdentifiable i : authHandler.filter(user, Permissions.READ, models)) {
+                            authorizedModels.add((BatsModel) i);
+                        }
+                        
+                        body = constructModelsBody(
+                                endpointUrl, authorizedModels, modelsUri,
+                                pageSize, pageNumber, returnFull);
+                    } else {
+                        
+                        // If there is no user, return everything
+                        body = constructModelsBody(
+                                endpointUrl, models, modelsUri,
+                                pageSize, pageNumber, returnFull);
+                    }
+                } else {
+                    
+                    // If there is no authorization defined, return everything
+                    body = constructModelsBody(
+                            endpointUrl, models, modelsUri,
+                            pageSize, pageNumber, returnFull);
+                }
+                 
                 return ResponseEntity.ok(body);
             } else {
                 // build the actual body
@@ -453,9 +492,50 @@ public class BatsModelController {
                     pageNumber,
                     endpointUrl
                 );
-                Map<String, Object> body = constructModelsBody(
-                    endpointUrl, models, modelsUri,
-                    pageSize, pageNumber, returnFull);
+                
+                // The data to return to the user.
+                Map<String, Object> body;
+                
+                // Skip authorization checking if authorization is not enabled or no user is logged in.
+                if(authHandler != null) {
+                    
+                    // Skip authorization checking if there is no user logged in
+                    String user = AuthorizationUtils.getUser();
+                    
+                    if(user != null) {
+                        
+                        // List of models the user is authorized to see.
+                        ArrayList<Map<String, Object>> authorizedModels = new ArrayList<Map<String, Object>>();
+                        
+                        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+                        
+                        // Add each model to the list if the user is authorized to read it
+                        for (Map<String, Object> model : models) {
+                            if(authHandler.checkPermission(user, Permissions.READ, model.get("uuid"))) {
+                                authorizedModels.add(model);
+                            }
+                        }
+                        
+                        // Construct the return message body using only authorized models
+                        body = constructModelsBody(
+                                endpointUrl, authorizedModels, modelsUri,
+                                pageSize, pageNumber, returnFull);
+
+                    } else {
+                        
+                        // Return all models if no authentication
+                        body = constructModelsBody(
+                                endpointUrl, models, modelsUri,
+                                pageSize, pageNumber, returnFull);
+                    }
+                    
+                } else {
+                    
+                    // Return all models if not authorization
+                    body = constructModelsBody(
+                            endpointUrl, models, modelsUri,
+                            pageSize, pageNumber, returnFull);
+                }
                 return ResponseEntity.ok(body);
             }
         } catch (QueryException ex) {
@@ -484,6 +564,27 @@ public class BatsModelController {
         IOException,
         NoSuchAlgorithmException,
         UnsupportedEncodingException {
+        
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+        
+        // Skip authorization checking if authorization is not enabled or no user is logged in.
+        if(authHandler != null) {
+            
+            String user = AuthorizationUtils.getUser();
+            
+            if(user != null) {
+                
+                // If the user doesn't have permission to create new models, return an error.
+                if(!authHandler.checkDatasetCreationPermission(username)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED,
+                            "User " + user + " lacks permission to create a new model."
+                        );
+                }
+            }
+        }
+        
+        
         // Check if dataset exists
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
@@ -551,6 +652,26 @@ public class BatsModelController {
         @RequestParam(name = "format", defaultValue = "json")
         final BatsModelFormats format
     ) throws IOException, ResponseStatusException {
+        
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+        
+        // Skip authorization checking if authorization is not enabled or no user is logged in.
+        if(authHandler != null) {
+            
+            String user = AuthorizationUtils.getUser();
+            
+            if(user != null) {
+                
+                // If the user can't read the model, return an error message
+                if(!authHandler.checkPermission(user, Permissions.READ, modelUUID)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED,
+                            "User " + user + " lacks permission to READ model " + modelUUID
+                        );
+                }
+            }
+        }
+        
         // Return full, graph JSON-LD of model
         if (format == BatsModelFormats.GRAPH || format == BatsModelFormats.FULL) {
             Model model = modelUtils.getModel(datasetTitle, modelUUID);
@@ -645,6 +766,25 @@ public class BatsModelController {
         IOException,
         NoSuchAlgorithmException,
         UnsupportedEncodingException {
+        
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+        
+        // Skip authorization checking if authorization is not enabled or no user is logged in.
+        if(authHandler != null) {
+            
+            String user = AuthorizationUtils.getUser();
+            
+            if(user != null) {
+                
+                // If the user can't read the model, return an error message
+                if(!authHandler.checkPermission(user, Permissions.UPDATE, modelUUID)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED,
+                            "User " + user + " lacks permission to UPDATE model " + modelUUID
+                        );
+                }
+            }
+        }
 
         // Check if dataset exists
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
@@ -736,6 +876,25 @@ public class BatsModelController {
                 "Model " + modelUUID + " Not Found"
             );
         }
+        
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+        
+        // Skip authorization checking if authorization is not enabled or no user is logged in.
+        if(authHandler != null) {
+            
+            String user = AuthorizationUtils.getUser();
+            
+            if(user != null) {
+                
+                // If the user can't read the model, return an error message
+                if(!authHandler.checkPermission(user, Permissions.UPDATE, modelUUID)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED,
+                            "User " + user + " lacks permission to UPDATE model " + modelUUID
+                        );
+                }
+            }
+        }
 
         JsonNode modelNode = MAPPER.readTree(modelJsonld);
         LOGGER.info("Pulled model: " + modelUUID);
@@ -802,6 +961,26 @@ public class BatsModelController {
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
     ) throws IOException, NoSuchAlgorithmException {
+        
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+        
+        // Skip authorization checking if authorization is not enabled or no user is logged in.
+        if(authHandler != null) {
+            
+            String user = AuthorizationUtils.getUser();
+            
+            if(user != null) {
+                
+                // If the user can't read the model, return an error message
+                if(!authHandler.checkPermission(user, Permissions.DELETE, modelUUID)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED,
+                            "User " + user + " lacks permission to DELETE model " + modelUUID
+                        );
+                }
+            }
+        }
+        
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // Cache old data for rollback

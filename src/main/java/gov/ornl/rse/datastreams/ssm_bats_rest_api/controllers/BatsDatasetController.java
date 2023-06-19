@@ -3,6 +3,7 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 
@@ -15,6 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,12 +35,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.AuthorizationHandler;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.Permissions;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AuthorizationUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
 
@@ -251,6 +258,39 @@ public class BatsDatasetController {
         } catch (QueryException ex) {
             LOGGER.info("No models to delete for datset.");
         }
+        
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+        
+        // Skip authorization check if no authorization or no user
+        if(authHandler != null) {
+            
+            String user = AuthorizationUtils.getUser();
+            
+            if(user != null) {
+                
+                // Construct a list of all UUIDs belonging to this dataset which the user isn't authorized to delete
+                ArrayList<String> unauthorizedUUIDs = new ArrayList<String>();
+                
+                for (JsonNode modelUuidNode : uuidArray) {
+                    String modelUUID = modelUuidNode.asText();
+                    if(!authHandler.checkPermission(user, Permissions.DELETE, modelUUID)) {
+                        unauthorizedUUIDs.add(modelUUID);
+                    }
+                }
+                
+                // If there were any undeletable models, do not delete the dataset and instead return an error.
+                if(!unauthorizedUUIDs.isEmpty()) {
+                    
+                    String message = "User " + user + " is not authorized to delete the following models contained in the dataset: ";
+                    
+                    for(String uuid : unauthorizedUUIDs) {
+                        message += uuid + ",";
+                    }
+                    
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, message);
+                }
+            }
+        }
 
         // Loop to delete the models from dataset
         for (JsonNode modelUuidNode: uuidArray) {
@@ -275,11 +315,32 @@ public class BatsDatasetController {
             LOGGER.info("Deleting model: " + uuid + " from document store");
             try {
                 repository.delete(repository.findById(uuid).get());
+
             } catch (Exception ex) {
                 String message = "Unable to delete model: " + uuid + " from document store.";
                 LOGGER.error(message);
                 dataset.updateModel(modelUri, model);
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
+            }
+            
+            // If authorization is off or there is no user, skip authorization check
+            if(authHandler != null) {
+                
+                String user = AuthorizationUtils.getUser();
+                
+                if(user != null) {
+            
+                    try {
+                        
+                        // Delete all authorization information related to this object
+                        authHandler.deleteObject(user, uuid);
+                        
+                    } catch (Exception ex) {
+                        String message = "User " + user + " lost DELETE permission on object " + uuid + " while it was being deleted. Authorization server is now in an inconsistant state.";
+                        LOGGER.error(message);
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
+                    }
+                }
             }
 
         }
