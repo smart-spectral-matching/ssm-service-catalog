@@ -352,11 +352,6 @@ public class BatsModelControllerIT {
                                  .asText();
         String modelUri = getModelUriFull(datasetTitle, modelUUID);
 
-        System.out.println("\n\n");
-        System.out.println("Dataset title: " + datasetTitle);
-        System.out.println("Model Uuid: " + modelUUID);
-        System.out.println("Model Uri: " + modelUri);
-        System.out.println("\n\n");
         JsonNode targetGraph = MAPPER.readTree(scidataOutputJSONLD(modelUri))
                                 .get("@graph");
         JsonNode resultGraph = MAPPER.readTree(response.getBody())
@@ -487,57 +482,6 @@ public class BatsModelControllerIT {
             JsonUtils.getIdFromArrayNode(
                 id,
                 (ArrayNode) MAPPER.readTree(jsonldPayload).get("@graph")
-            ),
-            JsonUtils.getIdFromArrayNode(
-                id,
-                (ArrayNode) MAPPER.readTree(response.getBody()).get("model").get("@graph")
-            )
-        );
-    }
-
-    /**
-     * Test to partial update for a Model using a simple JSON-LD.
-    */
-    @Test
-    public void testUpdateSimpleFullModelPartial() throws Exception {
-        String datasetTitle = createDataset("testUpdateSimpleModelPartial");
-        String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
-        String modelUri = getModelUriFull(datasetTitle, modelUUID);
-
-        // Create body for our update to the model
-        JsonNode newNameNode = getSimpleUpdateNode();
-
-        ArrayNode newGraphArray = MAPPER.createArrayNode();
-        newGraphArray.add(newNameNode);
-
-        ObjectNode newGraphNode = MAPPER.createObjectNode();
-        newGraphNode.set("@graph", newGraphArray);
-
-        String newName = MAPPER.writeValueAsString(newGraphNode);
-
-        // Send the update
-        ResponseEntity<String> response = restTemplate.exchange(
-            modelUri,
-            HttpMethod.PATCH,
-            makeBody(MediaType.APPLICATION_JSON, newName),
-            String.class
-        );
-
-
-        // Check the status code
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-
-        // Merge payload with model for target we verify against
-        JsonNode originalJson = MAPPER.readTree(simpleOutputJSONLD());
-        JsonNode newNameJson = MAPPER.readTree(newName);
-        JsonNode target = JsonUtils.merge(originalJson, newNameJson);
-
-        // Ensure the update modified the data
-        String id = "http://localhost/beatles/member/1";
-        Assertions.assertEquals(
-            JsonUtils.getIdFromArrayNode(
-                id,
-                (ArrayNode) target.get("@graph")
             ),
             JsonUtils.getIdFromArrayNode(
                 id,

@@ -183,7 +183,6 @@ public class CustomizedBatsDataSet {
         RDFConnectionRemoteBuilder uploadConnBuilder = RDFConnectionFuseki.create()
                 .destination(getFullURI() + "/data");
 
-        // Open a connection to upload the ICE ontology.
         try (RDFConnectionFuseki uploadConn = (RDFConnectionFuseki) uploadConnBuilder.build()) {
             // Note that transactions must proceed with begin(), some operation(), and
             // commit().
@@ -207,7 +206,6 @@ public class CustomizedBatsDataSet {
         RDFConnectionRemoteBuilder uploadConnBuilder = RDFConnectionFuseki.create()
                 .destination(getFullURI() + "/data");
 
-        // Open a connection to upload the ICE ontology.
         try (RDFConnectionFuseki uploadConn = (RDFConnectionFuseki) uploadConnBuilder.build()) {
             // Note that transactions must proceed with begin(), some operation(), and
             // commit().

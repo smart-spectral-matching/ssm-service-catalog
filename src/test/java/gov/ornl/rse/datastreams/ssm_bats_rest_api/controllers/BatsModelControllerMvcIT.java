@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +30,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -123,7 +126,7 @@ public class BatsModelControllerMvcIT {
      * @return base Dataset URI for POSTing (with trailing slash)
      */
     private String getDatasetUri() {
-        return servletContext.getContextPath() + "/datasets/";
+        return servletContext.getContextPath() + "/datasets";
     }
 
     /**
@@ -132,7 +135,7 @@ public class BatsModelControllerMvcIT {
      * @return base Moder URI for POSTing (with trailing slash)
      */
     private String getModelUri(final String datasetTitle) {
-        return getDatasetUri() + datasetTitle + "/models/";
+        return getDatasetUri() + "/" + datasetTitle + "/models";
     }
 
     /**
@@ -148,6 +151,42 @@ public class BatsModelControllerMvcIT {
     }
 
     /**
+     * Helper function to create a dataset we can add models to.
+     *
+     * @param datasetTitle Title for the dataset
+     * @return Dataset title after dataset creation
+    */
+    private String createDataset(final String datasetTitle) throws Exception {
+        // create dataset and make model URI
+        String datasetJson = getDatasetData(datasetTitle);
+        String response = mockMvc.perform(post(getDatasetUri())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(datasetJson))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+        JsonNode json = MAPPER.readTree(response);
+        final String newTitle = json.get("title").asText();
+        return newTitle;
+    }
+
+    /**
+     * Helper function to create a model to a given dataset.
+     *
+     * @param modelUri Model URI to post to create new model
+     * @param jsonld   JSON-LD for the Model to create
+     * @return         Response in string format
+    */
+    private String createModel(final String modelUri, final String jsonld)
+    throws Exception {
+        String response = mockMvc.perform(post(modelUri)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonld))
+            .andExpect(status().isCreated())
+            .andReturn().getResponse().getContentAsString();
+        return response;
+    }
+
+    /**
      * Returns string for a file located in test/resources.
      *
      * @param filename Filename to load from test/resources as string
@@ -158,6 +197,43 @@ public class BatsModelControllerMvcIT {
         return new String(
             Files.readAllBytes(Paths.get("src", "test", "resources", filename))
         );
+    }
+
+    /**
+     * Constructs an input JSON-LD for creating an example model.
+     * Comes from "A Simple Example" at https://json-ld.org/
+     * The JSON-LD retrieved after uploading is found in the
+     * simpleOutputJSONLD() method
+     *
+     * @return JSOND-LD as string
+    */
+    private String simpleInputJSONLD() throws IOException {
+        return getFileDataFromTestResources("simple.input.jsonld");
+    }
+
+    /**
+     * Constructs the output JSON-LD we get back from the API from the one.
+     * created in the simpleInputJSONLD() method.
+     *
+     * @return JSOND-LD as string
+    */
+    private String simpleOutputJSONLD() throws IOException {
+        return getFileDataFromTestResources("simple.output.jsonld");
+    }
+
+    /**
+     * Returns a JsonNode used for updating the simple JSON-LD model.
+     *
+     * @return JsonNode to use for updating the simple json-ld model
+     */
+    private JsonNode getSimpleUpdateNode() {
+        ObjectNode updateNode = MAPPER.createObjectNode();
+        updateNode.put("@id", "http://localhost/beatles/member/1");
+        updateNode.put("homepage", "https://dbpedia.org/page/Ringo_Starr");
+        updateNode.put("name", "Ringo Starr");
+        updateNode.put("spouse", "https://dbpedia.org/page/Barbara_Bach");
+        updateNode.put("birthDate", "1940-07-07");
+        return updateNode;
     }
 
     /**
@@ -204,30 +280,22 @@ public class BatsModelControllerMvcIT {
             dummyTimestampStr.replace(' ', 'T'));
 
         // create dataset and make model URI
-        String datasetJson = getDatasetData(datasetTitle);
-        String response = mockMvc.perform(post(getDatasetUri())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(datasetJson))
-            .andExpect(status().isCreated())
-            .andReturn().getResponse().getContentAsString();
-        final String title = MAPPER.readTree(response).get("title").asText();
+        String title = createDataset(datasetTitle);
         final String modelUri = getModelUri(title);
 
         // create model with POST
         String sampleJson = getFileDataFromTestResources(jsonld);
+
         if (userIncludesTimestamps) {
             sampleJson = MAPPER.readValue(sampleJson, ObjectNode.class)
                 .put("created", dummyTimestampStr)
                 .put("modified", dummyTimestampStr)
                 .toString();
         }
-        response = mockMvc.perform(post(modelUri)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(sampleJson))
-            .andExpect(status().isCreated())
-            .andReturn().getResponse().getContentAsString();
+
+        String response = createModel(modelUri, sampleJson);
         JsonNode json = MAPPER.readTree(response);
-        final String modelUpdateUri = modelUri + json.get("uuid").asText();
+        final String modelUpdateUri = modelUri + "/" + json.get("uuid").asText();
 
         // get last element of @graph node, this is the metadata node we want
         json = getMetadataNode(json);
@@ -370,8 +438,11 @@ public class BatsModelControllerMvcIT {
      * @param data TestData object containing relevant data from generic POST request
      * @throws Exception
      */
-    private void timestampTestSimpleUpdate(final boolean userIncludesTimestamps,
-        final String jsonld, final TestData data) throws Exception {
+    private void timestampTestSimpleUpdate(
+            final boolean userIncludesTimestamps,
+            final String jsonld,
+            final TestData data
+        ) throws Exception {
         /////////// update model with PUT ////////////////
         final String updateKey = "name";
         String updateValue = "Norton I, Emperor of the United States";
@@ -559,6 +630,55 @@ public class BatsModelControllerMvcIT {
             jsonld
         );
         timestampTestSimpleUpdate(userIncludesTimestamps, jsonld, data);
+    }
+
+    /**
+     * Test to partial update for a Model using a simple JSON-LD.
+    */
+    @Test
+    public void testUpdateSimpleFullModelPartial() throws Exception {
+        String datasetTitle = createDataset("testUpdateSimpleModelPartial");
+        final String modelUri = getModelUri(datasetTitle);
+        String response = createModel(modelUri, simpleInputJSONLD());
+        JsonNode json = MAPPER.readTree(response);
+        final String modelUpdateUri = modelUri + "/" + json.get("uuid").asText();
+
+        // Create body for our update to the model
+        JsonNode newNameNode = getSimpleUpdateNode();
+
+        ArrayNode newGraphArray = MAPPER.createArrayNode();
+        newGraphArray.add(newNameNode);
+
+        ObjectNode newGraphNode = MAPPER.createObjectNode();
+        newGraphNode.set("@graph", newGraphArray);
+
+        String newName = MAPPER.writeValueAsString(newGraphNode);
+
+        // Send the update
+        response = mockMvc.perform(patch(modelUpdateUri)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(newName))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        json = MAPPER.readTree(response);
+
+        // Merge payload with model for target we verify against
+        JsonNode originalJson = MAPPER.readTree(simpleOutputJSONLD());
+        JsonNode newNameJson = MAPPER.readTree(newName);
+        JsonNode target = JsonUtils.merge(originalJson, newNameJson);
+
+        // Ensure the update modified the data
+        String id = "http://localhost/beatles/member/1";
+        Assertions.assertEquals(
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) target.get("@graph")
+            ),
+            JsonUtils.getIdFromArrayNode(
+                id,
+                (ArrayNode) json.get("model").get("@graph")
+            )
+        );
     }
 
 }

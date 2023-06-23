@@ -83,3 +83,4 @@ services:
     ports:
       - "8082:8083"
     command: "java -jar /app.jar --spring.data.mongodb.username=$MONGO_USERNAME --spring.data.mongodb.password=$MONGO_PASSWORD --server.port=8084"
+

@@ -40,7 +40,6 @@ public class SecurityConfig {
      * */
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
-
         // Do nothing if not using keycloak type authorization
         if (applicationConfig.getAuthorization().equals(AuthorizationType.KEYCLOAK)) {
 
@@ -62,9 +61,14 @@ public class SecurityConfig {
             .jwt();
             */
         } else if (applicationConfig.getAuthorization().equals(AuthorizationType.NONE)) {
-            http.authorizeHttpRequests(
-                authorizeRequests -> authorizeRequests.anyRequest().permitAll()
-            );
+
+            // Permit all requests, no authN/Z
+            http.authorizeHttpRequests((authz) -> authz
+                .anyRequest()
+                .permitAll()
+            )
+            .csrf()
+            .disable();
         }
 
         return http.build();

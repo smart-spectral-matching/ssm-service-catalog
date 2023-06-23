@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -80,7 +79,7 @@ public class BatsDatasetControllerIT {
      * @return base Dataset URI for POSTing (with trailing slash)
      */
     private String getDatasetUri() {
-        return servletContext.getContextPath() + "/datasets/";
+        return servletContext.getContextPath() + "/datasets";
     }
 
     /**
@@ -124,7 +123,7 @@ public class BatsDatasetControllerIT {
 
         // Test using the returned title from POST
         String responseLower = mockMvc.perform(
-            get(getDatasetUri() + titleLower)
+            get(getDatasetUri() + "/" + titleLower)
                 .contentType(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
@@ -137,7 +136,7 @@ public class BatsDatasetControllerIT {
 
         // Test case-insenstive
         String response = mockMvc.perform(
-            get(getDatasetUri() + title)
+            get(getDatasetUri() + "/" + title)
                 .contentType(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
@@ -177,16 +176,9 @@ public class BatsDatasetControllerIT {
      * Test to create a Dataset.
     */
     @Test
-    @WithAnonymousUser
     public void testCreateDataSet() throws Exception {
         String title = "testCreateDataset-foo";
         String datasetJson = getDatasetData(title);
-
-        System.out.println("\n\n");
-        System.out.println("Dataset title: " + title);
-        System.out.println("Dataset JSON body: " + datasetJson);
-        System.out.println("Auth Type: " + applicationConfig.getAuthorization());
-        System.out.println("\n\n");
 
         String response = mockMvc.perform(post(getDatasetUri())
         .contentType(MediaType.APPLICATION_JSON)

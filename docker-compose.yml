@@ -1,35 +1,5 @@
 version: '3'
 services:
-  ssm-postgres:
-    image: postgres
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_PASSWORD: postgres
-
-  ssm-keycloak:
-    image: keycloak
-    restart: unless-stopped
-    depends_on:
-      - ssm-postgres
-    ports:
-      - "8080:8080"
-    environment:
-      FEDERATE_LDAP: "true"
-      GOOGLE_CLIENT_ID: XXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com
-      GOOGLE_IDP: "true"
-      GOOGLE_SECRET: XXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-      HOSTNAME: ssm-keycloak
-      KC_DB: postgres
-      KC_DB_PASSWORD: postgres
-      KC_DB_URL: jdbc:postgresql://ssm-postgres:5432/
-      KC_DB_USERNAME: postgres
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      LDAP_URL: ldaps://LDAP_HOST
-      USERSDN: "dc=example,dc=com"
-
   ssm-fuseki:
     build:
       context: ./src/main/docker
@@ -69,7 +39,6 @@ services:
     depends_on:
       - ssm-fuseki
       - ssm-document-store
-      - ssm-keycloak
     ports:
       - "8082:8080"
     command: "java -jar /app.jar --spring.data.mongodb.username=$MONGO_USERNAME --spring.data.mongodb.password=$MONGO_PASSWORD --server.port=8080"
