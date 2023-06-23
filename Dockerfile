@@ -8,6 +8,7 @@ COPY *.xml ${APP_DIR}/
 RUN mvn -f ${APP_DIR}/pom.xml verify clean --fail-never
 COPY src ${APP_DIR}/src
 RUN mvn -f ${APP_DIR}/pom.xml -P ${PROFILE} package -Dmaven.test.skip=true
+CMD ["mvn", "clean", "docker:build", "verify"]
 
 FROM eclipse-temurin:17-alpine
 COPY --from=build /home/app/target/*.jar app.jar

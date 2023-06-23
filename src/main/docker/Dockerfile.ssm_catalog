@@ -1,9 +1,0 @@
-FROM maven:3.6-openjdk-11-slim
-ARG APP_DIR="/home/app"
-WORKDIR ${APP_DIR}
-COPY *.xml ${APP_DIR}/
-RUN mvn -f ${APP_DIR}/pom.xml verify clean --fail-never
-COPY src ${APP_DIR}/src
-EXPOSE 8080
-CMD ["mvn", "clean", "docker:build", "verify"]
-
