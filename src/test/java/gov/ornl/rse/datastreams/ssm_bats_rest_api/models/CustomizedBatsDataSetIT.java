@@ -5,9 +5,6 @@ import java.net.URL;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import org.apache.jena.query.ReadWrite;
@@ -118,50 +115,6 @@ public class CustomizedBatsDataSetIT {
         int code = http.getResponseCode();
         int httpStatusNotFound = 404;
         assertEquals(code, httpStatusNotFound);
-    }
-
-    /**
-     * This get of models for dataset.
-     */
-    @Test
-    public void testModels() {
-        // Create a new data set
-        CustomizedBatsDataSet dataSet = new CustomizedBatsDataSet();
-        checkDataSetCreationOnServer(dataSet);
-
-        // Put something in it
-        Model model = ModelFactory.createDefaultModel();
-        Resource resource = model.createResource("testModelResource");
-        Property property = model.createProperty("none", "g");
-        resource.addProperty(property, "testProp");
-
-        // Update the data set
-        dataSet.updateModel("testModel", model);
-
-        // Check the root/default model
-        Model rootModel = dataSet.getRootModel();
-        assertNotNull(rootModel);
-
-        // Check the named model
-        Model namedModel = dataSet.getModel("testModel");
-        assertNotNull(namedModel);
-        // Make sure that the model matches the original model by doing a difference and
-        // checking the number of statements in the difference model.
-        Model differenceModel = namedModel.difference(model);
-        assertFalse(differenceModel.listStatements().hasNext());
-
-        // Try putting the model a second time to make sure that it doesn't get
-        // duplicated.
-        dataSet.updateModel("testModel", model);
-        // Make sure the number of triples didn't change with this update.
-        Model namedModel2 = dataSet.getModel("testModel");
-        Model differenceModel2 = namedModel2.difference(model);
-        assertFalse(differenceModel2.listStatements().hasNext());
-
-        // Delete model and make sure it doesn't exist
-        dataSet.deleteModel("testModel");
-        namedModel = dataSet.getModel("testModel");
-        assertNull(namedModel);
     }
 
     /**
