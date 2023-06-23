@@ -11,6 +11,12 @@
 		"modified": "XXXX-XX-XX XX:XX:XX"
 	}],
 	"@context": {
+		"created": {
+			"@id": "http://purl.org/dc/terms/created"
+		},
+		"modified": {
+			"@id": "http://purl.org/dc/terms/modified"
+		},
 		"birthDate": {
 			"@id": "http://schema.org/birthDate",
 			"@type": "http://www.w3.org/2001/XMLSchema#date"
@@ -19,19 +25,12 @@
 			"@id": "http://schema.org/spouse",
 			"@type": "@id"
 		},
-		"name": {
-			"@id": "http://xmlns.com/foaf/0.1/name"
-		},
-		"created": {
-			"@id": "http://purl.org/dc/terms/created"
-		},
-		"modified": {
-			"@id": "http://purl.org/dc/terms/modified"
-		},
 		"homepage": {
 			"@id": "http://xmlns.com/foaf/0.1/homepage",
 			"@type": "@id"
 		},
-		"xsd": "http://www.w3.org/2001/XMLSchema#"
+		"name": {
+			"@id": "http://xmlns.com/foaf/0.1/name"
+		}
 	}
 }
