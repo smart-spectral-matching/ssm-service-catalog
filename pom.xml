@@ -52,6 +52,12 @@
       </properties>
     </profile>
     <profile>
+      <id>keycloak</id>
+      <properties>
+        <activatedProperties>keycloak</activatedProperties>
+      </properties>
+    </profile>
+    <profile>
       <id>qa</id>
       <properties>
         <activatedProperties>qa</activatedProperties>

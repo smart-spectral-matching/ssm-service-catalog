@@ -30,6 +30,11 @@ you can also pass in a different one via the command line:
 bash bin/post-seed-data.sh <server:port>
 ```
 
+If Keycloak security is turned on, navigate to localhost:8080/token in a web browser to get a token.
+```
+bash bin/post-seed-data.sh <server:port> <token>
+```
+
 The files uploaded are hard-coded into the script.
 
 ### Linting
@@ -100,6 +105,14 @@ docker compose up
 ```
 
 A sample Docker image for Keycloak can be found in the Deployments repo and must be built seprately. To activate the OIDC authentication, set the values in the appropriate application-foo.properties file appropriately use the sample values in the base application.properties file.
+
+If you want to run the stack locally, instead run
+
+```
+docker-compose up -f docker-compose-local.yml
+```
+
+This will launch with a configuration suited to all services being launched and accessed from localhost.
 
 #### Testing
 
