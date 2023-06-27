@@ -11,6 +11,7 @@ RUN mvn -f ${APP_DIR}/pom.xml -P ${PROFILE} package -Dmaven.test.skip=true
 CMD ["mvn", "clean", "docker:build", "verify"]
 
 FROM eclipse-temurin:17-alpine
+ENV AUTHENTICATION_TYPE="none"
 COPY --from=build /home/app/target/*.jar app.jar
 EXPOSE 8080
-CMD ["java","-jar","/app.jar"]
+CMD ["java","-jar","/app.jar", "--app.authentication=${AUTHENTICATION_TYPE}"]

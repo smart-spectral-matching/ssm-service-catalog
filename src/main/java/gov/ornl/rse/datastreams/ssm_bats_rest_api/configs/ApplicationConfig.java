@@ -62,9 +62,9 @@ public class ApplicationConfig {
     }
 
     /**
-     * The authorization type. Valid values are "none" and "keycloak".
+     * The authentication type. Valid values are "none" and "keycloak".
      */
-    private String authorization;
+    private String authentication;
 
     /**
      * <p>
@@ -83,12 +83,12 @@ public class ApplicationConfig {
     private final Fuseki fuseki = new Fuseki();
 
     /**
-     * Getter for the Authorization type.
+     * Getter for the authentication type.
      *
-     * @return The authorization type the API will use.
+     * @return The authentication type the API will use.
      */
-    public AuthorizationType getAuthorization() {
-        return EnumUtils.getEnumIgnoreCase(AuthorizationType.class, authorization);
+    public AuthenticationType getAuthentication() {
+        return EnumUtils.getEnumIgnoreCase(AuthenticationType.class, authentication);
     }
 
     /**
@@ -99,12 +99,12 @@ public class ApplicationConfig {
     }
 
     /**
-     * Setter for the authorization type.
+     * Setter for the authentication type.
      *
-     * @param authorization
+     * @param authentication
      */
-    void setAuthorization(final String authorization) {
-        this.authorization = authorization;
+    void setAuthentication(final String authentication) {
+        this.authentication = authentication;
     }
 
     /**

@@ -1,15 +1,15 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
 /**
- * The type of authorization the API will apply.
+ * The type of authentication the API will apply.
  *
  * @author Robert Smith
  *
  */
-public enum AuthorizationType {
+public enum AuthenticationType {
 
     /**
-     * NONE- No authorization required.
+     * NONE- No authentication required.
      * KEYCLOAK- OIDC authentication through Keycloak.
     */
     NONE, KEYCLOAK

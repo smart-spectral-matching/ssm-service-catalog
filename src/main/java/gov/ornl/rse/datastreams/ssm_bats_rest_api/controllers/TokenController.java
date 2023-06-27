@@ -40,10 +40,11 @@ public class TokenController {
      */
     @RequestMapping(value = "", method = RequestMethod.GET)
     public ResponseEntity getToken() {
-
         // Get the current user
         Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();
+
+        System.out.println("\n\nPrincipal: " + authentication.getPrincipal() + "\n\n");
 
         // If the user is an OIDC user, display the OIDC JWT tokens
         if (authentication.getPrincipal() instanceof OidcUser) {
@@ -71,7 +72,7 @@ public class TokenController {
             // Construct the return content with the tokens and usage instructions
             contents = contents + "\n Refresh Token = " + refreshToken + "\n Access Token = "
                 + accessToken
-                + "\n To manually use this token: \n curl -H \"Authorization: Bearer "
+                + "\n To manually use this token: \n curl -H \"Authentication: Bearer "
                 + token + "\" "
                 + ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
                 + "/proflie";

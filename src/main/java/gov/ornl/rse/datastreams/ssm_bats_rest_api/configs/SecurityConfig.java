@@ -40,8 +40,8 @@ public class SecurityConfig {
      * */
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
-        // Do nothing if not using keycloak type authorization
-        if (applicationConfig.getAuthorization().equals(AuthorizationType.KEYCLOAK)) {
+        // Do nothing if not using keycloak type authentication
+        if (applicationConfig.getAuthentication().equals(AuthenticationType.KEYCLOAK)) {
 
             // Create a logout handler
             OidcClientInitiatedLogoutSuccessHandler handler =
@@ -49,18 +49,14 @@ public class SecurityConfig {
             handler.setPostLogoutRedirectUri(applicationConfig.getHost() + "token/");
 
             // Configure the request matcher to secure all pages except logon
-            /*
-            http.authorizeRequests(authorizeRequests -> authorizeRequests
-                    .antMatchers("/logon").permitAll()
+            http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
                     .anyRequest().authenticated()
             )
-
             .oauth2Login(e -> e.permitAll())
             .logout(e -> e.logoutSuccessHandler(handler))
             .oauth2ResourceServer()
             .jwt();
-            */
-        } else if (applicationConfig.getAuthorization().equals(AuthorizationType.NONE)) {
+        } else if (applicationConfig.getAuthentication().equals(AuthenticationType.NONE)) {
 
             // Permit all requests, no authN/Z
             http.authorizeHttpRequests((authz) -> authz
