@@ -40,5 +40,5 @@ services:
       - ssm-fuseki
       - ssm-document-store
     ports:
-      - "8082:8080"
+      - "8080:8080"
     command: "java -jar /app.jar --spring.data.mongodb.username=$MONGO_USERNAME --spring.data.mongodb.password=$MONGO_PASSWORD --server.port=8080"
