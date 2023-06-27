@@ -1,6 +1,16 @@
 version: '3'
 services:
-  keycloak:
+  postgres:
+    container_name: ssm-postgres
+    image: postgres
+    restart: unless-stopped
+    network_mode: "host"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+
+  ssm-keycloak:
     image: keycloak-keycloak
     container_name: ssm-keycloak
     restart: unless-stopped
@@ -22,15 +32,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       LDAP_URL: ldaps://LDAP_URL
       USERSDN: "dc=example,dc=com"
-  postgres:
-    container_name: ssm-postgres
-    image: postgres
-    restart: unless-stopped
-    network_mode: "host"
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_PASSWORD: postgres
+    depends_on:
+      - postgres
 
   ssm-fuseki:
     network_mode: "host"
@@ -60,7 +63,7 @@ services:
     depends_on:
       - ssm-document-store
     ports:
-      - "8081:8081"
+      - "8082:8081"
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@localhost:27017/
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME}
@@ -79,8 +82,5 @@ services:
     depends_on:
       - ssm-fuseki
       - ssm-document-store
-#      - ssm-keycloak
-    ports:
-      - "8082:8083"
     command: "java -jar /app.jar --spring.data.mongodb.username=$MONGO_USERNAME --spring.data.mongodb.password=$MONGO_PASSWORD --server.port=8084"
 
