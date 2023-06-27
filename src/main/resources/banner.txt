@@ -1,77 +1,42 @@
-
-${AnsiColor.YELLOW}                                        .@8t8@8%SX8X8@;8@S@%88%@t888%Xt 8.@X:.
-${AnsiColor.YELLOW}                                    t;:.%t:t%SS;%;%;;X%t%t8;S;t8t;S;%t%;.Xt8S:.:;t.
-${AnsiColor.YELLOW}                                8X888;@8:8;%8%8.X8;8X%8t8St8%8%%8;8;%8t8.%8;888.t.
-${AnsiColor.YELLOW}                                :S:   X;t@;@;%8t@%t8S8tt8t8tt8t8t%8tX;%8%Xt:  ::.S:.
-${AnsiColor.YELLOW}                                .:.t8%%88;;888;t88@XS888@%S88@tS8@S%888S%88@%;%%::.
-${AnsiColor.YELLOW}                                .%tX8:XX@S%S8X%%SX8X%SS8S%@S8XX@X8XS%S8S%SX8X%88;.
-${AnsiColor.YELLOW}                                .::.   .:::  .:..;:::.:;;:.;:;:.::;:.::;:.::..::.
-${AnsiColor.YELLOW}                                ..  %t8%%8%@X.8S;8;8%;8;8St8;8%t8;8%t8t8%t%8..
-${AnsiColor.YELLOW}                                    :::tX8t8%%8%8t%Xt8%%8t8%%@t8%%Xt8t%S;8S..
-${AnsiColor.YELLOW}                                    ...:.@SX:8S;;88X:tX8S;tX@%XtX8SSSX8%.;tS.
-${AnsiColor.YELLOW}                                        :8 t%@8;8;:8%8%:8%8t8X.8%@@:8t@8;@X%.
-${AnsiColor.YELLOW}                                            .St:8S@t%8tSt%@;@S;8S@%t8tXX.SS::
-${AnsiColor.YELLOW}                                            .S88;@;S8%8tS8t8;%8X8tS8tX;S;8;
-${AnsiColor.YELLOW}                                            %S8;tt8@8S%88t:t8@%:8@8;:88SS.
-${AnsiColor.YELLOW}                                            ...S@:8SX%%88@@t888%tSXX;;:@:.
-${AnsiColor.YELLOW}                                            ..t;@S:8;8;:8%8%S8;8tXS.88.
-${AnsiColor.YELLOW}                                            .:.:Xtt8SX;t8t@:;XtXtt@t: .
-${AnsiColor.YELLOW}                                                ..888;%88%%;tS%8:S8;8.
-${AnsiColor.YELLOW}                                                :X;XX88t;8.%%.:;SS8t.
-${AnsiColor.YELLOW}                                                . .;:;;:. .:.....;;.
-${AnsiColor.YELLOW}                                                    .  .  ..  ...
-${AnsiColor.YELLOW}                                                        . .  .
-${AnsiColor.YELLOW}                                                    :%t8@88;88X8;%t:.
-${AnsiColor.YELLOW}                                                    ::;@88SX@S@@@;;:
-${AnsiColor.YELLOW}                                                    tX;88S8.88S@;8@;.
-${AnsiColor.YELLOW}                                                t;8 8X;8 8t%8.8SX:t.
-${AnsiColor.YELLOW}        :::;.:::;.:::;.;:.;.:::;.:::;.::...    .;::St8tt@S8%t8%@t;;:.    . .;.:::;.;:.;.;:.;.;:.;.;::;.:::;:
-${AnsiColor.YELLOW}        :St8;8;%8;8;%8;8:%8;8;%8;8;S8;8;%@%S.   .:.%8tSt8tX;t8 %8t%;:    :%88;8;%8t8;t8t8;t8t8;%8;8:%8;8;%8t8;.
-${AnsiColor.YELLOW}        :SSX8 8tXt 8;X8 8tXt 8tX8 8tX8 8SS@S;.   :;%t@X%X8.8tX8;%%%%..  .;%X88 8tX8 8tX8.8tX8 8tXt 8tS8 8tXS.
-${AnsiColor.YELLOW}        .8888;8@;8%8XS8%8Xt8%8X;8S8S;8X88@Xt..  .......:.t%.@t  :.::.  ...S@X8;8@%@;88@8;@X%@S8X;8S8Xt@;@X;8;
-${AnsiColor.YELLOW}        ;S8X @;8X.8t88.8;@S.8%8S 8t88:8;S8.X%S:   .. .S%XS.Xt:S;.. . ..;S%;t8;8;@8;@;%8:X;@S @t8S 8%@8:@t88;@:
-${AnsiColor.YELLOW}        ::...;. .::..;;;:..:;. .::..;;;:  ..::.      ..:; .  ...      ..::..:;;..::::.::;.. .;. .:;:.:::..%::.
-${AnsiColor.YELLOW}        .S88%@S8@X8Xt8X8S88;8X8@S8S%8S8Xt@X8Xt%8: .   ..           . @t8t@S%8X8Xt8X8X%8@8X;XS8S88;8St8X8XS%St.
-${AnsiColor.YELLOW}        :XXSt.@S8S:8%8S:@%8t:@S8S:8%8S:8t8S:8S:S;St..             :S:;:S8%8t88t8%8;.8t8:.8t8S:X%8t:8t@St8%t@t:
-${AnsiColor.YELLOW}        .:;t8:@8S8;@@t8:@X;8:@@t8:8@t8;88X8:@8t%S::               :::%S88 @8tX:@8:8%88%8;X8t8:@8t8;@8;8:88....
-${AnsiColor.YELLOW}        .Xt8.8%;8 8.:8.8 SS 8t:8 8.;8.8tS8:8;;S8X:.               ..:88:t8%@X 8X;8%8.%8:8:t8tX :8.8St8 8S;:@t.
-${AnsiColor.YELLOW}        .:::%%8%;@%8;;8t8t;XS8;;8t8;;8t8%;X;t:::::                  .  .tt8%:8t@t;8%Xt;@tS;%8tX;;8%8t:8tX:.:..
-${AnsiColor.YELLOW}        . 8;t8%@;8tS8t@;%8%@ %8%@;S8:8%S8%888;..                      8%t8S8.8@%8t@t%8t8%S8t8;%8.8@%8:888;..
-${AnsiColor.YELLOW}            :88S8@tS%88tX;88tXt88;Xt88tS%8X%tXS                         ;88;@8S8%@XX@t@8 8%XXX8t88S8%88%SXS
-${AnsiColor.YELLOW}            .;.@%88;@@88;8X88:8888;8888;@@t;;:                          :;..;88;S@@;.888%:8@@t.8888;S8@8t:
-${AnsiColor.YELLOW}            :S8::8:%8;8:SS:8;S8;8.%8;8.t;S;.                             tt8 8 ;8.8 t8:8 ;8.8 t8t8.t@@8:
-${AnsiColor.YELLOW}            .:t8X8;%8t8SS8@8;t@:8SS@t8%:%:.                            .;;S8@8%S8%8%X8t8%S8S8%S@t88:%%:
-${AnsiColor.YELLOW}                :%t%%8;8.t8X8;S8:8%%88@88;..                             ...X88SX.S8X%8 8%t8:8t%8:8%t::.
-${AnsiColor.YELLOW}                .:8;X@S%Xt8S;S%88%8S888888t.                                .%88X@;%SX@8SXX@8t8t88SXS@..
-${AnsiColor.YELLOW}                ...::.:;;.%8SXS88S%t;;;;;.                                 .:: ;. %:@XS8;X88tt..%t::.
-${AnsiColor.YELLOW}                . ::St@S8;S8tS@t888tt:.                                    .  ;:@8X8S8:X:SXt888;;:.
-${AnsiColor.YELLOW}                    .:...  :%t%:;X:.;:t:                                        %;:;t@;;S;%;   .....
-${AnsiColor.YELLOW}                    .      :t:@8888:....                                       .....tX88S;;;
-${AnsiColor.YELLOW}                            :.X8X8@:.                                              .:X8@Xt:.
-${AnsiColor.YELLOW}                            :::;;:.                                               ..:;::.
-${AnsiColor.YELLOW}                            . .                                                   .
-
-                            ${AnsiColor.RED}        #####  #     #    #    ######  #######
-                            ${AnsiColor.RED}       #     # ##   ##   # #   #     #    #
-                            ${AnsiColor.RED}       #       # # # #  #   #  #     #    #
-                            ${AnsiColor.RED}        #####  #  #  # #     # ######     #
-                            ${AnsiColor.RED}             # #     # ####### #   #      #
-                            ${AnsiColor.RED}       #     # #     # #     # #    #     #
-                            ${AnsiColor.RED}        #####  #     # #     # #     #    #
-
-                            ${AnsiColor.GREEN}  #####  ######  #######  #####  ####### ######     #    #
-                            ${AnsiColor.GREEN} #     # #     # #       #     #    #    #     #   # #   #
-                            ${AnsiColor.GREEN} #       #     # #       #          #    #     #  #   #  #
-                            ${AnsiColor.GREEN}  #####  ######  #####   #          #    ######  #     # #
-                            ${AnsiColor.GREEN}       # #       #       #          #    #   #   ####### #
-                            ${AnsiColor.GREEN} #     # #       #       #     #    #    #    #  #     # #
-                            ${AnsiColor.GREEN}  #####  #       #######  #####     #    #     # #     # #######
-
-                            ${AnsiColor.BLUE} #     #    #    #######  #####  #     # ### #     #  #####
-                            ${AnsiColor.BLUE} ##   ##   # #      #    #     # #     #  #  ##    # #     #
-                            ${AnsiColor.BLUE} # # # #  #   #     #    #       #     #  #  # #   # #
-                            ${AnsiColor.BLUE} #  #  # #     #    #    #       #######  #  #  #  # #  ####
-                            ${AnsiColor.BLUE} #     # #######    #    #       #     #  #  #   # # #     #
-                            ${AnsiColor.BLUE} #     # #     #    #    #     # #     #  #  #    ## #     #
-                            ${AnsiColor.BLUE} #     # #     #    #     #####  #     # ### #     #  #####
-
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNXK00OOOOOO00KXNWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNKOdlc;'...        ...',:ldkKNWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXOo:'.                          .':okKWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMN0d;.                                    .;oONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMWKkc.                                           'o0WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMNOo:,'..                            ....        .,cd0WWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMWNOl;,,,,,'.                        .lkKXXKkc'.':okKNX0xl::dXMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNK0OkkkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxkKMMMMMMMMMMMMWXK0OkkxxxxxxxxxxxxxxxxxxxxxxxxxxkkkxxONMMMMMNOxxxxxxkXMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWKkxkxxxONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMNOl;,,,,,,,''.                      ;KMMMMMMMWXKNNKxl;'.     'xNMMMMMMMMMMMMMMMMMMMMMMMNOo;'..                                   lWMMMMMMMWXxc,..                                   'OMMMMM0'       'xNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMXo.      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMWKo;,,,,,,,,,,,'..                   .kMMMMMMMMMMKl'.            ,OWMMMMMMMMMMMMMMMMMMMWO;                                         lWMMMMMMXo.                                        .OMMMMMO'        .cKMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWO,        .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMNx:,,,,,,,,,,,,,,''.                  .xMMMMMMMMMMd.               .oNMMMMMMMMMMMMMMMMMMO.          ................................oWMMMMMNc          ................................,0MMMMMO.          'xNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMXo.         .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMXc....',,,,,,,,,,,,,'.                  'kNMMMMMMNx.                  :KMMMMMMMMMMMMMMMMNc       .:k000000000000000000000000000000000NMMMMMMO.       'dO00000000000000000000000000000000KWMMMMMO.            cKMMMMMMMMMMMMMMMMMMMMMMMMMMMMWO;           .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMK;     ...',,,,,,,,,,,,..                 .OMN0Oko,                     ;0MMMMMMMMMMMMMMMX;       ,0MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMx.       oWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMO.             'xNMMMMMMMMMMMMMMMMMMMMMMMMMNo.            .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMK;         ...',,,,,,,,','.                lNNo.                          ,KMMMMMMMMMMMMMMX:       '0MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMk.       oWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMO.              .cKMMMMMMMMMMMMMMMMMMMMMMW0;              .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMXc             ...',,,,,,,,'.              :XWx.                            :XMMMMMMMMMMMMMWl        ,oddddddddddddddddddddddddxxkO0XWMMMMMMMMM0'       .cddddddddddddddddddddddddxxkO0KNMMMMMMMMMO.                'kNMMMMMMMMMMMMMMMMMMMNd.       .       .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMWo                 ...',,',,,'..           ,0WO.                              lNMMMMMMMMMMMMM0,                                     ..,lONMMMMMMWd.                                    ..':dKWMMMMMO.      'd:        .cKMMMMMMMMMMMMMMMMW0;        :d'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMO.                    ...',,,,,'.         .OW0,                               .kMMMMMMMMMMMMMMKo.                                        ;OWMMMMMWk;.                                       .oXMMMMO.      '0Nx.        'kWMMMMMMMMMMMMMNd.       .xN0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMNl                        ...',,,'.       .xWX:                                 lNMMMMMMMMMMMMMMWXko:,'...........................         'OMMMMMMMW0dc;'............................         lNMMMO.      '0MWK:        .cKMMMMMMMMMMM0:        :0WM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMM0'                           ...','..   ..oNNl                        ...',;:codONMMMMMMMMMMMMMMMMMMMWNXXKKKKKKKKKKKKKKKKKKKKKKKKKO:        lWMMMMMMMMMMWNNXXKKKKKKKKKKKKKKKKKKKKKKKK0d.       '0MMMO.      '0MMMNx.        'kWMMMMMMMNx.       .dNMMM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMx.                              ...';cx0KXWM0,               ...,;:cldxkO0000000KNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMO.       :NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWc       .kMMMO.      '0MMMMWK:        .lKMMMMMK:        :0WMMMM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMWo                                  :0WMMMMMMW0;    ...';:cloxkO000KK0000000000000XMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMO.       :NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWc       .kMMMO.      '0MMMMMMNx.        'kWMNx.       .dNMMMMMM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMWc                                 .kMMMMMMMMMMKolodxkO000K00000000000000000000000XWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMO.       :NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWc       .kMMMO.      '0MMMMMMMWK:        .lkc        :0WMMMMMMM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMNc                               .'oXMMMMMMMMMWXOkOOO00000000000000000000000000000XWMMMMMMMMMMMMNKK00KKKKKKKKKKKKKKKKKKKKKKKKKKKK00k:        lWMMMMWX0KKKKKKKKKKKKKKKKKKKKKKKKKKK000K00d.       '0MMMO.      '0MMMMMMMMMNx.                .dNMMMMMMMMM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMWl               .          .':ox0XNXNMMMMMMMMXkooododdxxxkkOOO0000000000000000000XMMMMMMMMMMMMWo..................................         '0MMMMM0,.................................          lNMMMO.      '0MMMMMMMMMMW0:              ;0WMMMMMMMMMM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMx.          .lxO00ko' ..;lx0NNKko:'.'lOKNNX0kdllllloooooooooodddxxxxkOOO00000000KNMMMMMMMMMMMMWl                                          ;0WMMMMMO.                                         .dNMMMMO.      '0MMMMMMMMMMMMNx.          .dNMMMMMMMMMMMM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMM0'         cXMMMMMMMN00NNKkoc,.        ,ooc:;:cllllllloooooooooooooooooodddxxkkk0NMMMMMMMMMMMMWl                                     ..;lONMMMMMMMO.                                    ..,cxXMMMMMMO'      '0MMMMMMMMMMMMMMK:        ;0WMMMMMMMMMMMMM0'      .OMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMNc        ,KMMMMMMMMMW0c,.             'cc:;;;:cllllllllloooooooooooooooooooooooONMMMMMMMMMMMMMKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxkk0KXWMMMMMMMMMMNOxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxkO0XNMMMMMMMMMNOxxxxxxONMMMMMMMMMMMMMMMNOxxxxxxONMMMMMMMMMMMMMMMNOxxxxxxONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMk.       ;KMMMMMMMMMNc               .;cc:;;;;;:lllllllllllooooooooooooooooooodKWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMWl        lXMMMMMMMNd.               'cccc:;;;;;:cllllllllllllooooooooooooooooONMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMX;        cNMNK0Od,                .;cccc:;;;;;;:cllllllllllllllooooooooooookXMMMMMMMMMMMMMMMMXOkkk0NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWWMMMMMMMMMWXOkkk0NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWMMMMMMMMMMMMMMMMMNKNMMMMMWK0NMMMMMMWX0NMMMMMMMMMMMMWMMMMMMMMMMMNKNMMMMMMMXXWMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMM0,      .xWXc..                   .:ccccc;;;;;;;;:llllllllllllllllooooooooxXWMMMMMMMMMMMMMMNxcdkkxockWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNxkWMMMMMMMNxcdkkxockWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM0dKMMMMMMMMMMMMMMMMO:kMMMMMX:.oNMMMMMO,.xMMMMMMMMMMMOdKMMMMMMMMMMO:kMMMMMMWOkWMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMM0,     oNNl                      ,cccccc:;;;;;;;;:clllllllllllllllllooooxXWMMMMMMMMMMMMMMM0;oWMMMWkdXXOOOxdxK0kxdkNMMNOxxxx0WNO00x0Xx,;kXMMMMMM0;oWMMMWkdXXO0OxxxONMMNOxxxxKWMMXkxxxkXW0c'l0N000xOXOxxxxONMk;kMMMMMK:,;xWMMMKc;,dMW0xxxxONW0:'l0NXkxxxkXMO:oOxxdONW00WNOOOkxdONMMXkxxkOk0MMMMMMM
+MMMMMMMMMMMMMK;   cXWd.                     .:cccccc:;;;;;;;;;:cllllllllllllllllllokXWMMMMMMMMMMMMMMMMWkloddkOXWMO,c0K0c,d0KO:oWWxlOKKd;k0;:xkXNO;:0NMMMMMMNxloddkOXWMO,cOKKOllKXockKKxckWOcd0K0olKXl,dXXc;dkKxlkKKx;xMk;kMMMMMK:ox:OMMXllk;dMOlxKXk:oNXl,dKxcd0K0loXO,:OKKd;xWocXK;;kKKk;dWOcd0K0o.lMMMMMMM
+MMMMMMMMMMMMMMXl.;KWk.                      'cccccccc:;;;;;;;;;;:lllllllllllllllloONMMMMMMMMMMMMMMMMMMWNNX0kxoclKO;xMMMd;0MMWlcNW0kkkko'd0;oWMMMXcoWMMMMMMMWNNX0kxocoKk,xMMMM0;dx'cxxxxclKllWMMMWNNMx:OMX:lWMWKkkkkd'oMk;kMMMMMK:oNocKWo:00;dMXkkkkx,cNMx:0K:dMMMMWXWO;xMMMNclWocXK:oMMMWocKllNMMMK;oMMMMMMM
+MMMMMMMMMMMMMMMW0KW0'                      .;cccccccc:;;;;;;;;;;;:clllllllllllllxKWMMMMMMMMMMMMMMMMMMMkc0MMMMMO,dk;kMMMx:0MMWlcX0clOKXk,d0;dMMMMXcoWMMMMMMMxc0MMMMMO,dk,dWMMMO;xk,oK000xkXlcNMMMXkKMx:OMX:oMMKclOKXO,oMk:kMMMMMK:oWXcld:OM0;dNocO0KK:cWMx:0XcoWMMMKkXO;xMMMNclWocXK:dMMMWocXo:KMMMO'lMMMMMMM
+MMMMMMMMMMMMMMMMMMNl                       .:cccccccc::;;;;;;;;;;;:clllllllllld0NWMMMMMMMMMMMMMMMMMMMMXocdxkkdclKO:kMMMxcKMMWolNKclkOkd;cx:xMMMMNo:kXMMMMMMXocdkkkdclKk,cxkOxldNNxlxOkdlOWKolkOxloXMO:lKKcdMMXlckOkd;:KO:kMMMMMK:dWM0:'xWM0:xNo:xOkx::0WO:l0OlokOxcdNO:kMMMNloWocNK:dMMMWocNKolxxxo'oMMMMMMM
+MMMMMMMMMMMMMMMMMMMKl.                     ,cccccccccc:;;;;;;;;;;;;;:llllllldOXWMMMMMMMMMMMMMMMMMMMMMMMWXOkkkOKWMNKNMMMNKWMMMXXWMN0kk0NX0KKNMMMMMN00XMMMMMMMWXOkkkOKWMk;kKkkOXWMMWXOkk0NMMMWKOkOKWMMWKOKNXXMMMN0kkONX0XNKNMMMMMWKXMMMX0WMMWKXMN0kkOXN0KWWKOKWNKOkOKWMNKNMMMWXXMXXWWKXMMMMXKWKk000Kk;xMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMKd,                  .:cccccccccc:;;;;;;;;;;;;;;:cllox0NWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM0o0MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMXxdxxxoxNMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMNkc.               'ccccccccccc:;;;;;;;;;;;;;;;:okKNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXKXWMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMWXkc'           .;cccccccccccc:;;:;;;;;;;:cox0NWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMN0dc,.      .:cccccccccccc:;:;;;;:coxOKNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWKOdl:,,:lllcccccccccllllodkOKXWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
