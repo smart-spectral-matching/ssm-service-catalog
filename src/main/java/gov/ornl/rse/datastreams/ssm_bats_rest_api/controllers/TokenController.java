@@ -62,26 +62,26 @@ public class TokenController {
 
             // Get the JWT tokens
             String token = user.getIdToken().getTokenValue();
-            String contents = "Token = " + token;
+            String contents = "Token = " + token + " <br/>";
             OAuth2AuthorizedClient client =
                     authorizedClientService.loadAuthorizedClient("keycloak", user.getName());
             String refreshToken = client.getRefreshToken().getTokenValue();
             String accessToken = client.getAccessToken().getTokenValue();
 
             // Construct the return content with the tokens and usage instructions
-            contents = contents + "\n Refresh Token = " + refreshToken + "\n Access Token = "
+            contents = contents + "Refresh Token = " + refreshToken + "\n\n Access Token = "
                 + accessToken
-                + "\n To manually use this token: \n curl -H \"Authorization: Bearer "
+                + "<br/> To manually use this token:<br/> curl -H \"Authorization: Bearer "
                 + token + "\" "
                 + ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
-                + "/proflie";
+                + "/profile <br/>";
             return new ResponseEntity(contents, HttpStatus.OK);
 
         } else if (authentication.getPrincipal() instanceof Jwt) {
 
             // If the user authenticated with a JWT, echo back the JWT
             Jwt jwt = (Jwt) authentication.getPrincipal();
-            return new ResponseEntity("\n JWT authenticated \n" + jwt.toString() + "\n",
+            return new ResponseEntity("<br/> JWT authenticated \n" + jwt.toString() + "<br/>",
                     HttpStatus.OK);
         }
 
