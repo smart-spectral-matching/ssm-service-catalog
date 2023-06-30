@@ -16,52 +16,24 @@ public class ApplicationConfig {
      */
     public static class FileConverter {
         /**
-         * Hostname for the file converter service.
+         * URI for the file converter service.
          */
-        private String hostname;
+        private String uri;
 
         /**
-         * File converter service port.
+         * @return File converter server URI
          */
-        private Integer port;
-
-        /**
-         * @return File converter server hostname
-         */
-        public String getHostname() {
-            return hostname;
+        public String getURI() {
+            return uri;
         }
 
         /**
-         * Set the file converter server hostname.
+         * Set the file converter server uri.
          *
-         * @param hostname
+         * @param newUri
          */
-        void setHostname(final String hostname) {
-            this.hostname = hostname;
-        }
-
-        /**
-         * @return File converter server port
-         */
-        public Integer getPort() {
-            return port;
-        }
-
-        /**
-         * Set the file converter server hostname.
-         *
-         * @param port
-         */
-        void setPort(final Integer port) {
-            this.port = port;
-        }
-
-        /**
-         * @return Hostname and port of file converter service
-         */
-        public String getHost() {
-            return hostname + ":" + port;
+        void setURI(final String newUri) {
+            this.uri = newUri;
         }
     }
 
@@ -126,6 +98,18 @@ public class ApplicationConfig {
     private final Fuseki fuseki = new Fuseki();
 
     /**
+     * The JSON-LD -> SSM JSON converion type.
+     * Valid values are "embedded" and "fileconverterservice".
+     *
+     */
+    private String jsonConversion;
+
+    /**
+     * Nested file converter service configuration.
+     */
+    private final FileConverter fileConverter = new FileConverter();
+
+    /**
      * <p>
      * Hostname + port of the REST API server. Examples:
      * </p>
@@ -136,6 +120,7 @@ public class ApplicationConfig {
      * </ul>
      */
     private String host;
+
     /**
      * Getter for the Authorization type.
      *
@@ -143,20 +128,6 @@ public class ApplicationConfig {
      */
     public AuthorizationType getAuthorization() {
         return EnumUtils.getEnumIgnoreCase(AuthorizationType.class, authorization);
-    }
-
-    /**
-     * @return nested Fuseki config
-     */
-    public Fuseki getFuseki() {
-        return fuseki;
-    }
-
-    /**
-     * @return host for the REST API server
-     */
-    public String getHost() {
-        return host;
     }
 
     /**
@@ -169,6 +140,31 @@ public class ApplicationConfig {
     }
 
     /**
+     * Getter for the JsonConversion type.
+     *
+     * @return The authorization type the API will use.
+     */
+    public JsonConversionType getJsonConversion() {
+        return EnumUtils.getEnumIgnoreCase(JsonConversionType.class, jsonConversion);
+    }
+
+    /**
+     * Setter for the json conversion type.
+     *
+     * @param jsonConversion
+     */
+    void setJsonConversion(final String jsonConversion) {
+        this.jsonConversion = jsonConversion;
+    }
+
+    /**
+     * @return host for the REST API server
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
      * Set the fully qualified host of the REST API server. Called internally by
      * Spring, should not be used directly.
      *
@@ -176,5 +172,19 @@ public class ApplicationConfig {
      */
     void setHost(final String host) {
         this.host = host;
+    }
+
+    /**
+     * @return nested Fuseki config
+     */
+    public Fuseki getFuseki() {
+        return fuseki;
+    }
+
+    /**
+     * @return nested File Converter service
+     */
+    public FileConverter getFileConverter() {
+        return fileConverter;
     }
 }
