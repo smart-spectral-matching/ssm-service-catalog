@@ -55,7 +55,15 @@ public class OIDCLoginSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout(e -> e.logoutSuccessHandler(handler))
                 .oauth2ResourceServer()
                 .jwt();
+        } else if (applicationConfig.getAuthorization().equals(AuthorizationType.NONE)) {
+
+            // Permit all requests, no authN/Z
+            http.authorizeHttpRequests((authz) -> authz
+                .anyRequest()
+                .permitAll()
+            )
+            .csrf()
+            .disable();
         }
     }
-
 }
