@@ -1,8 +1,13 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -12,6 +17,14 @@ import java.util.Map;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.jena.query.QueryException;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -44,6 +57,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.JsonConversionType;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
@@ -373,7 +387,7 @@ public class BatsModelController {
         final String datasetTitle,
         final String modelUUID,
         final String jsonldPayload
-    ) throws NoSuchAlgorithmException, IOException {
+    ) throws NoSuchAlgorithmException, ClientProtocolException, IOException {
         // Create abbreviated json
         LOGGER.info("Creating abbreviated json for document store");
         String endpointUrl = fuseki().getHostname() + ":"
@@ -381,9 +395,56 @@ public class BatsModelController {
         + "/" + datasetTitle;
         Model model = modelUtils.getModel(datasetTitle, modelUUID);
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-        String abbrvJson = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
 
-        // Create document
+        // Get JSON-LD -> SSM JSON conversion
+        String abbrvJson = "";
+        if (appConfig.getJsonConversion().equals(JsonConversionType.EMBEDDED)) {
+            // Use internal json converter class, AbbreviatedJson
+            abbrvJson = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
+        } else if (
+            appConfig.getJsonConversion().equals(JsonConversionType.FILE_CONVERTER_SERVICE)
+        ) {
+            // Use parser service to perform json conversion
+            File tmpFile = File.createTempFile("jsonld", ".tmp");
+            BufferedWriter bf = Files.newBufferedWriter(Paths.get(tmpFile.getAbsolutePath()));
+            try {
+                bf.write(jsonldPayload);
+            } finally {
+                bf.close();
+            }
+
+            final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.addBinaryBody("upload_file", tmpFile);
+            final HttpEntity entity = builder.build();
+
+            final String jsonEndpoint = "/convert/json";
+            final String fileConverterUri = appConfig.getFileConverter().getURI() + jsonEndpoint;
+            HttpPost request = new HttpPost(fileConverterUri);
+            request.setEntity(entity);
+
+            HttpClient client = HttpClientBuilder.create().build();
+            try {
+                //Save the parser service's response
+                HttpResponse response = client.execute(request);
+                abbrvJson = IOUtils.toString(
+                    response.getEntity().getContent(),
+                    StandardCharsets.UTF_8
+                );
+            } catch (ClientProtocolException e) {
+                LOGGER.error(UPLOAD_MODEL_ERROR, e);
+                throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to convert using file converter service"
+                );
+            } catch (IOException e) {
+                LOGGER.error(UPLOAD_MODEL_ERROR, e);
+                throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to convert using file converter service"
+                );
+            }
+        }
+         // Create document
         ModelDocument document = new ModelDocument();
         document.setModelId(modelUUID);
         document.setModelJsonld(jsonldPayload);
