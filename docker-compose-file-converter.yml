@@ -46,6 +46,6 @@ services:
     command: "java -jar /app.jar --spring.data.mongodb.username=$MONGO_USERNAME --spring.data.mongodb.password=$MONGO_PASSWORD --server.port=8080"
 
   ssm-file-converter:
-    image: ghcr.io/smart-spectral-matching/ssm-service-file-converter:main-a4b89fb88e351eff06470b030232b6ca81536876
+    image: ghcr.io/smart-spectral-matching/ssm-service-file-converter:catalog-service-test-data-4d170e5ef915759501cb7295d41a605ed834056a
     ports:
       - "8000:8000"
