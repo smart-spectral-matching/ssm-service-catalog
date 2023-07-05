@@ -405,7 +405,7 @@ public class BatsModelController {
             appConfig.getJsonConversion().equals(JsonConversionType.FILE_CONVERTER_SERVICE)
         ) {
             // Use parser service to perform json conversion
-            File tmpFile = File.createTempFile("jsonld", ".tmp");
+            File tmpFile = File.createTempFile("jsonld", ".jsonld");
             BufferedWriter bf = Files.newBufferedWriter(Paths.get(tmpFile.getAbsolutePath()));
             try {
                 bf.write(jsonldPayload);
@@ -430,6 +430,14 @@ public class BatsModelController {
                     response.getEntity().getContent(),
                     StandardCharsets.UTF_8
                 );
+                int status = response.getStatusLine().getStatusCode();
+                if (status != HttpStatus.OK.value()) {
+                    LOGGER.error(UPLOAD_MODEL_ERROR);
+                    throw new ResponseStatusException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "File converter service error; response code: " + status
+                );
+                }
             } catch (ClientProtocolException e) {
                 LOGGER.error(UPLOAD_MODEL_ERROR, e);
                 throw new ResponseStatusException(
