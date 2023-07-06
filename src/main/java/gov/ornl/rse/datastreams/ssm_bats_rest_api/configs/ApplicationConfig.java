@@ -85,6 +85,15 @@ public class ApplicationConfig {
         void setPort(final Integer port) {
             this.port = port;
         }
+
+        /**
+         * Get the Fuseki server URI.
+         *
+         * @return URI of Fuseki
+         */
+        public String getURI() {
+            return this.hostname + ":" + this.port;
+        }
     }
 
     /**
