@@ -36,7 +36,6 @@ jobs:
           context: .
           push: true 
           platforms: linux/amd64,linux/arm64
-          target: production
           tags: |
             ghcr.io/smart-spectral-matching/ssm-service-catalog:${{ github.ref_name }}
             ghcr.io/smart-spectral-matching/ssm-service-catalog:latest
