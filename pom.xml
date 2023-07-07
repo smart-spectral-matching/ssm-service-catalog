@@ -11,9 +11,9 @@
   </parent>
   <groupId>gov.ornl.rse.datastreams</groupId>
   <artifactId>ssm-bats-rest-api</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1.0</version>
   <name>ssm-bats-rest-api</name>
-  <description>Smart Spectral Matching BATS Rest API</description>
+  <description>Smart Spectral Matching Catalog API</description>
 
   <profiles>
     <profile>
