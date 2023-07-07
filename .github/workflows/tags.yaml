@@ -30,7 +30,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
-        name: Build and push with tag name
+        name: Build and push catalog image
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -39,3 +39,13 @@ jobs:
           tags: |
             ghcr.io/smart-spectral-matching/ssm-service-catalog:${{ github.ref_name }}
             ghcr.io/smart-spectral-matching/ssm-service-catalog:latest
+      -
+        name: Build and push catalog graph database image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true 
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/smart-spectral-matching/ssm-service-catalog-graph-db:${{ github.ref_name }}
+            ghcr.io/smart-spectral-matching/ssm-service-catalog-graph-db:latest
