@@ -75,7 +75,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./src/main/docker
-          file: Dockerfile.fuseki
+          file: ./src/main/docker/Dockerfile.fuseki
           push: true 
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/smart-spectral-matching/ssm-service-catalog-graph-db:${{ github.ref_name }}-${{github.sha}}
