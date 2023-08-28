@@ -1,12 +1,20 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.configs;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 
 /**
  * Security configuration for OIDC sign in.
@@ -38,7 +46,6 @@ public class OIDCLoginSecurityConfig extends WebSecurityConfigurerAdapter {
      * */
     @Override
     public void configure(final HttpSecurity http) throws Exception {
-
         // Do nothing if not using keycloak type authorization
         if (applicationConfig.getAuthorization().equals(AuthorizationType.KEYCLOAK)) {
 
@@ -48,7 +55,8 @@ public class OIDCLoginSecurityConfig extends WebSecurityConfigurerAdapter {
             handler.setPostLogoutRedirectUri(applicationConfig.getHost() + "token/");
 
             // Configure the request matcher to secure all pages except logon
-            http.authorizeRequests(authorizeRequests -> authorizeRequests
+            http.cors(Customizer.withDefaults())
+                .authorizeRequests(authorizeRequests -> authorizeRequests
                 .antMatchers("/logon").permitAll()
                 .anyRequest().authenticated())
                 .oauth2Login(e -> e.permitAll())
@@ -58,12 +66,27 @@ public class OIDCLoginSecurityConfig extends WebSecurityConfigurerAdapter {
         } else if (applicationConfig.getAuthorization().equals(AuthorizationType.NONE)) {
 
             // Permit all requests, no authN/Z
-            http.authorizeHttpRequests((authz) -> authz
+            http.cors(Customizer.withDefaults())
+                .authorizeHttpRequests((authz) -> authz
                 .anyRequest()
                 .permitAll()
             )
             .csrf()
             .disable();
         }
+    }
+
+    /**
+     * Configure CORS for service.
+     * @return source the CORS configuration source.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
