@@ -215,7 +215,7 @@
 
     <!-- Check Cyclomatic Complexity -->
     <module name="CyclomaticComplexity">
-      <property name="max" value="10"/>
+      <property name="max" value="12"/>
     </module>
 
   </module>

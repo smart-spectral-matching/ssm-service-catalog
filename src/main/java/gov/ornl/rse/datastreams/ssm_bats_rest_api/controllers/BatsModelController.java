@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
@@ -52,8 +54,10 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.ModelDocument;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.UniquelyIdentifiable;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AbbreviatedJson;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AuthorizationUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
@@ -69,32 +73,30 @@ public class BatsModelController {
 
     /**
      * Setup logger for BatsDatasetController.
-    */
-    private static final Logger LOGGER = LoggerFactory.getLogger(
-        BatsModelController.class
-    );
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(BatsModelController.class);
 
     /**
      * Configuration from properties.
-    */
+     */
     @Autowired
     private ApplicationConfig appConfig;
 
     /**
      * Configuration utilities.
-    */
+     */
     @Autowired
     private ConfigUtils configUtils;
 
     /**
      * Dataset utilities.
-    */
+     */
     @Autowired
     private DatasetUtils datasetUtils;
 
     /**
      * Model utilities.
-    */
+     */
     @Autowired
     private ModelUtils modelUtils;
 
@@ -113,36 +115,32 @@ public class BatsModelController {
 
     /**
      * Class ObjectMapper.
-    */
+     */
     private static final ObjectMapper MAPPER = new ObjectMapper()
-        .disable(MapperFeature.IGNORE_MERGE_FOR_UNMERGEABLE);
+            .disable(MapperFeature.IGNORE_MERGE_FOR_UNMERGEABLE);
 
     /**
      * Error message for uploading model.
-    */
-    private static final String UPLOAD_MODEL_ERROR =
-        "Unable to upload model.";
+     */
+    private static final String UPLOAD_MODEL_ERROR = "Unable to upload model.";
 
     /**
      * Error message for reading model.
-    */
-    private static final String READ_MODEL_ERROR =
-        "Unable to read model.";
+     */
+    private static final String READ_MODEL_ERROR = "Unable to read model.";
 
     /**
      * Error message for deleting model.
-    */
-    private static final String DELETE_MODEL_ERROR =
-        "Unable to delete model.";
+     */
+    private static final String DELETE_MODEL_ERROR = "Unable to delete model.";
 
     /**
      * Returns modified input JSON-LD with `@graph` at top-level.
      *
-     * @param jsonldNode  JSON-LD to modify if it has @graph
-     * @return            Modified JSON-LD
-    */
-    private JsonNode formatGraphNode(final JsonNode jsonldNode)
-    throws IOException {
+     * @param jsonldNode JSON-LD to modify if it has @graph
+     * @return Modified JSON-LD
+     */
+    private JsonNode formatGraphNode(final JsonNode jsonldNode) throws IOException {
         LOGGER.info("Checking for @graph in model...");
 
         if (jsonldNode.has("@graph") && jsonldNode.get("@graph").isObject()) {
@@ -151,9 +149,7 @@ public class BatsModelController {
             JsonNode graphNode = ((ObjectNode) jsonldNode).remove("@graph");
             ((ObjectNode) jsonldNode).remove("@id");
 
-            ObjectReader objectReader = MAPPER.readerForUpdating(
-                jsonldNode
-            );
+            ObjectReader objectReader = MAPPER.readerForUpdating(jsonldNode);
             return objectReader.readValue(graphNode);
         }
         return jsonldNode;
@@ -164,13 +160,10 @@ public class BatsModelController {
      *
      * @param jsonld  JSON-LD to modify with new `@base` and `@id`
      * @param baseUri URI to use for `@base` and `@id` in the document
-     * @return        Modified JSON-LD
-    */
-    private String addBaseToContextToJsonLD(
-        final String jsonld,
-        final String baseUri
-    )
-    throws IOException {
+     * @return Modified JSON-LD
+     */
+    private String addBaseToContextToJsonLD(final String jsonld, final String baseUri)
+            throws IOException {
         // Create default output JSON-LD
         String newJsonLd = jsonld;
 
@@ -183,7 +176,7 @@ public class BatsModelController {
 
             // Re-create @context block while leaving out pre-existing @base
             ArrayNode newContextNode = MAPPER.createArrayNode();
-            for (final JsonNode elementNode: contextNode) {
+            for (final JsonNode elementNode : contextNode) {
                 if (!elementNode.has("@base")) {
                     newContextNode.add(elementNode);
                 }
@@ -209,16 +202,14 @@ public class BatsModelController {
     /**
      * Transform incoming input JSON-LD prior to ingestion.
      *
-     * @param datasetTitle    Title of the dataset collection for the model
-     * @param modelUUID       UUID for the model
-     * @param inputJsonld     Input JSON-LD from User as JsonNode
+     * @param datasetTitle Title of the dataset collection for the model
+     * @param modelUUID    UUID for the model
+     * @param inputJsonld  Input JSON-LD from User as JsonNode
      * @return Transformed JSON-LD for SSM formatting
      */
-    private String transformJsonld(
-        final String datasetTitle,
-        final String modelUUID,
-        final String inputJsonld
-    ) throws IOException, JsonProcessingException, JsonMappingException {
+    private String transformJsonld(final String datasetTitle, final String modelUUID,
+            final String inputJsonld)
+            throws IOException, JsonProcessingException, JsonMappingException {
         // check if we have a @graph node, need to move all fields to top-level
         JsonNode scidataNode = formatGraphNode(MAPPER.readTree(inputJsonld));
         // TODO this needs to be tested with enormous datasets,
@@ -236,17 +227,16 @@ public class BatsModelController {
      *
      * @param jsonld           SciData JSON-LD to convert to Model
      * @param modelUUID        UUID of output model
-     * @param priorCreatedTime Get value from prior model if updating, null if creating
-     * @return                 BatsModel of the JSON-LD
-    */
-    private Model jsonldToModel(
-        final String jsonld,
-        final String modelUUID,
-        final String priorCreatedTime
-    ) throws IOException, NoSuchAlgorithmException, UnsupportedEncodingException {
+     * @param priorCreatedTime Get value from prior model if updating, null if
+     *                         creating
+     * @return BatsModel of the JSON-LD
+     */
+    private Model jsonldToModel(final String jsonld, final String modelUUID,
+            final String priorCreatedTime)
+            throws IOException, NoSuchAlgorithmException, UnsupportedEncodingException {
         // transform from JSON-LD string to Jena Model
         LOGGER.info("Creating model: " + modelUUID);
-        StringReader reader = new StringReader(jsonld); //NOPMD
+        StringReader reader = new StringReader(jsonld); // NOPMD
         Model model = ModelFactory.createDefaultModel();
 
         // TODO try to use Model.read(InputStream, String) here instead,
@@ -257,8 +247,8 @@ public class BatsModelController {
         // add metadata information
         final String now = DateUtils.now();
         model.createResource(JsonUtils.METADATA_URI)
-            .addProperty(DCTerms.created, priorCreatedTime == null ? now : priorCreatedTime)
-            .addProperty(DCTerms.modified, now);
+                .addProperty(DCTerms.created, priorCreatedTime == null ? now : priorCreatedTime)
+                .addProperty(DCTerms.modified, now);
 
         return model;
     }
@@ -267,43 +257,37 @@ public class BatsModelController {
      * Construct the body response for the GET method of models.
      *
      * @param endpointUrl URI used to query Fuseki for the count
-     * @param models     Generic object, representing list of models from SPARQL query
-     * @param modelsUri  Uri to use for the models
-     * @param pageSize   Size of the pages for pagination
-     * @param pageNumber Page number for pagination
-     * @param returnFull boolean for returning full model or not
+     * @param models      Generic object, representing list of models from SPARQL
+     *                    query
+     * @param modelsUri   Uri to use for the models
+     * @param pageSize    Size of the pages for pagination
+     * @param pageNumber  Page number for pagination
+     * @param returnFull  boolean for returning full model or not
      * @return Body for JSON response as a Map for list of models
      */
-    private Map<String, Object> constructModelsBody(
-        final String endpointUrl,
-        final Object models,
-        final String modelsUri,
-        final int pageSize,
-        final int pageNumber,
-        final boolean returnFull
-    ) throws QueryException {
+    private Map<String, Object> constructModelsBody(final String endpointUrl, final Object models,
+            final String modelsUri, final int pageSize, final int pageNumber,
+            final boolean returnFull) throws QueryException {
         final Map<String, Object> body = new LinkedHashMap<>();
         final int modelCount = ModelSparql.getModelCount(endpointUrl);
         /*
-        cheeky way to avoid the division twice,
-        compare Option 1 vs Option 2 here:
-        https://stackoverflow.com/a/21830188
-        */
+         * cheeky way to avoid the division twice, compare Option 1 vs Option 2 here:
+         * https://stackoverflow.com/a/21830188
+         */
         final int totalPages = (modelCount - 1) / pageSize + 1;
 
         body.put("data", models);
 
         // TODO remember to update the values with the full URI once this is changed
-        body.put("first", modelsUri + "?pageNumber=1&pageSize="
-            + pageSize + "&returnFull=" + returnFull);
-        body.put("previous", modelsUri + "?pageNumber="
-            + (pageNumber > 1 ? pageNumber - 1 : 1) + "&pageSize="
-            + pageSize + "&returnFull=" + returnFull);
-        body.put("next", modelsUri + "?pageNumber="
-            + (pageNumber < totalPages ? pageNumber + 1 : totalPages)
-            + "&pageSize=" + pageSize + "&returnFull=" + returnFull);
-        body.put("last", modelsUri + "?pageNumber=" + totalPages
-            + "&pageSize=" + pageSize + "&returnFull=" + returnFull);
+        body.put("first",
+                modelsUri + "?pageNumber=1&pageSize=" + pageSize + "&returnFull=" + returnFull);
+        body.put("previous", modelsUri + "?pageNumber=" + (pageNumber > 1 ? pageNumber - 1 : 1)
+                + "&pageSize=" + pageSize + "&returnFull=" + returnFull);
+        body.put("next",
+                modelsUri + "?pageNumber=" + (pageNumber < totalPages ? pageNumber + 1 : totalPages)
+                        + "&pageSize=" + pageSize + "&returnFull=" + returnFull);
+        body.put("last", modelsUri + "?pageNumber=" + totalPages + "&pageSize=" + pageSize
+                + "&returnFull=" + returnFull);
         body.put("total", modelCount);
         return body;
     }
@@ -314,14 +298,11 @@ public class BatsModelController {
      * @param modelUUID Model UUID to grab JSON-LD for
      * @return JSON-LD for model's JSON-LD
      */
-    private String getRollbackJsonld(
-        final String modelUUID
-    ) throws ResponseStatusException {
+    private String getRollbackJsonld(final String modelUUID) throws ResponseStatusException {
         ModelDocument modelDocument;
         try {
-            modelDocument = repository.findById(modelUUID).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND)
-            );
+            modelDocument = repository.findById(modelUUID)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -332,17 +313,14 @@ public class BatsModelController {
     /**
      * Upload Model to Model UUID in graph database.
      *
-     * @param datasetTitle  Dataset title
-     * @param modelUUID     Model UUID
-     * @param model         Model to upload
+     * @param datasetTitle Dataset title
+     * @param modelUUID    Model UUID
+     * @param model        Model to upload
      * @return BatsModel of the new upload Model
      * @throws IOException
      */
-    private BatsModel uploadToGraphDatabase(
-        final String datasetTitle,
-        final String modelUUID,
-        final Model  model
-    ) throws IOException, ResponseStatusException {
+    private BatsModel uploadToGraphDatabase(final String datasetTitle, final String modelUUID,
+            final Model model) throws IOException, ResponseStatusException {
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // Jena Model -> BATS Model
@@ -353,10 +331,7 @@ public class BatsModelController {
             LOGGER.info("Model uploaded to graph!");
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                UPLOAD_MODEL_ERROR
-            );
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UPLOAD_MODEL_ERROR);
         }
 
         Model newModel = dataset.getModel(modelUri);
@@ -372,16 +347,11 @@ public class BatsModelController {
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
-    private void uploadToDocumentStore(
-        final String datasetTitle,
-        final String modelUUID,
-        final String jsonldPayload
-    ) throws NoSuchAlgorithmException, IOException {
+    private void uploadToDocumentStore(final String datasetTitle, final String modelUUID,
+            final String jsonldPayload) throws NoSuchAlgorithmException, IOException {
         // Create abbreviated json
         LOGGER.info("Creating abbreviated json for document store");
-        String endpointUrl = fuseki().getHostname() + ":"
-        + fuseki().getPort()
-        + "/" + datasetTitle;
+        String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + datasetTitle;
         Model model = modelUtils.getModel(datasetTitle, modelUUID);
         String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
         String abbrvJson = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
@@ -400,141 +370,127 @@ public class BatsModelController {
      * FETCH a certain amount of datasets.
      *
      * @param datasetTitle Title of the Apache Jena Dataset this model belongs to
-     * @param pageNumber page number to start on,
-     *    must be positive (default: 1)
-     * @param pageSize number of results to return,
-     *    must be positive (default: 5)
-     * @param returnFull boolean for returning full model or not
+     * @param pageNumber   page number to start on, must be positive (default: 1)
+     * @param pageSize     number of results to return, must be positive (default:
+     *                     5)
+     * @param returnFull   boolean for returning full model or not
      * @return List either BatsModels (full) or List of Map (not full)
      */
-    @RequestMapping(
-        value = "/{dataset_title}/models",
-        method = RequestMethod.GET)
+    @RequestMapping(value = "/{dataset_title}/models", method = RequestMethod.GET)
     public ResponseEntity<?> queryModels(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
-        @RequestParam(name = "pageNumber", defaultValue = "1")
-        @Min(1) final int pageNumber,
-        @RequestParam(name = "pageSize", defaultValue = "5")
-        @Min(1) final int pageSize,
-        @RequestParam(name = "returnFull", defaultValue = "false")
-        final boolean returnFull
-        //@RequestParam(
-        //    name = "returnProperties",
-        //    defaultValue = ["uuid","title","url","created","modified"]
-        //) final String[] returnProperties
-        // ) @Valid final String[] returnProperties
+            @PathVariable("dataset_title") @Pattern(regexp =
+            BatsDataset.TITLE_REGEX) final String datasetTitle,
+            @RequestParam(name = "pageNumber", defaultValue = "1") @Min(1) final int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "5") @Min(1) final int pageSize,
+            @RequestParam(name = "returnFull", defaultValue = "false") final boolean returnFull
+    // @RequestParam(
+    // name = "returnProperties",
+    // defaultValue = ["uuid","title","url","created","modified"]
+    // ) final String[] returnProperties
+    // ) @Valid final String[] returnProperties
     ) {
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // final PropertyEnum[]
         // pmd does not recognize that this will always be closed
-        String endpointUrl = fuseki().getHostname()
-            + ":"
-            + fuseki().getPort()
-            + "/" + datasetTitle;
-
+        String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + datasetTitle;
 
         String modelsUri = configUtils.getDatasetUri(datasetTitle) + "/models";
-        //Add each found model to the response
+
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+
+        // Add each found model to the response
         try {
             if (returnFull) {
-                List<BatsModel> models = ModelSparql.getFullModels(
-                    pageSize,
-                    pageNumber,
-                    endpointUrl,
-                    dataset
-                );
-                
+                List<BatsModel> models = ModelSparql.getFullModels(pageSize, pageNumber,
+                        endpointUrl, dataset);
+
                 // The data to be sent back to the user
                 Map<String, Object> body;
-                
-                AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
-                
-                // Skip authorization checking if authorization is not enabled or no user is logged in.
-                if(authHandler != null) {
-                    
+
+                // Skip authorization checking if authorization is not enabled or no user is
+                // logged in.
+                if (authHandler != null) {
+
                     String user = AuthorizationUtils.getUser();
-                    
-                    if(user != null) {
+
+                    if (user != null) {
+
+                        // Convert to a list of the interface
+                        List<UniquelyIdentifiable> uuidModels = models.stream()
+                                .map(e -> (UniquelyIdentifiable) e)
+                                .collect(Collectors.toList());
 
                         // List of models the user has authorization to read
                         ArrayList<BatsModel> authorizedModels = new ArrayList<BatsModel>();
-                        
+
                         // Get each model that the user has access to and put it in the list
-                        for(UniquelyIdentifiable i : authHandler.filter(user, Permissions.READ, models)) {
+                        for (UniquelyIdentifiable i : authHandler.filter(user,
+                                Permissions.READ.toString(), uuidModels)) {
                             authorizedModels.add((BatsModel) i);
                         }
-                        
-                        body = constructModelsBody(
-                                endpointUrl, authorizedModels, modelsUri,
+
+                        body = constructModelsBody(endpointUrl, authorizedModels, modelsUri,
                                 pageSize, pageNumber, returnFull);
                     } else {
-                        
+
                         // If there is no user, return everything
-                        body = constructModelsBody(
-                                endpointUrl, models, modelsUri,
-                                pageSize, pageNumber, returnFull);
+                        body = constructModelsBody(endpointUrl, models, modelsUri, pageSize,
+                                pageNumber, returnFull);
                     }
                 } else {
-                    
+
                     // If there is no authorization defined, return everything
-                    body = constructModelsBody(
-                            endpointUrl, models, modelsUri,
-                            pageSize, pageNumber, returnFull);
+                    body = constructModelsBody(endpointUrl, models, modelsUri, pageSize, pageNumber,
+                            returnFull);
                 }
-                 
+
                 return ResponseEntity.ok(body);
             } else {
                 // build the actual body
-                List<Map<String, Object>> models = ModelSparql.getModelSummaries(
-                    pageSize,
-                    pageNumber,
-                    endpointUrl
-                );
-                
+                List<Map<String, Object>> models = ModelSparql.getModelSummaries(pageSize,
+                        pageNumber, endpointUrl);
+
                 // The data to return to the user.
                 Map<String, Object> body;
-                
-                // Skip authorization checking if authorization is not enabled or no user is logged in.
-                if(authHandler != null) {
-                    
+
+                // Skip authorization checking if authorization is not enabled or no user is
+                // logged in.
+                if (authHandler != null) {
+
                     // Skip authorization checking if there is no user logged in
                     String user = AuthorizationUtils.getUser();
-                    
-                    if(user != null) {
-                        
+
+                    if (user != null) {
+
                         // List of models the user is authorized to see.
-                        ArrayList<Map<String, Object>> authorizedModels = new ArrayList<Map<String, Object>>();
-                        
-                        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
-                        
+                        ArrayList<Map<String, Object>> authorizedModels =
+                                new ArrayList<Map<String, Object>>();
+
                         // Add each model to the list if the user is authorized to read it
                         for (Map<String, Object> model : models) {
-                            if(authHandler.checkPermission(user, Permissions.READ, model.get("uuid"))) {
+                            if (authHandler.checkPermission(user, Permissions.READ,
+                                    (String) model.get("uuid"))) {
                                 authorizedModels.add(model);
                             }
                         }
-                        
+
                         // Construct the return message body using only authorized models
-                        body = constructModelsBody(
-                                endpointUrl, authorizedModels, modelsUri,
+                        body = constructModelsBody(endpointUrl, authorizedModels, modelsUri,
                                 pageSize, pageNumber, returnFull);
 
                     } else {
-                        
+
                         // Return all models if no authentication
-                        body = constructModelsBody(
-                                endpointUrl, models, modelsUri,
-                                pageSize, pageNumber, returnFull);
+                        body = constructModelsBody(endpointUrl, models, modelsUri, pageSize,
+                                pageNumber, returnFull);
                     }
-                    
+
                 } else {
-                    
+
                     // Return all models if not authorization
-                    body = constructModelsBody(
-                            endpointUrl, models, modelsUri,
-                            pageSize, pageNumber, returnFull);
+                    body = constructModelsBody(endpointUrl, models, modelsUri, pageSize, pageNumber,
+                            returnFull);
                 }
                 return ResponseEntity.ok(body);
             }
@@ -546,45 +502,34 @@ public class BatsModelController {
     /**
      * CREATE a new Model in the Dataset collection.
      *
-     * @param datasetTitle Title for Dataset collection to add the new Model
+     * @param datasetTitle  Title for Dataset collection to add the new Model
      * @param jsonldPayload JSON-LD of new Model
-     * @return            BatsModel for created Model in the Dataset
-    */
-    @RequestMapping(
-        value = "/{dataset_title}/models",
-        method = RequestMethod.POST
-    )
+     * @return BatsModel for created Model in the Dataset
+     */
+    @RequestMapping(value = "/{dataset_title}/models", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public BatsModel createModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
-        @RequestBody final String jsonldPayload
-    ) throws
-        IOException,
-        NoSuchAlgorithmException,
-        UnsupportedEncodingException {
-        
+            @PathVariable("dataset_title") @Pattern(regexp =
+            BatsDataset.TITLE_REGEX) final String datasetTitle,
+            @RequestBody final String jsonldPayload)
+            throws IOException, NoSuchAlgorithmException, UnsupportedEncodingException {
+
         AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
-        
-        // Skip authorization checking if authorization is not enabled or no user is logged in.
-        if(authHandler != null) {
-            
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
             String user = AuthorizationUtils.getUser();
-            
-            if(user != null) {
-                
-                // If the user doesn't have permission to create new models, return an error.
-                if(!authHandler.checkDatasetCreationPermission(username)) {
-                    throw new ResponseStatusException(
-                            HttpStatus.UNAUTHORIZED,
-                            "User " + user + " lacks permission to create a new model."
-                        );
-                }
+
+            // If the user doesn't have permission to create new models, return an error.
+            if (user != null && !authHandler.checkDatasetCreationPermission(user)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User " + user + " lacks permission to create a new model.");
             }
         }
-        
-        
+
         // Check if dataset exists
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
@@ -603,10 +548,8 @@ public class BatsModelController {
             batsModel = uploadToGraphDatabase(datasetTitle, modelUUID, model);
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Model unable to be uploaded to graph database"
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to be uploaded to graph database");
         }
 
         // Add ModelDocument to document store
@@ -621,10 +564,8 @@ public class BatsModelController {
             String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
             dataset.deleteModel(modelUri);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Model unable to be uploaded to document store"
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to be uploaded to document store");
         }
 
         return batsModel;
@@ -636,49 +577,38 @@ public class BatsModelController {
      * @param datasetTitle Title for Dataset collection that Model belonds to
      * @param modelUUID    UUID for Model to retrieve from the Dataset
      * @param format       Format to return the model ["graph", "json", "jsonld"]
-     * @return             BatsModel for given Model UUID
-    */
-    @RequestMapping(
-        value = "/{dataset_title}/models/{model_uuid}",
-        method = RequestMethod.GET
-    )
+     * @return BatsModel for given Model UUID
+     */
+    @RequestMapping(value = "/{dataset_title}/models/{model_uuid}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ResponseEntity<?> getModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
-        @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String modelUUID,
-        @RequestParam(name = "format", defaultValue = "json")
-        final BatsModelFormats format
-    ) throws IOException, ResponseStatusException {
-        
+            @PathVariable("dataset_title") @Pattern(regexp =
+            BatsDataset.TITLE_REGEX) final String datasetTitle,
+            @PathVariable("model_uuid") @Pattern(regexp =
+            UUIDGenerator.UUID_REGEX) final String modelUUID,
+            @RequestParam(name = "format", defaultValue = "json") final BatsModelFormats format)
+            throws IOException, ResponseStatusException {
+
         AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
-        
-        // Skip authorization checking if authorization is not enabled or no user is logged in.
-        if(authHandler != null) {
-            
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
             String user = AuthorizationUtils.getUser();
-            
-            if(user != null) {
-                
-                // If the user can't read the model, return an error message
-                if(!authHandler.checkPermission(user, Permissions.READ, modelUUID)) {
-                    throw new ResponseStatusException(
-                            HttpStatus.UNAUTHORIZED,
-                            "User " + user + " lacks permission to READ model " + modelUUID
-                        );
-                }
+
+            // If the user can't read the model, return an error message
+            if (user != null && !authHandler.checkPermission(user, Permissions.READ, modelUUID)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User " + user + " lacks permission to READ model " + modelUUID);
             }
         }
-        
+
         // Return full, graph JSON-LD of model
         if (format == BatsModelFormats.GRAPH || format == BatsModelFormats.FULL) {
             Model model = modelUtils.getModel(datasetTitle, modelUUID);
-            BatsModel batsModel = new BatsModel(
-                modelUUID,
-                RdfModelWriter.getJsonldForModel(model)
-            );
+            BatsModel batsModel = new BatsModel(modelUUID, RdfModelWriter.getJsonldForModel(model));
             return ResponseEntity.ok(batsModel);
         }
 
@@ -687,10 +617,8 @@ public class BatsModelController {
         try {
             modelDocument = repository.findById(modelUUID).get();
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Model " + modelUUID + " Not Found"
-            );
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Model " + modelUUID + " Not Found");
         }
 
         // Return either JSON-LD or abbreviated JSON from document
@@ -707,21 +635,16 @@ public class BatsModelController {
      * @param datasetTitle Title of the dataset to find models for.
      * @return A JSON list of all UUIDs
      */
-    @RequestMapping(
-        value = "/{dataset_title}/models/uuids",
-        method = RequestMethod.GET
-    )
+    @RequestMapping(value = "/{dataset_title}/models/uuids", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseEntity<?> getUUIDs(@PathVariable("dataset_title")
-        @Pattern(regexp = BatsDataset.TITLE_REGEX) final String datasetTitle
-    ) {
+    public ResponseEntity<?> getUUIDs(
+            @PathVariable("dataset_title") @Pattern(regexp =
+            BatsDataset.TITLE_REGEX) final String datasetTitle) {
         // Check if dataset exists
         datasetUtils.getDataset(datasetTitle);
 
-        String endpointUrl = fuseki().getHostname() + ":"
-            + fuseki().getPort()
-            + "/" + datasetTitle;
+        String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + datasetTitle;
 
         ArrayNode uuidArray;
         try {
@@ -731,14 +654,11 @@ public class BatsModelController {
         }
 
         try {
-            //Return the JSON representation
+            // Return the JSON representation
             return ResponseEntity.ok(MAPPER.writeValueAsString(uuidArray));
         } catch (JsonProcessingException e) {
             LOGGER.error(READ_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                READ_MODEL_ERROR
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, READ_MODEL_ERROR);
         }
     }
 
@@ -748,41 +668,31 @@ public class BatsModelController {
      * @param datasetTitle  Title for Dataset collection that Model belonds to
      * @param modelUUID     UUID for Model to replace
      * @param jsonldPayload JSON-LD of new Model to replace current Model
-     * @return              BatsModel for newly updated Model
-    */
-    @RequestMapping(
-        value = "/{dataset_title}/models/{model_uuid}",
-        method = RequestMethod.PUT
-    )
+     * @return BatsModel for newly updated Model
+     */
+    @RequestMapping(value = "/{dataset_title}/models/{model_uuid}", method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ResponseEntity<BatsModel> updateModelReplace(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
-        @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String modelUUID,
-        @RequestBody final String jsonldPayload
-    ) throws
-        IOException,
-        NoSuchAlgorithmException,
-        UnsupportedEncodingException {
-        
+            @PathVariable("dataset_title") @Pattern(regexp =
+            BatsDataset.TITLE_REGEX) final String datasetTitle,
+            @PathVariable("model_uuid") @Pattern(regexp =
+            UUIDGenerator.UUID_REGEX) final String modelUUID,
+            @RequestBody final String jsonldPayload)
+            throws IOException, NoSuchAlgorithmException, UnsupportedEncodingException {
+
         AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
-        
-        // Skip authorization checking if authorization is not enabled or no user is logged in.
-        if(authHandler != null) {
-            
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
             String user = AuthorizationUtils.getUser();
-            
-            if(user != null) {
-                
-                // If the user can't read the model, return an error message
-                if(!authHandler.checkPermission(user, Permissions.UPDATE, modelUUID)) {
-                    throw new ResponseStatusException(
-                            HttpStatus.UNAUTHORIZED,
-                            "User " + user + " lacks permission to UPDATE model " + modelUUID
-                        );
-                }
+
+            // If the user can't read the model, return an error message
+            if (user != null && !authHandler.checkPermission(user, Permissions.UPDATE, modelUUID)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User " + user + " lacks permission to UPDATE model " + modelUUID);
             }
         }
 
@@ -794,9 +704,9 @@ public class BatsModelController {
         String oldJsonld = getRollbackJsonld(modelUUID);
 
         /*
-        Get the dataset's model. We want to extract the created timestamp,
-        instead of updating it from user params or deleting it.
-        */
+         * Get the dataset's model. We want to extract the created timestamp, instead of
+         * updating it from user params or deleting it.
+         */
         LOGGER.info("Pulling model for create time: " + modelUUID);
         String modelJsonld;
         try {
@@ -805,16 +715,13 @@ public class BatsModelController {
             modelJsonld = RdfModelWriter.getJsonldForModel(model);
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Model " + modelUUID + " Not Found"
-            );
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Model " + modelUUID + " Not Found");
         }
 
         // Get saved "created" value, assume it exists exactly once
-        JsonNode createdTimeNode = MAPPER
-            .readTree(modelJsonld)
-            .findValue(DCTerms.created.getLocalName());
+        JsonNode createdTimeNode = MAPPER.readTree(modelJsonld)
+                .findValue(DCTerms.created.getLocalName());
 
         // Add updated model to graph database
         String jsonldForGraph = transformJsonld(datasetTitle, modelUUID, jsonldPayload);
@@ -834,10 +741,8 @@ public class BatsModelController {
             Model oldModel = jsonldToModel(oldJsonld, modelUUID, createdTimeNode.textValue());
             uploadToGraphDatabase(datasetTitle, modelUUID, oldModel);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Model unable to be uploaded to document store"
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to be uploaded to document store");
         }
 
         return ResponseEntity.ok(batsModel);
@@ -847,23 +752,19 @@ public class BatsModelController {
      * UPDATE (PARTIAL) for Model w/ UUID in Dataset collection.
      *
      * @param datasetTitle Title for Dataset collection that Model belonds to
-     * @param modelUUID   UUID for Model to partially update
-     * @param jsonPayload Partial JSON-LD of new Model to update current Model
-     * @return            BatsModel for newly updated Model
-    */
-    @RequestMapping(
-        value = "/{dataset_title}/models/{model_uuid}",
-        method = RequestMethod.PATCH
-    )
+     * @param modelUUID    UUID for Model to partially update
+     * @param jsonPayload  Partial JSON-LD of new Model to update current Model
+     * @return BatsModel for newly updated Model
+     */
+    @RequestMapping(value = "/{dataset_title}/models/{model_uuid}", method = RequestMethod.PATCH)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ResponseEntity<BatsModel> updateModelPartial(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
-        @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String modelUUID,
-        @RequestBody final String jsonPayload
-    ) throws IOException, NoSuchAlgorithmException {
+            @PathVariable("dataset_title") @Pattern(regexp =
+            BatsDataset.TITLE_REGEX) final String datasetTitle,
+            @PathVariable("model_uuid") @Pattern(regexp =
+            UUIDGenerator.UUID_REGEX) final String modelUUID,
+            @RequestBody final String jsonPayload) throws IOException, NoSuchAlgorithmException {
         LOGGER.info("Pulling model: " + modelUUID);
         String modelJsonld;
         try {
@@ -871,28 +772,22 @@ public class BatsModelController {
             modelJsonld = RdfModelWriter.getJsonldForModel(model);
         } catch (Exception e) {
             LOGGER.error(READ_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Model " + modelUUID + " Not Found"
-            );
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Model " + modelUUID + " Not Found");
         }
-        
+
         AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
-        
-        // Skip authorization checking if authorization is not enabled or no user is logged in.
-        if(authHandler != null) {
-            
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
             String user = AuthorizationUtils.getUser();
-            
-            if(user != null) {
-                
-                // If the user can't read the model, return an error message
-                if(!authHandler.checkPermission(user, Permissions.UPDATE, modelUUID)) {
-                    throw new ResponseStatusException(
-                            HttpStatus.UNAUTHORIZED,
-                            "User " + user + " lacks permission to UPDATE model " + modelUUID
-                        );
-                }
+
+            // If the user can't update the model, return an error message
+            if (user != null && !authHandler.checkPermission(user, Permissions.UPDATE, modelUUID)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User " + user + " lacks permission to UPDATE model " + modelUUID);
             }
         }
 
@@ -918,10 +813,8 @@ public class BatsModelController {
             mergedBatsModel = uploadToGraphDatabase(datasetTitle, modelUUID, model);
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Model unable to be uploaded to graph database"
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to be uploaded to graph database");
         }
 
         // Add updated model to document store
@@ -935,10 +828,8 @@ public class BatsModelController {
             Model model = jsonldToModel(modelJsonld, modelUUID, createdTimeNode.textValue());
             uploadToGraphDatabase(datasetTitle, modelUUID, model);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Model unable to be uploaded to document store"
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to be uploaded to document store");
         }
 
         return ResponseEntity.ok(mergedBatsModel);
@@ -948,39 +839,32 @@ public class BatsModelController {
      * DELETE Model w/ given UUID in Dataset collection.
      *
      * @param datasetTitle Title that Model belongs to
-     * @param modelUUID   UUID of Model to delete from Dataset
-    */
-    @RequestMapping(
-        value = "/{dataset_title}/models/{model_uuid}",
-        method = RequestMethod.DELETE
-    )
+     * @param modelUUID    UUID of Model to delete from Dataset
+     */
+    @RequestMapping(value = "/{dataset_title}/models/{model_uuid}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
-        @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
-        final String modelUUID
-    ) throws IOException, NoSuchAlgorithmException {
-        
+            @PathVariable("dataset_title") @Pattern(regexp =
+            BatsDataset.TITLE_REGEX) final String datasetTitle,
+            @PathVariable("model_uuid") @Pattern(regexp =
+            UUIDGenerator.UUID_REGEX) final String modelUUID)
+            throws IOException, NoSuchAlgorithmException {
+
         AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
-        
-        // Skip authorization checking if authorization is not enabled or no user is logged in.
-        if(authHandler != null) {
-            
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
             String user = AuthorizationUtils.getUser();
-            
-            if(user != null) {
-                
-                // If the user can't read the model, return an error message
-                if(!authHandler.checkPermission(user, Permissions.DELETE, modelUUID)) {
-                    throw new ResponseStatusException(
-                            HttpStatus.UNAUTHORIZED,
-                            "User " + user + " lacks permission to DELETE model " + modelUUID
-                        );
-                }
+
+            // If the user can't read the model, return an error message
+            if (user != null && !authHandler.checkPermission(user, Permissions.DELETE, modelUUID)) {
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                            "User " + user + " lacks permission to DELETE model " + modelUUID);
             }
         }
-        
+
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
 
         // Cache old data for rollback
@@ -993,10 +877,8 @@ public class BatsModelController {
             dataset.deleteModel(modelUri);
         } catch (Exception e) {
             LOGGER.error(DELETE_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Model unable to be deleted from graph database"
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to be deleted from graph database");
         }
 
         // Delete model from document store
@@ -1010,10 +892,8 @@ public class BatsModelController {
             Model model = jsonldToModel(oldJsonld, modelUUID, null);
             uploadToGraphDatabase(datasetTitle, modelUUID, model);
             LOGGER.error(DELETE_MODEL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Model unable to be deleted from document database"
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Model unable to be deleted from document database");
         }
     }
 }

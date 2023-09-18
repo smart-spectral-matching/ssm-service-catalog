@@ -71,8 +71,8 @@ public class ApplicationConfig {
     /**
      * Handler for authorization API calls.
      */
-    private AuthorizationHandler authorizationHandler = null;
-    
+    private AuthorizationHandler authorizationHandler;
+
     /**
      * <p>
      * Hostname + port of the REST API server. Examples:
@@ -88,12 +88,12 @@ public class ApplicationConfig {
      * Nested Fuseki configuration.
      */
     private final Fuseki fuseki = new Fuseki();
-    
+
     /**
      * URL for the Zanzibar read API.
      */
     private String zanzibarReadHost;
-    
+
     /**
      * URL for the Zanzibar write API.
      */
@@ -133,59 +133,59 @@ public class ApplicationConfig {
     void setHost(final String host) {
         this.host = host;
     }
-    
+
     /**
      * Getter for the ZanzibarReadHost.
-     * 
+     *
      * @return The ZanzibarReadHost
      */
     public String getZanzibarReadHost() {
-    	return zanzibarReadHost;
+        return zanzibarReadHost;
     }
 
     /**
      * Setter for the ZanzibarReadHost.
-     * 
-     * @param zanzibarReadHost 
+     *
+     * @param zanzibarReadHost the new host
      */
-    public void setZanzibarReadHost(String zanzibarReadHost) {
+    public void setZanzibarReadHost(final String zanzibarReadHost) {
         this.zanzibarReadHost = zanzibarReadHost;
     }
 
     /**
      * Getter for the ZanzibarWriteHost.
-     * 
+     *
      * @return The ZanzibarWriteHost
      */
     public String getZanzibarWriteHost() {
-    	return zanzibarWriteHost;
+        return zanzibarWriteHost;
     }
-    
+
     /**
      * Setter for the ZanzibarWriteHost.
-     * 
-     * @param zanzibarWriteHost 
+     *
+     * @param zanzibarWriteHost the new host
      */
-    public void setZanzibarWriteHost(String zanzibarWriteHost) {
+    public void setZanzibarWriteHost(final String zanzibarWriteHost) {
         this.zanzibarWriteHost = zanzibarWriteHost;
     }
-    
+
     /**
      * Returns the handler for authorization API calls, or null if authorization is not configured.
-     * 
+     *
      * @return An AuthorizationHandler if authorization is defined, or null if it is not.
      */
     public AuthorizationHandler getAuthorizationHandler() {
-        
+
         // If the handler doesn't exist but the server address was given, create it.
-        if(authorizationHandler == null && zanzibarReadHost != null && zanzibarWriteHost != null) {
+        if (authorizationHandler == null && zanzibarReadHost != null && zanzibarWriteHost != null) {
             authorizationHandler = new AuthorizationHandler(this);
         }
-        
+
         return authorizationHandler;
-        
+
     }
-    
+
     /**
      * @return nested Fuseki config
      */

@@ -19,7 +19,10 @@ public class Relationship {
      * Object the relationship describes a permission for.
      */
     private String object;
-    
+
+    /**
+     * The relation string between the subject/subject set and the object.
+     */
     private String relation;
 
     /**
@@ -36,11 +39,11 @@ public class Relationship {
      * The default construtor.
      */
     public Relationship() {
-        namespace = null;
-        object = null;
-        relation = null;
-        subjectId = null;
-        subjectSet = null;
+        namespace = "";
+        object = "";
+        relation = "";
+        subjectId = "";
+        setSubjectSet(null);
     }
 
     /**
@@ -79,11 +82,21 @@ public class Relationship {
         this.object = object;
     }
 
+    /**
+     * Getter for the relation.
+     *
+     * @return The relation.
+     */
     public String getRelation() {
         return relation;
     }
 
-    public void setRelation(String relation) {
+    /**
+     * Setter for the relation.
+     *
+     * @param relation The new relation.
+     */
+    public void setRelation(final String relation) {
         this.relation = relation;
     }
 
