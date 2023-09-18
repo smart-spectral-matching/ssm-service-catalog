@@ -20,8 +20,8 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      LDAP_URL: ldaps://XXXXXXXX.XXXXXXXX.XXX
-      USERSDN: "???=???"
+      LDAP_URL: ldaps://ldapu.ornl.gov
+      USERSDN: "dc=ornl,dc=gov"
   keto:
     image: ssm-keto
     container_name: keto
@@ -80,7 +80,7 @@ services:
     restart: unless-stopped
     network_mode: "host"
     environment:
-      PROFILE: keycloak
+      PROFILE: docker
     depends_on:
       - ssm-fuseki
       - ssm-document-store
