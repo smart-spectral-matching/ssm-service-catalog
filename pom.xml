@@ -38,6 +38,12 @@
         <activatedProperties>docker</activatedProperties>
       </properties>
     </profile>
+    <profile>
+      <id>keto</id>
+      <properties>
+        <activatedProperties>keto</activatedProperties>
+      </properties>
+    </profile>
     <!-- only used for profile groups -->
     <profile>
       <id>localdocker</id>

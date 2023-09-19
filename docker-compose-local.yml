@@ -74,7 +74,7 @@ services:
   ssm-bats-rest-api:
     build:
       args:
-        PROFILE: keycloak
+        PROFILE: keto
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
