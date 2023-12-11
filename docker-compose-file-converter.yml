@@ -43,7 +43,7 @@ services:
       - ssm-document-store
     ports:
       - "8080:8080"
-    command: "java -jar /app.jar --spring.data.mongodb.username=$MONGO_USERNAME --spring.data.mongodb.password=$MONGO_PASSWORD --server.port=8080"
+    command: "java -jar /app.jar  -Dspring.profiles.active=localdockerfileconverter --app.jsonconversion=file_converter_service --spring.data.mongodb.host=ssm-document-store --app.fuseki.hostname=http://ssm-fuseki --app.fileconverter.uri=http://ssm-file-converter:8000 --app.host=http://localhost --spring.data.mongodb.username=$MONGO_USERNAME --spring.data.mongodb.password=$MONGO_PASSWORD"
 
   ssm-file-converter:
     image: ghcr.io/smart-spectral-matching/ssm-service-file-converter:v0.2.0
