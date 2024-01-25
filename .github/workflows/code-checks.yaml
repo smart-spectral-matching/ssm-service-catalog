@@ -30,8 +30,13 @@ jobs:
         run: docker run ssm-catalog-test /bin/bash -c "mvn clean test"
 
       -
-        name: Coverage
+        name: Unit Tests + Coverage
         run: docker run ssm-catalog-test /bin/bash -c "mvn clean test jacoco:report; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; printf \"%.2f %% covered\n\", 100*covered/instructions}' target/site/jacoco/jacoco.csv"
+
+      - 
+        name: Integration Tests + Coverage
+        run: docker run --net=host -v /var/run/docker.sock:/var/run/docker.sock ssm-catalog-test /bin/bash -c "mvn clean docker:build verify jacoco:report; awk  -F',' '{ instructions += \$4 + \$5; covered += \$5 } END { print covered, \"/\", instructions, \" instructions covered\"; printf \"%.2f %% covered\n\", 100*covered/instructions}' target/site/jacoco/jacoco.csv"
+
 
   publish-container-image:
     strategy:
@@ -58,10 +63,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
-        name: Build and push to local registry
+        name: Build and push catalog image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true 
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/smart-spectral-matching/ssm-service-catalog:${{ github.ref_name }}-${{github.sha}}
+      -
+        name: Build and push catalog graph database image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/main/docker
+          file: ./src/main/docker/Dockerfile.fuseki
+          push: true 
+          platforms: linux/amd64,linux/arm64
+          tags: ghcr.io/smart-spectral-matching/ssm-service-catalog-graph-db:${{ github.ref_name }}-${{github.sha}}

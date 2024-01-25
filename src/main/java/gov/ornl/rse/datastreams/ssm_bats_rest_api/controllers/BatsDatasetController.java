@@ -39,7 +39,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuse
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.ModelDocumentRepository;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.DocumentRepository;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AuthorizationUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
@@ -64,7 +64,7 @@ public class BatsDatasetController {
      * Document store repository for model documents.
      */
     @Autowired
-    private ModelDocumentRepository repository;
+    private DocumentRepository repository;
 
     /**
      * Configuration utilities.

@@ -14,6 +14,32 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.AuthorizationHan
 public class ApplicationConfig {
 
     /**
+     * Configuration properties for File Converter service.
+     */
+    public static class FileConverter {
+        /**
+         * URI for the file converter service.
+         */
+        private String uri;
+
+        /**
+         * @return File converter server URI
+         */
+        public String getURI() {
+            return uri;
+        }
+
+        /**
+         * Set the file converter server uri.
+         *
+         * @param newUri
+         */
+        void setURI(final String newUri) {
+            this.uri = newUri;
+        }
+    }
+
+    /**
      * Configuration properties relating to Fuseki.
      */
     public static class Fuseki {
@@ -61,6 +87,15 @@ public class ApplicationConfig {
         void setPort(final Integer port) {
             this.port = port;
         }
+
+        /**
+         * Get the Fuseki server URI.
+         *
+         * @return URI of Fuseki
+         */
+        public String getURI() {
+            return this.hostname + ":" + this.port;
+        }
     }
 
     /**
@@ -74,6 +109,23 @@ public class ApplicationConfig {
     private AuthorizationHandler authorizationHandler;
 
     /**
+     * Nested Fuseki configuration.
+     */
+    private final Fuseki fuseki = new Fuseki();
+
+    /**
+     * The JSON-LD -> SSM JSON converion type.
+     * Valid values are "embedded" and "fileconverterservice".
+     *
+     */
+    private String jsonConversion;
+
+    /**
+     * Nested file converter service configuration.
+     */
+    private final FileConverter fileConverter = new FileConverter();
+
+    /**
      * <p>
      * Hostname + port of the REST API server. Examples:
      * </p>
@@ -84,10 +136,6 @@ public class ApplicationConfig {
      * </ul>
      */
     private String host;
-    /**
-     * Nested Fuseki configuration.
-     */
-    private final Fuseki fuseki = new Fuseki();
 
     /**
      * URL for the Zanzibar read API.
@@ -109,19 +157,37 @@ public class ApplicationConfig {
     }
 
     /**
-     * @return host for the REST API server
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
      * Setter for the authorization type.
      *
      * @param authorization
      */
     void setAuthorization(final String authorization) {
         this.authorization = authorization;
+    }
+
+    /**
+     * Getter for the JsonConversion type.
+     *
+     * @return The authorization type the API will use.
+     */
+    public JsonConversionType getJsonConversion() {
+        return EnumUtils.getEnumIgnoreCase(JsonConversionType.class, jsonConversion);
+    }
+
+    /**
+     * Setter for the json conversion type.
+     *
+     * @param jsonConversion
+     */
+    void setJsonConversion(final String jsonConversion) {
+        this.jsonConversion = jsonConversion;
+    }
+
+    /**
+     * @return host for the REST API server
+     */
+    public String getHost() {
+        return host;
     }
 
     /**
@@ -193,5 +259,10 @@ public class ApplicationConfig {
         return fuseki;
     }
 
-
+    /**
+     * @return nested File Converter service
+     */
+    public FileConverter getFileConverter() {
+        return fileConverter;
+    }
 }

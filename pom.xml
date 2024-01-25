@@ -11,9 +11,9 @@
   </parent>
   <groupId>gov.ornl.rse.datastreams</groupId>
   <artifactId>ssm-bats-rest-api</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1.0</version>
   <name>ssm-bats-rest-api</name>
-  <description>Smart Spectral Matching BATS Rest API</description>
+  <description>Smart Spectral Matching Catalog API</description>
 
   <profiles>
     <profile>
@@ -49,6 +49,24 @@
       <id>localdocker</id>
       <properties>
         <activatedProperties>localdocker</activatedProperties>
+      </properties>
+    </profile>
+    <profile>
+      <id>keycloak</id>
+      <properties>
+        <activatedProperties>keycloak</activatedProperties>
+      </properties>
+    </profile>
+    <profile>
+      <id>fileconverter</id>
+      <properties>
+        <activatedProperties>fileconverter</activatedProperties>
+      </properties>
+    </profile>
+      <profile>
+      <id>localdockerfileconverter</id>
+      <properties>
+        <activatedProperties>localdockerfileconverter</activatedProperties>
       </properties>
     </profile>
     <profile>
@@ -227,6 +245,9 @@
           <images>
             <image>
               <name>fuseki:4.8.0</name>
+              <build>
+                <dockerFile>Dockerfile.fuseki</dockerFile>
+              </build>
               <run>
                 <ports>
                   <port>3030:3030</port>

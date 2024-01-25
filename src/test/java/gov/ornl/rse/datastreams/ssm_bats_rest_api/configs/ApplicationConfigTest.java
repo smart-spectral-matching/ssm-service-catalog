@@ -41,5 +41,4 @@ class ApplicationConfigTest {
         Assertions.assertEquals(FUSEKI_PORT,
             config.getFuseki().getPort());
     }
-
 }

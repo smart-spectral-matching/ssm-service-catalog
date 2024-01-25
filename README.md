@@ -30,6 +30,11 @@ you can also pass in a different one via the command line:
 bash bin/post-seed-data.sh <server:port>
 ```
 
+If Keycloak security is turned on, navigate to localhost:8080/token in a web browser to get a token.
+```
+bash bin/post-seed-data.sh <server:port> <token>
+```
+
 The files uploaded are hard-coded into the script.
 
 ### Linting
@@ -101,6 +106,14 @@ docker compose up
 
 Sample Docker images for Keycloak and Keto can be found in the Deployments repo and must be built seperately. To activate the OIDC authentication, set the values in the appropriate application-foo.properties file appropriately use the sample values in the base application.properties file.
 
+If you want to run the stack locally, instead run
+
+```
+docker-compose up -f docker-compose-local.yml
+```
+
+This will launch with a configuration suited to all services being launched and accessed from localhost.
+
 #### Testing
 
 To run tests, use:
@@ -166,21 +179,3 @@ If you would like to access the machine-readable API docs:
 ```
 <url>:<port>/api/v3/api-docs
 ```
-
-#### Theia IDE
-
-If running remotely, you can use [Theia IDE](https://theia-ide.org/) via a Docker container by running the following
-in this project directly on the remote machine:
-
-```
-docker run -uroot -it --init -p 3000:3000 -v "$(pwd):/home/project:cached" theiaide/theia:next
-```
-
-The IDE will be accessible via a browser at `http://<remote machine>:3000`.
-You can change the port by modifying the `-p` option in the docker command (i.e. `-p 3030:3000` for port 3030).
-
-Links:
- - [Theia Full Docker Image DockerHub repo](https://hub.docker.com/r/theiaide/theia-full)
- - [Theia Full Docker Image GitHub repo](https://github.com/theia-ide/theia-apps/tree/master/theia-full-docker)
-
-NOTE: We run the 'full' image since it has Java support.

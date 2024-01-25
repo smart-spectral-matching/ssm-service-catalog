@@ -10,9 +10,9 @@ services:
     environment:
       FEDERATE_LDAP: "true"
       GOOGLE_CLIENT_ID: XXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.apps.googleusercontent.com
-      GOOGLE_IDP: "false"
+      GOOGLE_IDP: "true"
       GOOGLE_SECRET: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-      HOSTNAME: ssm-keycloak
+      HOSTNAME: localhost
       KC_DB: postgres
       KC_DB_PASSWORD: postgres
       KC_DB_URL: jdbc:postgresql://localhost:5432/
@@ -20,13 +20,8 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      LDAP_URL: ldaps://ldapu.ornl.gov
-      USERSDN: "dc=ornl,dc=gov"
-  keto:
-    image: ssm-keto
-    container_name: keto
-    restart: unless-stopped
-    network_mode: "host"
+      LDAP_URL: ldaps://LDAP_URL
+      USERSDN: "dc=example,dc=com"
   postgres:
     container_name: ssm-postgres
     image: postgres
@@ -74,13 +69,13 @@ services:
   ssm-bats-rest-api:
     build:
       args:
-        PROFILE: keto
+        PROFILE: keycloak
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     network_mode: "host"
     environment:
-      PROFILE: docker
+      PROFILE: keycloak
     depends_on:
       - ssm-fuseki
       - ssm-document-store

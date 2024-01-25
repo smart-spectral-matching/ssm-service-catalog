@@ -1,0 +1,51 @@
+version: '3'
+services:
+  ssm-fuseki:
+    build:
+      context: ./src/main/docker
+      dockerfile: Dockerfile.fuseki
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    volumes:
+      - ./db-triple-store:/data/TDB
+
+  ssm-document-store:
+    image: mongo:4
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - ./db-mongo:/data/db
+
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    depends_on:
+      - ssm-document-store
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@ssm-document-store:27017/
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
+
+  ssm-bats-rest-api:
+    build:
+      args:
+        PROFILE: "localdockerfileconverter"
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - ssm-fuseki
+      - ssm-document-store
+    ports:
+      - "8080:8080"
+    command: "java -jar /app.jar --spring.data.mongodb.username=$MONGO_USERNAME --spring.data.mongodb.password=$MONGO_PASSWORD --server.port=8080"
+
+  ssm-file-converter:
+    image: ghcr.io/smart-spectral-matching/ssm-service-file-converter:v0.2.0
+    ports:
+      - "8000:8000"
