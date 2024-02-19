@@ -3,6 +3,7 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 
@@ -31,12 +32,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.AuthorizationHandler;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.Permissions;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.DocumentRepository;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AuthorizationUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
 
@@ -47,10 +51,8 @@ public class BatsDatasetController {
 
     /**
      * Setup logger for BatsDatasetController.
-    */
-    private static final Logger LOGGER = LoggerFactory.getLogger(
-        BatsDatasetController.class
-    );
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(BatsDatasetController.class);
 
     /**
      * Setup Application config.
@@ -66,20 +68,19 @@ public class BatsDatasetController {
 
     /**
      * Configuration utilities.
-    */
+     */
     @Autowired
     private ConfigUtils configUtils;
 
     /**
      * Dataset utilities.
-    */
+     */
     @Autowired
     private DatasetUtils datasetUtils;
 
-
     /**
      * Class ObjectMapper.
-    */
+     */
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
@@ -91,34 +92,46 @@ public class BatsDatasetController {
 
     /**
      * Error message for reading datasets.
-    */
+     */
     private static final String READ_DATASETS_ERROR =
-        "Unable to read dataset(s) on the remote Fuseki server.";
+            "Unable to read dataset(s) on the remote Fuseki server.";
 
     /**
      * Error message for malformed URL.
-    */
-    private static final String BAD_URL_ERROR =
-        "Error forming URL to Fuseki dataset asset";
+     */
+    private static final String BAD_URL_ERROR = "Error forming URL to Fuseki dataset asset";
 
     /**
      * Error message for URL and connection IO issues to Fuseki.
-    */
+     */
     private static final String URL_ACCESS_ERROR =
-        "Fuseki URL / connection access error for dataset";
+            "Fuseki URL / connection access error for dataset";
 
     /**
      * CREATE a new Dataset collection for Models.
      *
      * @param batsDataset JSON body for creating a new Dataset
      * @return BatsDataset for newly created Dataset in Fuseki
-    */
+     */
     @RequestMapping(value = "", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public BatsDataset  createDataSet(
-        @Valid @RequestBody final BatsDataset batsDataset
-    ) throws ResponseStatusException, Exception {
+    public BatsDataset createDataSet(@Valid @RequestBody final BatsDataset batsDataset)
+            throws ResponseStatusException, Exception {
+
+        // Skip authorization if not in use
+        if (AuthorizationUtils.isUsingAuthorization(appConfig)) {
+
+            // Check that the user has permission to create datasets
+            AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+            String user = AuthorizationUtils.getUser();
+
+            if (!authHandler.checkDatasetCreationPermission(user)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User" + user + " not authorized to create datasets.");
+            }
+        }
+
         String title = batsDataset.getTitle();
 
         // Setup the database connection
@@ -128,10 +141,8 @@ public class BatsDatasetController {
         DatasetUtils.DataSetQueryStatus code = datasetUtils.doesDataSetExist(dataset);
 
         if (code == DatasetUtils.DataSetQueryStatus.EXISTS) {
-            throw new ResponseStatusException(
-                HttpStatus.CONFLICT,
-                "Title " + dataset.getName() + " already exists!"
-            );
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Title " + dataset.getName() + " already exists!");
         }
 
         // Create the dataset
@@ -150,21 +161,15 @@ public class BatsDatasetController {
     @ResponseBody
     public String getTitles() {
 
-        //Read the Fuseki dataset list endpoint
+        // Read the Fuseki dataset list endpoint
 
         URL url = null;
 
         try {
-            url = new URL(fuseki().getHostname()
-                    + ":"
-                    + fuseki().getPort()
-                    + "/$/datasets");
+            url = new URL(fuseki().getHostname() + ":" + fuseki().getPort() + "/$/datasets");
         } catch (MalformedURLException e) {
             LOGGER.error(BAD_URL_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                BAD_URL_ERROR
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, BAD_URL_ERROR);
         }
 
         Scanner scanner = null;
@@ -173,42 +178,32 @@ public class BatsDatasetController {
             scanner = new Scanner(url.openStream(), "UTF-8");
         } catch (IOException e) {
             LOGGER.error(URL_ACCESS_ERROR + ": " + url, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                READ_DATASETS_ERROR
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    READ_DATASETS_ERROR);
         }
 
         try {
-            JsonNode fusekiResponse = MAPPER.readTree(
-                    scanner.useDelimiter("\\A").next());
+            JsonNode fusekiResponse = MAPPER.readTree(scanner.useDelimiter("\\A").next());
 
-            //Get the node containing the list of datasets
+            // Get the node containing the list of datasets
             ArrayNode datasetsNode = (ArrayNode) fusekiResponse.get("datasets");
             Iterator<JsonNode> datasetIterator = datasetsNode.elements();
 
-            //The JSON response being built
+            // The JSON response being built
             ArrayNode response = new ArrayNode(new JsonNodeFactory(false));
 
-            //Read out only the name field of each dataset and add it to the
-            //response
+            // Read out only the name field of each dataset and add it to the
+            // response
             while (datasetIterator.hasNext()) {
-                response.add(
-                    datasetIterator.next()
-                                   .get("ds.name")
-                                   .asText()
-                                   .replaceAll("/", "")
-                );
+                response.add(datasetIterator.next().get("ds.name").asText().replaceAll("/", ""));
             }
 
-            //Return the JSON representation
+            // Return the JSON representation
             return MAPPER.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             LOGGER.error(READ_DATASETS_ERROR, e);
-            throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                READ_DATASETS_ERROR
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    READ_DATASETS_ERROR);
         } finally {
             scanner.close();
         }
@@ -219,14 +214,13 @@ public class BatsDatasetController {
      *
      * @param title Title of Dataset to retrieve
      * @return BatsDataset for given Dataset title
-    */
+     */
     @RequestMapping(value = "/{title}", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public BatsDataset getDataSet(@PathVariable("title")
-        @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
-        throws
-            ResponseStatusException {
+    public BatsDataset getDataSet(
+            @PathVariable("title") @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
+            throws ResponseStatusException {
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(title);
         return new BatsDataset(dataset.getName());
     }
@@ -235,12 +229,12 @@ public class BatsDatasetController {
      * DELETE Dataset collection for given Dataset title.
      *
      * @param title Title of Dataset to delete
-    */
+     */
     @RequestMapping(value = "/{title}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteDataSet(@PathVariable("title")
-        @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
-        throws Exception {
+    public void deleteDataSet(
+            @PathVariable("title") @Pattern(regexp = BatsDataset.TITLE_REGEX) final String title)
+            throws Exception {
         CustomizedBatsDataSet dataset = datasetUtils.getDataset(title);
 
         // Get the Model UUID list for the dataset
@@ -252,8 +246,48 @@ public class BatsDatasetController {
             LOGGER.info("No models to delete for datset.");
         }
 
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+
+        // Check whether authorization is to be enforced
+        boolean authorization = AuthorizationUtils.isUsingAuthorization(appConfig);
+
+        // Skip authorization check if no authorization or no user
+        if (authorization) {
+
+            String user = AuthorizationUtils.getUser();
+
+            // Construct a list of all UUIDs belonging to this dataset which the user isn't
+            // authorized to delete
+            ArrayList<String> unauthorizedUUIDs = new ArrayList<String>();
+
+            for (JsonNode modelUuidNode : uuidArray) {
+                String modelUUID = modelUuidNode.asText();
+                if (!authHandler.checkPermission(user, Permissions.DELETE, modelUUID)) {
+                    unauthorizedUUIDs.add(modelUUID);
+                }
+            }
+
+            // If there were any undeletable models, do not delete the dataset and instead
+            // return an error.
+            if (!unauthorizedUUIDs.isEmpty()) {
+
+                String initialMessage = "User " + user
+                        + " is not authorized to delete the following models contained in the "
+                        + "dataset: ";
+
+                StringBuilder message = new StringBuilder(initialMessage);
+
+                for (String uuid : unauthorizedUUIDs) {
+                    String messageAppend = uuid + ",";
+                    message.append(messageAppend);
+                }
+
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, message.toString());
+            }
+        }
+
         // Loop to delete the models from dataset
-        for (JsonNode modelUuidNode: uuidArray) {
+        for (JsonNode modelUuidNode : uuidArray) {
             String modelUUID = modelUuidNode.asText();
             String uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
             String modelUri = configUtils.getModelUri(title, uuid);
@@ -275,6 +309,7 @@ public class BatsDatasetController {
             LOGGER.info("Deleting model: " + uuid + " from document store");
             try {
                 repository.delete(repository.findById(uuid).get());
+
             } catch (Exception ex) {
                 String message = "Unable to delete model: " + uuid + " from document store.";
                 LOGGER.error(message);
@@ -282,8 +317,27 @@ public class BatsDatasetController {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
             }
 
-        }
+            // If authorization is off or there is no user, skip authorization check
+            if (authorization) {
 
+                String user = AuthorizationUtils.getUser();
+
+                try {
+
+                    // Delete all authorization information related to this object
+                    authHandler.deleteObject(user, uuid);
+
+                } catch (Exception ex) {
+                    String message = "User " + user + " lost DELETE permission on object " + uuid
+                            + " while it was being deleted. Authorization server is now in an "
+                            + "inconsistant state.";
+                    LOGGER.error(message);
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
+                }
+
+            }
+
+        }
 
         // Delete dataset collection from graph database
         dataset.delete();

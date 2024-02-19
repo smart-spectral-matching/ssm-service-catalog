@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Representation of a BATS Model for Apache Jena Model.
 */
-public class BatsModel {
+public class BatsModel implements UniquelyIdentifiable {
     /**
      * UUID for the Model.
     */
@@ -39,6 +39,7 @@ public class BatsModel {
      *
      * @return UUID for the Model
     */
+    @Override
     public String getUUID() {
         return uuid;
     }

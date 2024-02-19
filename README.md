@@ -104,7 +104,7 @@ You can use docker compose to spin up a container for both services (REST API + 
 docker compose up
 ```
 
-A sample Docker image for Keycloak can be found in the Deployments repo and must be built seprately. To activate the OIDC authentication, set the values in the appropriate application-foo.properties file appropriately use the sample values in the base application.properties file.
+Sample Docker images for Keycloak and Keto can be found in the Deployments repo and must be built seperately. To activate the OIDC authentication, set the values in the appropriate application-foo.properties file appropriately use the sample values in the base application.properties file.
 
 If you want to run the stack locally, instead run
 

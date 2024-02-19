@@ -2,6 +2,8 @@ package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.constraints.Min;
@@ -25,11 +27,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.AuthorizationHandler;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.Permissions;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.services.DocumentService;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.services.GraphService;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AuthorizationUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.UUIDGenerator;
 
 @RestController
@@ -43,6 +50,12 @@ public class ModelController {
     private static final Logger LOGGER = LoggerFactory.getLogger(
         ModelController.class
     );
+
+    /**
+     * Configuration from properties.
+     */
+    @Autowired
+    private ApplicationConfig appConfig;
 
     /**
      * Graph service to retrieve JSON-LD.
@@ -111,6 +124,39 @@ public class ModelController {
             pageSize,
             returnFull
         );
+
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
+            String user = AuthorizationUtils.getUser();
+
+            if (user != null) {
+
+                // Get list of all returned uuids
+                ArrayList<String> uuids = new ArrayList<String>();
+
+                for (String key : body.keySet()) {
+                    uuids.add(key);
+                }
+
+                // Map of uuids to models the user has authorization to read
+                HashMap<String, Object> authorizedModels = new HashMap<String, Object>();
+
+                // Get each model that the user has access to and put it in the list
+                for (String key : uuids) {
+                    if (authHandler.checkPermission(user, Permissions.READ, key)) {
+                        authorizedModels.put(key, body.get(key));
+                    }
+                }
+
+                body = authorizedModels;
+
+            }
+        }
+
         return ResponseEntity.ok(body);
     }
 
@@ -135,6 +181,21 @@ public class ModelController {
         @RequestBody final String jsonldPayload
     ) throws
         Exception {
+
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
+            String user = AuthorizationUtils.getUser();
+
+            // If the user doesn't have permission to create new models, return an error.
+            if (user != null && !authHandler.checkDatasetCreationPermission(user)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User " + user + " lacks permission to create a new model.");
+            }
+        }
 
         String modelUUID = UUIDGenerator.generateUUID();
 
@@ -197,6 +258,22 @@ public class ModelController {
         @RequestParam(name = "format", defaultValue = "json")
         final BatsModelFormats format
     ) throws Exception {
+
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
+            String user = AuthorizationUtils.getUser();
+
+            // If the user can't read the model, return an error message
+            if (user != null && !authHandler.checkPermission(user, Permissions.READ, modelUUID)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User " + user + " lacks permission to READ model " + modelUUID);
+            }
+        }
+
         try {
             documentService.getJson(modelUUID);
         } catch (ResourceNotFoundException e) {
@@ -273,6 +350,21 @@ public class ModelController {
     ) throws
         Exception {
 
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
+            String user = AuthorizationUtils.getUser();
+
+            // If the user can't read the model, return an error message
+            if (user != null && !authHandler.checkPermission(user, Permissions.UPDATE, modelUUID)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User " + user + " lacks permission to UPDATE model " + modelUUID);
+            }
+        }
+
         // Cache old data for rollback
         LOGGER.info("Getting rollback json-ld for update");
         String oldJsonld = documentService.getJsonld(modelUUID);
@@ -326,6 +418,21 @@ public class ModelController {
         final String modelUUID,
         @RequestBody final String jsonPayload
     ) throws Exception {
+
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
+            String user = AuthorizationUtils.getUser();
+
+            // If the user can't update the model, return an error message
+            if (user != null && !authHandler.checkPermission(user, Permissions.UPDATE, modelUUID)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        "User " + user + " lacks permission to UPDATE model " + modelUUID);
+            }
+        }
 
         // Cache old data for rollback
         LOGGER.info("Getting rollback json-ld...");
@@ -388,6 +495,22 @@ public class ModelController {
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
     ) throws IOException, NoSuchAlgorithmException {
+
+        AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
+
+        // Skip authorization checking if authorization is not enabled or no user is
+        // logged in.
+        if (authHandler != null) {
+
+            String user = AuthorizationUtils.getUser();
+
+            // If the user can't read the model, return an error message
+            if (user != null && !authHandler.checkPermission(user, Permissions.DELETE, modelUUID)) {
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                            "User " + user + " lacks permission to DELETE model " + modelUUID);
+            }
+        }
+
         // Cache old data for rollback
         LOGGER.info("Getting rollback json-ld...");
         String oldJsonld = documentService.getJsonld(modelUUID);

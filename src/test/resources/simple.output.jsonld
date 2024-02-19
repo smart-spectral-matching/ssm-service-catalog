@@ -1,37 +1,37 @@
 {
-	"@graph": [{
-		"@id": "http://localhost/beatles/member/1",
-		"homepage": "http://dbpedia.org/resource/John_Lennon",
-		"birthDate": "1940-10-09",
-		"spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
-		"name": "John Lennon"
-	}, {
-		"@id": "http://purl.org/dc/terms/",
-		"created": "XXXX-XX-XX XX:XX:XX",
-		"modified": "XXXX-XX-XX XX:XX:XX"
-	}],
-	"@context": {
-		"birthDate": {
-			"@id": "http://schema.org/birthDate",
-			"@type": "http://www.w3.org/2001/XMLSchema#date"
-		},
-		"spouse": {
-			"@id": "http://schema.org/spouse",
-			"@type": "@id"
-		},
-		"name": {
-			"@id": "http://xmlns.com/foaf/0.1/name"
-		},
-		"created": {
-			"@id": "http://purl.org/dc/terms/created"
-		},
-		"modified": {
-			"@id": "http://purl.org/dc/terms/modified"
-		},
-		"homepage": {
-			"@id": "http://xmlns.com/foaf/0.1/homepage",
-			"@type": "@id"
-		},
-		"xsd": "http://www.w3.org/2001/XMLSchema#"
-	}
+    "@graph": [{
+        "@id": "http://localhost/beatles/member/1",
+        "homepage": "http://dbpedia.org/resource/John_Lennon",
+        "birthDate": "1940-10-09",
+        "spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
+        "name": "John Lennon"
+    }, {
+        "@id": "http://purl.org/dc/terms/",
+        "created": "XXXX-XX-XX XX:XX:XX",
+        "modified": "XXXX-XX-XX XX:XX:XX"
+    }],
+    "@context": {
+        "birthDate": {
+            "@id": "http://schema.org/birthDate",
+            "@type": "http://www.w3.org/2001/XMLSchema#date"
+        },
+        "spouse": {
+            "@id": "http://schema.org/spouse",
+            "@type": "@id"
+        },
+        "name": {
+            "@id": "http://xmlns.com/foaf/0.1/name"
+        },
+        "created": {
+            "@id": "http://purl.org/dc/terms/created"
+        },
+        "modified": {
+            "@id": "http://purl.org/dc/terms/modified"
+        },
+        "homepage": {
+            "@id": "http://xmlns.com/foaf/0.1/homepage",
+            "@type": "@id"
+        },
+        "xsd": "http://www.w3.org/2001/XMLSchema#"
+    }
 }
