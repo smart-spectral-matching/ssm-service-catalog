@@ -17,7 +17,7 @@ You can use both "bare metal" and docker during testing
 ### Seed data
 
 After the REST API and Fuseki server are running,
-you can seed datasets from the test resources directory to upload via POST by running:
+you can seed collections from the test resources directory to upload via POST by running:
 
 ```
 bash bin/post-seed-data.sh
@@ -140,30 +140,30 @@ wget https://raw.githubusercontent.com/stuchalk/scidata/master/examples/ph.jsonl
 
 #### API Example
 
-Once running, you can create a dataset:
+Once running, you can create a collection:
 ```
-curl -X POST --data '{"title":"test"}' -H "Content-Type: application/json" "http://localhost:8080/api/datasets"
+curl -X POST --data '{"title":"test"}' -H "Content-Type: application/json" "http://localhost:8080/api/collections"
 ```
 
-Given a JSON-LD file, you can upload this as a model to the dataset.
-With the returned dataset title, you can then upload a model to this dataset:
+Given a JSON-LD file, you can upload this as a model to the collection.
+With the returned collection title, you can then upload a model to this collection:
 ```
-curl -X POST "http://localhost:8080/api/datasets/<dataset title>/models" -H "Content-Type: application/json" -d "@ph.jsonld"
+curl -X POST "http://localhost:8080/api/collections/<collection title>/models" -H "Content-Type: application/json" -d "@ph.jsonld"
 ```
 
 With the returned model UUID, you can retrieve the model via:
 ```
-curl -X GET "http://localhost:8080/api/datasets/<dataset title>/models/<model uuid>"
+curl -X GET "http://localhost:8080/api/collections/<collection title>/models/<model uuid>"
 ```
 
-In order to get a full list of dataset titles, run:
+In order to get a full list of collection titles, run:
 ```
-curl -X GET "http://localhost:8080/api/datasets"
+curl -X GET "http://localhost:8080/api/collections"
 ```
 
-In order to get a full list of model UUIDs within a given dataset, run:
+In order to get a full list of model UUIDs within a given collection, run:
 ```
-curl -X GET "http://localhost:8080/api/datasets/<dataset title>/models/uuids"
+curl -X GET "http://localhost:8080/api/collections/<collection title>/models/uuids"
 ```
 
 ### Swagger Docs of REST API

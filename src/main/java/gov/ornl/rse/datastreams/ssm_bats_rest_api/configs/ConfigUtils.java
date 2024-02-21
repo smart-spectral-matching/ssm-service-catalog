@@ -75,27 +75,27 @@ public class ConfigUtils {
     }
 
     /**
-     * Returns dataset API URL given the dataset.
+     * Returns collection API URL given the collection.
      *
-     * @param datasetUUID UUID for the Dataset the model belongs to
-     * @return Full URI for the Dataset
+     * @param collectionUUID UUID for the Collection the model belongs to
+     * @return Full URI for the Collection
      */
-    public String getDatasetUri(final String datasetUUID) {
-        final String uri = getBasePath() + "/datasets/" + datasetUUID;
+    public String getCollectionUri(final String collectionUUID) {
+        final String uri = getBasePath() + "/colections/" + collectionUUID;
         return uri.replace("\"", "");
     }
 
     /**
-     * Returns Model API URI given the Dataset and Model UUID.
+     * Returns Model API URI given the Collection and Model UUID.
      *
-     * @param datasetUUID UUID for the Dataset the model belongs to
+     * @param collectionUUID UUID for the Collection the model belongs to
      * @param modelUUID   UUID for the Model
      * @return Full URI for the Model
      */
-    public String getModelUri(final String datasetUUID, final String modelUUID) {
+    public String getModelUri(final String collectionUUID, final String modelUUID) {
         String baseUri = getBasePath();
-        String datasetUri = baseUri + "/datasets/" + datasetUUID;
-        String modelUri = datasetUri + "/models/" + modelUUID;
+        String collectionUri = baseUri + "/collections/" + collectionUUID;
+        String modelUri = collectionUri + "/models/" + modelUUID;
         return modelUri.replace("\"", "");
     }
 

@@ -24,33 +24,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class CustomizedBatsDataSet {
+public class CustomizedBatsCollection {
 
     /**
      * This is the default name used as the base for all unnamed instances of
-     * DataSet.
+     * Collection.
      */
-    public static final String DEFAULT_NAME = "unnamed-dataset";
+    public static final String DEFAULT_NAME = "unnamed-collection";
 
     /**
-     * Setup logger for CustomizedBatsDataSet.
+     * Setup logger for CustomizedBatsCollection.
     */
     private static final Logger LOGGER = LoggerFactory.getLogger(
-        CustomizedBatsDataSet.class
+        CustomizedBatsCollection.class
     );
 
     /**
-     * The default host which holds the dataset.
+     * The default host which holds the collection.
      */
     private String host = "http://localhost";
 
     /**
-     * The default port of the host which holds the dataset.
+     * The default port of the host which holds the collection.
      */
     private int port = 3030;
 
     /**
-     * The default name for a dataset.
+     * The default name for a collection.
      */
     private String name = DEFAULT_NAME;
 
@@ -125,7 +125,7 @@ public class CustomizedBatsDataSet {
     }
 
     /**
-     * Creates a dataset with the given name.
+     * Creates a collection with the given name.
      *
      * @throws Exception this exception is thrown if the data set cannot be created
      *                   for any reason.

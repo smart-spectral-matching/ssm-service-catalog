@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api;
+package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
 import java.util.Locale;
 
@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class BatsDatasetControllerIT {
+public class BatsCollectionControllerIT {
 
     /**
      * Object Mapper reused for all tests.
@@ -77,48 +77,48 @@ public class BatsDatasetControllerIT {
     }
 
     /**
-     * Returns string with dataset JSON for POST to create new dataset.
+     * Returns string with collection JSON for POST to create new collection.
      *
-     * @param title title for the new dataset
-     * @return      JSON as string for new dataset, used for POST
+     * @param title title for the new collection
+     * @return      JSON as string for new collection, used for POST
     */
-    private String getDatasetData(final String title) {
-        ObjectNode dataset = MAPPER.createObjectNode();
-        dataset.put("title", title);
-        return dataset.toString();
+    private String getCollectionData(final String title) {
+        ObjectNode collection = MAPPER.createObjectNode();
+        collection.put("title", title);
+        return collection.toString();
     }
 
 
     /**
-     * Utility function to create a Dataset.
+     * Utility function to create a Collection.
      *
-     * @param title Title for the dataset
-     * @return Title of new Dataset
+     * @param title Title for the collection
+     * @return Title of new Collection
     */
-    private String createDataset(final String title) throws Exception {
-        String datasetJson = getDatasetData(title);
+    private String createCollection(final String title) throws Exception {
+        String collectionJson = getCollectionData(title);
         String jsonString = restTemplate.postForEntity(
-            createUrl("/datasets"),
-            makeBody(MediaType.APPLICATION_JSON, datasetJson),
+            createUrl("/s"),
+            makeBody(MediaType.APPLICATION_JSON, collectionJson),
             String.class).getBody();
 
-        String datasetTitle  = MAPPER.readTree(jsonString)
+        String newTitle  = MAPPER.readTree(jsonString)
                                      .get("title")
                                      .asText();
-        return datasetTitle;
+        return newTitle;
     }
 
     /**
-     * Test to get a Dataset.
+     * Test to get a Collection.
     */
     @Test
-    public void testGetDataset() throws Exception {
-        String title = "testGetDataset";
-        String titleLower = createDataset(title);
+    public void testGetCollection() throws Exception {
+        String title = "testGetCollection";
+        String titleLower = createCollection(title);
 
         // Test using the returned title from POST
         ResponseEntity<String> responseLower = restTemplate.getForEntity(
-            createUrl("/datasets/" + titleLower),
+            createUrl("/s/" + titleLower),
             String.class
         );
         Assertions.assertEquals(
@@ -130,7 +130,7 @@ public class BatsDatasetControllerIT {
 
         // Test case-insenstive
         ResponseEntity<String> response = restTemplate.getForEntity(
-            createUrl("/datasets/" + title),
+            createUrl("/s/" + title),
             String.class
         );
         Assertions.assertEquals(
@@ -143,14 +143,14 @@ public class BatsDatasetControllerIT {
     }
 
     /**
-     * Test to get correct HTTP status if Dataset not found.
+     * Test to get correct HTTP status if Collection not found.
     */
     @Test
-    public void testGetDataSetNotFound() throws Exception {
+    public void testGetCollectionNotFound() throws Exception {
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                createUrl("/datasets/pizza"),
+                createUrl("/collection/pizza"),
                 Void.class
             ).getStatusCode()
         );
@@ -158,7 +158,7 @@ public class BatsDatasetControllerIT {
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                createUrl("/datasets/pizza/models"),
+                createUrl("/collection/pizza/models"),
                 Void.class
             ).getStatusCode()
         );
@@ -166,23 +166,23 @@ public class BatsDatasetControllerIT {
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                createUrl("/datasets/pizza/models/uuids"),
+                createUrl("/collections/pizza/models/uuids"),
                 Void.class
             ).getStatusCode()
         );
     }
 
     /**
-     * Test to create a Dataset.
+     * Test to create a Collection.
     */
     @Test
-    public void testCreateDataSet() throws Exception {
-        String title = "testCreateDataset-foo";
-        String datasetJson = getDatasetData(title);
+    public void testCreateCollection() throws Exception {
+        String title = "testCreateCollection-foo";
+        String collectionJson = getCollectionData(title);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-            createUrl("/datasets"),
-            makeBody(MediaType.APPLICATION_JSON, datasetJson),
+            createUrl("/collections"),
+            makeBody(MediaType.APPLICATION_JSON, collectionJson),
             String.class
         );
         Assertions.assertEquals(
@@ -196,74 +196,74 @@ public class BatsDatasetControllerIT {
     }
 
     /**
-     * Test we return correct response for invalid Dataset title.
+     * Test we return correct response for invalid Collection title.
     */
     @Test
-    public void testForInvalidDatasetTitle() throws Exception {
-        String datasetJsonNumbers = getDatasetData("testForInvalidDatasetTitle-99");
+    public void testForInvalidCollectionTitle() throws Exception {
+        String collectionJsonNumbers = getCollectionData("testForInvalidCollectionTitle-99");
         Assertions.assertEquals(
             HttpStatus.BAD_REQUEST,
             restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJsonNumbers),
+                createUrl("/collections"),
+                makeBody(MediaType.APPLICATION_JSON, collectionJsonNumbers),
                 String.class
             ).getStatusCode()
         );
 
-        String datasetJsonHyphen = getDatasetData("testForInvalidDatasetTitle_foo");
+        String collectionJsonHyphen = getCollectionData("testForInvalidCollectionTitle_foo");
         Assertions.assertEquals(
             HttpStatus.BAD_REQUEST,
             restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJsonHyphen),
+                createUrl("/collections"),
+                makeBody(MediaType.APPLICATION_JSON, collectionJsonHyphen),
                 String.class
             ).getStatusCode()
         );
     }
 
     /**
-     * Test we cannot re-create two Datasets with same title.
+     * Test we cannot re-create two collections with same title.
     */
     @Test
-    public void testTwoDatasetsCannotHaveSameTitle() throws Exception {
-        String title = "testTwoDatasetsCannotHaveSameTitle";
-        createDataset(title);
+    public void testTwocollectionsCannotHaveSameTitle() throws Exception {
+        String title = "testTwocollectionsCannotHaveSameTitle";
+        createCollection(title);
 
         // Upper-case test
-        String datasetJson = getDatasetData(title);
+        String collectionJson = getCollectionData(title);
         Assertions.assertEquals(
             HttpStatus.CONFLICT,
             restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJson),
+                createUrl("/collections"),
+                makeBody(MediaType.APPLICATION_JSON, collectionJson),
                 String.class
             ).getStatusCode()
         );
 
         // Lower-case test
-        datasetJson = getDatasetData(title.toLowerCase(new Locale("en")));
+        collectionJson = getCollectionData(title.toLowerCase(new Locale("en")));
         Assertions.assertEquals(
             HttpStatus.CONFLICT,
             restTemplate.postForEntity(
-                createUrl("/datasets"),
-                makeBody(MediaType.APPLICATION_JSON, datasetJson),
+                createUrl("/collections"),
+                makeBody(MediaType.APPLICATION_JSON, collectionJson),
                 String.class
             ).getStatusCode()
         );
     }
 
     /**
-     * Test to delete a Dataset.
+     * Test to delete a collection.
     */
     @Test
-    public void testDeleteDataSet() throws Exception {
+    public void testDeletecollection() throws Exception {
         // Test using the title returned from POST
-        String title = "testDeleteDataSet";
-        String titleLowerCase = createDataset(title);
+        String title = "testDeletecollection";
+        String titleLowerCase = createCollection(title);
         Assertions.assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
-                createUrl("/datasets/" + titleLowerCase),
+                createUrl("/collections/" + titleLowerCase),
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class
@@ -271,11 +271,11 @@ public class BatsDatasetControllerIT {
         );
 
         // Test for case-insensitive
-        createDataset(title);
+        createCollection(title);
         Assertions.assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
-                createUrl("/datasets/" + title),
+                createUrl("/collections/" + title),
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class
