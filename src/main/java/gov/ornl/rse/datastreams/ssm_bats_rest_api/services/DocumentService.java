@@ -199,14 +199,14 @@ public class DocumentService {
     /**
      * Upload JSON-LD to Model UUID in document store.
      *
-     * @param datasetTitle  Dataset title
+     * @param collectionTitle  Collection title
      * @param modelUUID     Model UUID
      * @param jsonldPayload JSON-LD for Model
      *
      * @throws Exception
      */
     public void upload(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID,
         final String jsonldPayload
     ) throws Exception {
@@ -216,7 +216,7 @@ public class DocumentService {
         // Get JSON-LD -> SSM JSON conversion
         String json = "";
         if (appConfig.getJsonConversion().equals(JsonConversionType.EMBEDDED)) {
-            json = graphService.getModelJson(datasetTitle, modelUUID);
+            json = graphService.getModelJson(collectionTitle, modelUUID);
         } else if (
             appConfig.getJsonConversion().equals(JsonConversionType.FILE_CONVERTER_SERVICE)
         ) {

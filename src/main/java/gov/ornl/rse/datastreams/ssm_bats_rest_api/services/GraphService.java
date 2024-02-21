@@ -30,9 +30,9 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsCollection;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AbbreviatedJson;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DatasetUtils;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.CollectionUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.RdfModelWriter;
@@ -61,10 +61,10 @@ public class GraphService {
     private ConfigUtils configUtils;
 
     /**
-     * Dataset utilities.
+     * Collection utilities.
     */
     @Autowired
-    private DatasetUtils datasetUtils;
+    private CollectionUtils collectionUtils;
 
     /**
      * @return shorthand for the Fuseki configuration
@@ -169,25 +169,25 @@ public class GraphService {
     /**
      * Transform incoming input JSON-LD prior to ingestion.
      *
-     * @param datasetTitle    Title of the dataset collection for the model
+     * @param collectionTitle    Title of the collection collection for the model
      * @param modelUUID       UUID for the model
      * @param inputJsonld     Input JSON-LD from User as JsonNode
      * @return Transformed JSON-LD for SSM formatting
      */
     private String transformJsonld(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID,
         final String inputJsonld
     ) throws IOException, JsonProcessingException, JsonMappingException {
         // check if we have a @graph node, need to move all fields to top-level
         JsonNode scidataNode = formatGraphNode(MAPPER.readTree(inputJsonld));
 
-        // TODO this needs to be tested with enormous datasets,
+        // TODO this needs to be tested with enormous collections,
         // and verify that memory leaks won't happen here.
         scidataNode = JsonUtils.clearTimestamps(scidataNode);
 
         // replace @base in @context block w/ new URI
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
+        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
         String outputJsonld = addBaseToContextToJsonLD(scidataNode.toString(), modelUri + "/");
         return outputJsonld;
     }
@@ -271,20 +271,20 @@ public class GraphService {
     }
 
     /**
-     * Get a Model that belongs to the given Dataset.
+     * Get a Model that belongs to the given Collection.
      *
-     * @param datasetTitle Title of the Dataset
+     * @param collectionTitle Title of the Collection
      * @param modelUuid    UUID of the Model to fetch
      * @return Apache Jena Model for UUID
      * @throws Exception
      */
     public Model getModel(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUuid
     ) throws Exception {
-        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUuid);
-        Model model = dataset.getModel(modelUri);
+        CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
+        String modelUri = configUtils.getModelUri(collectionTitle, modelUuid);
+        Model model = collection.getModel(modelUri);
         assertModelExists(model, modelUuid);
         return model;
     }
@@ -292,20 +292,20 @@ public class GraphService {
     /**
      * Get JSON of Model UUID using internal converter graph JSON-LD -> SSM JSON.
      *
-     * @param datasetTitle  Dataset title
+     * @param collectionTitle  Collection title
      * @param modelUUID     Model UUID
      *
      * @return SSM JSON representation of Model
      * @throws Exception
      */
     public String getModelJson(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID
     ) throws Exception {
         // Gets model uri for graph
-        String endpointUrl = fuseki().getURI() + "/" + datasetTitle;
-        Model model = getModel(datasetTitle, modelUUID);
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
+        String endpointUrl = fuseki().getURI() + "/" + collectionTitle;
+        Model model = getModel(collectionTitle, modelUUID);
+        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
         String json = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
         return json;
     }
@@ -313,25 +313,25 @@ public class GraphService {
     /**
      * Get JSON-LD of Model UUID.
      *
-     * @param datasetTitle  Dataset title
+     * @param collectionTitle  Collection title
      * @param modelUUID     Model UUID
      *
      * @return JSON-LD representation of Model
      * @throws Exception
      */
     public String getModelJsonld(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID
     ) throws Exception {
-        Model model = getModel(datasetTitle, modelUUID);
+        Model model = getModel(collectionTitle, modelUUID);
         String jsonld = RdfModelWriter.getJsonldForModel(model);
         return jsonld;
     }
 
     /**
-     * Get list of Models for Dataset w/ pagination.
+     * Get list of Models for Collection w/ pagination.
      *
-     * @param datasetTitle Dataset to get model UUIDs for
+     * @param collectionTitle Collection to get model UUIDs for
      * @param pageNumber   Page number to get for model UUIDs
      * @param pageSize     Size of pages (number of models per page)
      * @param returnFull   Boolean if we want full models or just summaries (default: summaries)
@@ -339,17 +339,17 @@ public class GraphService {
      * @return Map of the model objects via UUIDs
      */
     public Map<String, Object> getModels(
-        final String datasetTitle,
+        final String collectionTitle,
         final int pageNumber,
         final int pageSize,
         final boolean returnFull
     ) {
-        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
+        CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
 
         // final PropertyEnum[]
         // pmd does not recognize that this will always be closed
-        String endpointUrl = fuseki().getURI() + "/" + datasetTitle;
-        String modelsUri = configUtils.getDatasetUri(datasetTitle) + "/models";
+        String endpointUrl = fuseki().getURI() + "/" + collectionTitle;
+        String modelsUri = configUtils.getCollectionUri(collectionTitle) + "/models";
 
         try {
             //Add each found model
@@ -358,7 +358,7 @@ public class GraphService {
                     pageSize,
                     pageNumber,
                     endpointUrl,
-                    dataset
+                    collection
                 );
                 Map<String, Object> body = constructModelsBody(
                     endpointUrl, models, modelsUri,
@@ -382,20 +382,20 @@ public class GraphService {
     }
 
     /**
-     * Get list of UUIDS for the Models in Dataset.
+     * Get list of UUIDS for the Models in Collection.
      *
-     * @param datasetTitle Title for the dataset to pull model UUIDs for
+     * @param collectionTitle Title for the collection to pull model UUIDs for
      *
      * @return String with the list of uuids
      * @throws JsonProcessingException
      */
-    public String getModelUUIDsForDataset(
-        final String datasetTitle
+    public String getModelUUIDsForCollection(
+        final String collectionTitle
     ) throws JsonProcessingException {
-        // Check if dataset exists
-        datasetUtils.getDataset(datasetTitle);
+        // Check if collection exists
+        collectionUtils.getCollection(collectionTitle);
 
-        String endpointUrl = fuseki().getURI() + "/" + datasetTitle;
+        String endpointUrl = fuseki().getURI() + "/" + collectionTitle;
 
         String output;
         try {
@@ -410,7 +410,7 @@ public class GraphService {
     /**
      * Get the created time from Model UUID.
      *
-     * @param datasetTitle Dataset the Model UUID belongs to
+     * @param collectionTitle Collection the Model UUID belongs to
      * @param modelUUID    Model UUID to get created time for
      *
      * @return String with created time for Model UUID
@@ -419,15 +419,15 @@ public class GraphService {
      * @throws JsonProcessingException
      */
     public String getCreatedTimeForModel(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID
     ) throws JsonMappingException, JsonProcessingException {
         LOGGER.info("Pulling create time for model: " + modelUUID);
 
-        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
+        CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
 
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-        Model model = dataset.getModel(modelUri);
+        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
+        Model model = collection.getModel(modelUri);
         String modelJsonld = RdfModelWriter.getJsonldForModel(model);
 
         // Get saved "created" value, assume it exists exactly once
@@ -441,7 +441,7 @@ public class GraphService {
     /**
      * Merge Model UUID and new JSON-LD together.
      *
-     * @param datasetTitle Dataset that Model UUID belongs to
+     * @param collectionTitle Collection that Model UUID belongs to
      * @param modelUUID    Model UUID to merge JSON-LD with
      * @param newJsonld    New JSON-LD to merge with Model UUID
      *
@@ -449,12 +449,12 @@ public class GraphService {
      * @throws Exception
      */
     public String mergeJsonldForModel(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID,
         final String newJsonld
     ) throws Exception {
         // Model JSON-LD
-        String modelJsonld = getModelJsonld(datasetTitle, modelUUID);
+        String modelJsonld = getModelJsonld(collectionTitle, modelUUID);
         JsonNode modelNode = MAPPER.readTree(modelJsonld);
 
         // New JSON-LD to merge
@@ -470,7 +470,7 @@ public class GraphService {
     /**
      * Upload Model to Model UUID in graph database w/o prior created time.
      *
-     * @param datasetTitle  Dataset title
+     * @param collectionTitle  Collection title
      * @param modelUUID     Model UUID
      * @param jsonld        JSON-LD to upload
      *
@@ -480,17 +480,17 @@ public class GraphService {
      * @throws NoSuchAlgorithmException
      */
     public BatsModel uploadJsonld(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID,
         final String jsonld
     ) throws IOException, NoSuchAlgorithmException {
-        return uploadJsonld(datasetTitle, modelUUID, jsonld, null);
+        return uploadJsonld(collectionTitle, modelUUID, jsonld, null);
     }
 
     /**
      * Upload Model to Model UUID in graph database.
      *
-     * @param datasetTitle  Dataset title
+     * @param collectionTitle  Collection title
      * @param modelUUID     Model UUID
      * @param jsonld        JSON-LD to upload
      * @param priorCreatedTime Prior created time to add
@@ -501,40 +501,40 @@ public class GraphService {
      * @throws NoSuchAlgorithmException
      */
     public BatsModel uploadJsonld(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID,
         final String jsonld,
         final String priorCreatedTime
     ) throws IOException, NoSuchAlgorithmException {
         LOGGER.info("Uploading model to graph: " + modelUUID);
 
-        // Check if dataset exists
-        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
+        // Check if collection exists
+        CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
 
         // Transform input JSON-LD to format for Apache Jena
-        String modifiedJsonld = transformJsonld(datasetTitle, modelUUID, jsonld);
+        String modifiedJsonld = transformJsonld(collectionTitle, modelUUID, jsonld);
 
         // Add Model to graph database
         Model model = jsonldToModel(modifiedJsonld, modelUUID, priorCreatedTime);
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-        dataset.updateModel(modelUri, model);
-        Model newModel = dataset.getModel(modelUri);
+        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
+        collection.updateModel(modelUri, model);
+        Model newModel = collection.getModel(modelUri);
 
         return new BatsModel(modelUUID, RdfModelWriter.getJsonldForModel(newModel));
     }
 
     /**
-     * Delete Model UUID from Dataset.
+     * Delete Model UUID from Collection.
      *
-     * @param datasetTitle Title of Dataset model belongs to
+     * @param collectionTitle Title of Collection model belongs to
      * @param modelUUID UUID of Model to delete
      */
     public void delete(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID
     ) {
-        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUUID);
-        dataset.deleteModel(modelUri);
+        CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
+        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
+        collection.deleteModel(modelUri);
     }
 }

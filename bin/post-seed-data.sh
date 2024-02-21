@@ -7,23 +7,23 @@ server_ip="${input_ip:=http://localhost:8080}/api"
 # Go to the directory the files are located
 cd $(dirname "$0")/../src/test/resources || exit 1
 
-# Create the map to hold key=fileanmes value=dataset urls
-declare -A datasets
+# Create the map to hold key=fileanmes value=collection urls
+declare -A collections
 
-# Loop over files, upload to REST API, and add URLs to the datasets map
-dataset_title=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $2" --data '{"title":"test"}' "${server_ip}/datasets" | jq -r .title)
+# Loop over files, upload to REST API, and add URLs to the collections map
+collection_title=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $2" --data '{"title":"test"}' "${server_ip}/collections" | jq -r .title)
 
 for jsonld in "simple.input.jsonld" "scidata_nmr_abbreviated.input.jsonld" "studtite.jsonld"
 do
-    model_uuid=$(curl -X POST "${server_ip}/datasets/${dataset_title}/models" -H "Authorization: Bearer $2" -H "Content-Type: application/json" -d @${jsonld} | jq -r .uuid)
+    model_uuid=$(curl -X POST "${server_ip}/collections/${collection_title}/models" -H "Authorization: Bearer $2" -H "Content-Type: application/json" -d @${jsonld} | jq -r .uuid)
     name=$(echo ${jsonld} | cut -d'.' -f 1)
-    datasets["${name}"]="${server_ip}/datasets/${dataset_title}/models/${model_uuid}"
+    collections["${name}"]="${server_ip}/collections/${collection_title}/models/${model_uuid}"
 done
 
-# Error check the dataset and models
-if [ -z $dataset_title ]
+# Error check the collection and models
+if [ -z $collection_title ]
 then
-    echo "ERROR: No dataset title, maybe unable to upload?"
+    echo "ERROR: No collection title, maybe unable to upload?"
     exit 1
 fi
 
@@ -34,8 +34,8 @@ then
 fi
 
 # Print out the results
-for name in "${!datasets[@]}"
+for name in "${!collections[@]}"
 do
     printf "%s url:\n" "$name"
-    printf "    %s\n\n" "${datasets[$name]}"
+    printf "    %s\n\n" "${collections[$name]}"
 done

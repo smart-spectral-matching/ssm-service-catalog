@@ -7,7 +7,7 @@ WORKDIR ${APP_DIR}
 COPY *.xml ${APP_DIR}/
 RUN mvn -f ${APP_DIR}/pom.xml verify clean --fail-never
 COPY src ${APP_DIR}/src
-RUN mvn -f ${APP_DIR}/pom.xml -P ${PROFILE} package -Dmaven.test.skip=true
+RUN mvn -f ${APP_DIR}/pom.xml -P ${PROFILE} package -Dmaven.test.skip=false
 
 FROM openjdk:11-jre-slim
 COPY --from=build /home/app/target/*.jar app.jar

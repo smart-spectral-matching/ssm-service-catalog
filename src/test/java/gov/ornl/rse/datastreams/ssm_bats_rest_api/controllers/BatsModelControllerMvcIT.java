@@ -120,31 +120,31 @@ public class BatsModelControllerMvcIT {
 
     /**
      *
-     * @return base Dataset URI for POSTing (with trailing slash)
+     * @return base Collection URI for POSTing (with trailing slash)
      */
-    private String getDatasetUri() {
-        return servletContext.getContextPath() + "/datasets/";
+    private String getCollectionUri() {
+        return servletContext.getContextPath() + "/collections/";
     }
 
     /**
      *
-     * @param datasetTitle dataset title part of the URL
+     * @param collectionTitle collection title part of the URL
      * @return base Moder URI for POSTing (with trailing slash)
      */
-    private String getModelUri(final String datasetTitle) {
-        return getDatasetUri() + datasetTitle + "/models/";
+    private String getModelUri(final String collectionTitle) {
+        return getCollectionUri() + collectionTitle + "/models/";
     }
 
     /**
-     * Returns string with dataset JSON for POST to create new dataset.
+     * Returns string with collection JSON for POST to create new collection.
      *
-     * @param title title for the new dataset
-     * @return      JSON as string for new dataset, used for POST
+     * @param title title for the new collection
+     * @return      JSON as string for new collection, used for POST
     */
-    private String getDatasetData(final String title) {
-        ObjectNode dataset = MAPPER.createObjectNode();
-        dataset.put("title", title);
-        return dataset.toString();
+    private String getCollectionData(final String title) {
+        ObjectNode collection = MAPPER.createObjectNode();
+        collection.put("title", title);
+        return collection.toString();
     }
 
     /**
@@ -187,14 +187,14 @@ public class BatsModelControllerMvcIT {
      *
      * @param userIncludesTimestamps true to test timestamp submission,
      *      false to test "normal" submission
-     * @param datasetTitle Title of the dataset to create
+     * @param collectionTitle Title of the collection to create
      * @param jsonld name of jsonld file in src/test/resources
      * @return relevant test data for the update method, as a TestData object
      * @throws Exception
      */
     private TestData timestampTestBasePost(
         final boolean userIncludesTimestamps,
-        final String datasetTitle,
+        final String collectionTitle,
         final String jsonld
     ) throws Exception {
         // String representation of timestamp - use any value in the far past here
@@ -203,11 +203,11 @@ public class BatsModelControllerMvcIT {
         final LocalDateTime dummyTimestamp = LocalDateTime.parse(
             dummyTimestampStr.replace(' ', 'T'));
 
-        // create dataset and make model URI
-        String datasetJson = getDatasetData(datasetTitle);
-        String response = mockMvc.perform(post(getDatasetUri())
+        // create collection and make model URI
+        String collectionJson = getCollectionData(collectionTitle);
+        String response = mockMvc.perform(post(getCollectionUri())
             .contentType(MediaType.APPLICATION_JSON)
-            .content(datasetJson))
+            .content(collectionJson))
             .andExpect(status().isCreated())
             .andReturn().getResponse().getContentAsString();
         final String title = MAPPER.readTree(response).get("title").asText();

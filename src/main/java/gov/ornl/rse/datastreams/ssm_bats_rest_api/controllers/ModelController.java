@@ -31,7 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.AuthorizationHandler;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.authorization.Permissions;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsCollection;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModelFormats;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.services.DocumentService;
@@ -40,7 +40,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AuthorizationUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.UUIDGenerator;
 
 @RestController
-@RequestMapping("/datasets")
+@RequestMapping("/collections")
 @Validated
 public class ModelController {
 
@@ -88,9 +88,9 @@ public class ModelController {
         "Unable to delete model.";
 
     /**
-     * FETCH a certain amount of Models for a Dataset.
+     * FETCH a certain amount of Models for a Collection.
      *
-     * @param datasetTitle Title of the Dataset this model belongs to
+     * @param collectionTitle Title of the Collection this model belongs to
      * @param pageNumber page number to start on,
      *    must be positive (default: 1)
      * @param pageSize number of results to return,
@@ -99,13 +99,13 @@ public class ModelController {
      * @return List either BatsModels (full) or List of Map (not full)
      */
     @RequestMapping(
-        value = "/{dataset_title}/models",
+        value = "/{collection_title}/models",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<?> queryModels(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
+        @PathVariable("collection_title") @Pattern(regexp = BatsCollection.TITLE_REGEX)
+        final String collectionTitle,
         @RequestParam(name = "pageNumber", defaultValue = "1")
         @Min(1) final int pageNumber,
         @RequestParam(name = "pageSize", defaultValue = "5")
@@ -119,7 +119,7 @@ public class ModelController {
         // ) @Valid final String[] returnProperties
     ) {
         Map<String, Object> body = graphService.getModels(
-            datasetTitle,
+            collectionTitle,
             pageNumber,
             pageSize,
             returnFull
@@ -161,23 +161,23 @@ public class ModelController {
     }
 
     /**
-     * CREATE a new Model in the Dataset collection.
+     * CREATE a new Model in the Collection collection.
      *
-     * @param datasetTitle Title for Dataset collection to add the new Model
+     * @param collectionTitle Title for Collection collection to add the new Model
      * @param jsonldPayload JSON-LD of new Model
-     * @return            BatsModel for created Model in the Dataset
+     * @return            BatsModel for created Model in the Collection
      * @throws Exception
     */
     @RequestMapping(
-        value = "/{dataset_title}/models",
+        value = "/{collection_title}/models",
         method = RequestMethod.POST,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public ResponseEntity<?> createModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
+        @PathVariable("collection_title") @Pattern(regexp = BatsCollection.TITLE_REGEX)
+        final String collectionTitle,
         @RequestBody final String jsonldPayload
     ) throws
         Exception {
@@ -201,7 +201,7 @@ public class ModelController {
 
         // Create in the graph database
         try {
-            graphService.uploadJsonld(datasetTitle, modelUUID, jsonldPayload);
+            graphService.uploadJsonld(collectionTitle, modelUUID, jsonldPayload);
         } catch (Exception e) {
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
@@ -213,7 +213,7 @@ public class ModelController {
         // Create in the document database w/ rollback of graph database on error
         LOGGER.info("Uploading model to document store: " + modelUUID);
         try {
-            documentService.upload(datasetTitle, modelUUID, jsonldPayload);
+            documentService.upload(collectionTitle, modelUUID, jsonldPayload);
             LOGGER.info("Model uploaded to document store!");
         } catch (Exception e) {
             // Rollback graph database insert of model
@@ -221,7 +221,7 @@ public class ModelController {
             LOGGER.error("Rolling back create from graph database for model: " + modelUUID);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
 
-            graphService.delete(datasetTitle, modelUUID);
+            graphService.delete(collectionTitle, modelUUID);
 
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -229,30 +229,30 @@ public class ModelController {
             );
         }
 
-        String jsonld = graphService.getModelJsonld(datasetTitle, modelUUID);
+        String jsonld = graphService.getModelJsonld(collectionTitle, modelUUID);
         BatsModel batsModel = new BatsModel(modelUUID, jsonld);
         return new ResponseEntity<BatsModel>(batsModel, HttpStatus.CREATED);
     }
 
     /**
-     * READ Model w/ given UUID in Dataset collection.
+     * READ Model w/ given UUID in Collection collection.
      *
-     * @param datasetTitle Title for Dataset collection that Model belonds to
-     * @param modelUUID    UUID for Model to retrieve from the Dataset
+     * @param collectionTitle Title for Collection collection that Model belonds to
+     * @param modelUUID    UUID for Model to retrieve from the Collection
      * @param format       Format to return the model ["graph", "json", "jsonld"]
      * @return             Requested format of Model UUID
      * @throws Exception
     */
     @RequestMapping(
-        value = "/{dataset_title}/models/{model_uuid}",
+        value = "/{collection_title}/models/{model_uuid}",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ResponseEntity<?> getModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
+        @PathVariable("collection_title") @Pattern(regexp = BatsCollection.TITLE_REGEX)
+        final String collectionTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
         @RequestParam(name = "format", defaultValue = "json")
@@ -284,7 +284,7 @@ public class ModelController {
         }
         String output;
         if (format == BatsModelFormats.GRAPH || format == BatsModelFormats.FULL) {
-            String jsonld = graphService.getModelJsonld(datasetTitle, modelUUID);
+            String jsonld = graphService.getModelJsonld(collectionTitle, modelUUID);
             BatsModel batsModel = new BatsModel(modelUUID, jsonld);
             return ResponseEntity.ok(batsModel);
         }
@@ -298,23 +298,23 @@ public class ModelController {
     }
 
     /**
-     * READ A list of all UUIDs for models belonging to the given dataset.
+     * READ A list of all UUIDs for models belonging to the given collection.
      *
-     * @param datasetTitle Title of the dataset to find models for.
+     * @param collectionTitle Title of the collection to find models for.
      * @return A JSON list of all UUIDs
      */
     @RequestMapping(
-        value = "/{dataset_title}/models/uuids",
+        value = "/{collection_title}/models/uuids",
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public ResponseEntity<?> getUUIDs(@PathVariable("dataset_title")
-        @Pattern(regexp = BatsDataset.TITLE_REGEX) final String datasetTitle
+    public ResponseEntity<?> getUUIDs(@PathVariable("collection_title")
+        @Pattern(regexp = BatsCollection.TITLE_REGEX) final String collectionTitle
     ) {
         try {
-            String uuids = graphService.getModelUUIDsForDataset(datasetTitle);
+            String uuids = graphService.getModelUUIDsForCollection(collectionTitle);
             return ResponseEntity.ok(uuids);
         } catch (JsonProcessingException e) {
             LOGGER.error(READ_MODEL_ERROR, e);
@@ -326,24 +326,24 @@ public class ModelController {
     }
 
     /**
-     * UPDATE (REPLACE) for Model w/ UUID in Dataset collection.
+     * UPDATE (REPLACE) for Model w/ UUID in Collection collection.
      *
-     * @param datasetTitle  Title for Dataset collection that Model belonds to
+     * @param collectionTitle  Title for Collection collection that Model belonds to
      * @param modelUUID     UUID for Model to replace
      * @param jsonldPayload JSON-LD of new Model to replace current Model
      * @return              BatsModel for newly updated Model
      * @throws Exception
     */
     @RequestMapping(
-        value = "/{dataset_title}/models/{model_uuid}",
+        value = "/{collection_title}/models/{model_uuid}",
         method = RequestMethod.PUT,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ResponseEntity<?> updateModelReplace(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
+        @PathVariable("collection_title") @Pattern(regexp = BatsCollection.TITLE_REGEX)
+        final String collectionTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
         @RequestBody final String jsonldPayload
@@ -370,19 +370,19 @@ public class ModelController {
         String oldJsonld = documentService.getJsonld(modelUUID);
 
         // Extract created timestamp
-        String createdTime = graphService.getCreatedTimeForModel(datasetTitle, modelUUID);
+        String createdTime = graphService.getCreatedTimeForModel(collectionTitle, modelUUID);
 
         // Update graph database model
         LOGGER.info("Uploading model to graph database: " + modelUUID);
-        graphService.uploadJsonld(datasetTitle, modelUUID, jsonldPayload, createdTime);
+        graphService.uploadJsonld(collectionTitle, modelUUID, jsonldPayload, createdTime);
 
         // Add updated model to document store
         LOGGER.info("Uploading model to document store: " + modelUUID);
         try {
-            documentService.upload(datasetTitle, modelUUID, jsonldPayload);
+            documentService.upload(collectionTitle, modelUUID, jsonldPayload);
             LOGGER.info("Model uploaded to document store!");
         } catch (Exception e) {
-            graphService.uploadJsonld(datasetTitle, modelUUID, oldJsonld, createdTime);
+            graphService.uploadJsonld(collectionTitle, modelUUID, oldJsonld, createdTime);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -390,30 +390,30 @@ public class ModelController {
             );
         }
 
-        String jsonld = graphService.getModelJsonld(datasetTitle, modelUUID);
+        String jsonld = graphService.getModelJsonld(collectionTitle, modelUUID);
         BatsModel batsModel = new BatsModel(modelUUID, jsonld);
         return ResponseEntity.ok(batsModel);
     }
 
     /**
-     * UPDATE (PARTIAL) for Model w/ UUID in Dataset collection.
+     * UPDATE (PARTIAL) for Model w/ UUID in Collection collection.
      *
-     * @param datasetTitle Title for Dataset collection that Model belonds to
+     * @param collectionTitle Title for Collection collection that Model belonds to
      * @param modelUUID   UUID for Model to partially update
      * @param jsonPayload Partial JSON-LD of new Model to update current Model
      * @return            BatsModel for newly updated Model
      * @throws Exception
     */
     @RequestMapping(
-        value = "/{dataset_title}/models/{model_uuid}",
+        value = "/{collection_title}/models/{model_uuid}",
         method = RequestMethod.PATCH,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ResponseEntity<?> updateModelPartial(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
+        @PathVariable("collection_title") @Pattern(regexp = BatsCollection.TITLE_REGEX)
+        final String collectionTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID,
         @RequestBody final String jsonPayload
@@ -441,7 +441,7 @@ public class ModelController {
         // Get merged JSON-LD from Model and new JSON-LD in request
         LOGGER.info("Merging json-ld w/ graph model json-ld: " + modelUUID);
         String mergedGraphJsonld = graphService.mergeJsonldForModel(
-            datasetTitle,
+            collectionTitle,
             modelUUID,
             jsonPayload
         );
@@ -453,19 +453,19 @@ public class ModelController {
         );
 
         // Extract created timestamp
-        String createdTime = graphService.getCreatedTimeForModel(datasetTitle, modelUUID);
+        String createdTime = graphService.getCreatedTimeForModel(collectionTitle, modelUUID);
 
         // Update graph database model
         LOGGER.info("Uploading model to graph database: " + modelUUID);
-        graphService.uploadJsonld(datasetTitle, modelUUID, mergedGraphJsonld, createdTime);
+        graphService.uploadJsonld(collectionTitle, modelUUID, mergedGraphJsonld, createdTime);
 
         // Add updated model to document store
         LOGGER.info("Uploading model to document store: " + modelUUID);
         try {
-            documentService.upload(datasetTitle, modelUUID, mergedDocumentJsonld);
+            documentService.upload(collectionTitle, modelUUID, mergedDocumentJsonld);
             LOGGER.info("Model uploaded to document store!");
         } catch (Exception e) {
-            graphService.uploadJsonld(datasetTitle, modelUUID, oldJsonld, createdTime);
+            graphService.uploadJsonld(collectionTitle, modelUUID, oldJsonld, createdTime);
             LOGGER.error(UPLOAD_MODEL_ERROR, e);
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -473,25 +473,25 @@ public class ModelController {
             );
         }
 
-        String jsonld = graphService.getModelJsonld(datasetTitle, modelUUID);
+        String jsonld = graphService.getModelJsonld(collectionTitle, modelUUID);
         BatsModel batsModel = new BatsModel(modelUUID, jsonld);
         return ResponseEntity.ok(batsModel);
     }
 
     /**
-     * DELETE Model w/ given UUID in Dataset collection.
+     * DELETE Model w/ given UUID in Collection collection.
      *
-     * @param datasetTitle Title that Model belongs to
-     * @param modelUUID   UUID of Model to delete from Dataset
+     * @param collectionTitle Title that Model belongs to
+     * @param modelUUID   UUID of Model to delete from Collection
     */
     @RequestMapping(
-        value = "/{dataset_title}/models/{model_uuid}",
+        value = "/{collection_title}/models/{model_uuid}",
         method = RequestMethod.DELETE
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteModel(
-        @PathVariable("dataset_title") @Pattern(regexp = BatsDataset.TITLE_REGEX)
-        final String datasetTitle,
+        @PathVariable("collection_title") @Pattern(regexp = BatsCollection.TITLE_REGEX)
+        final String collectionTitle,
         @PathVariable("model_uuid") @Pattern(regexp = UUIDGenerator.UUID_REGEX)
         final String modelUUID
     ) throws IOException, NoSuchAlgorithmException {
@@ -518,7 +518,7 @@ public class ModelController {
         // Delete model from graph DB
         LOGGER.info("Deleting model: " + modelUUID + " from graph database");
         try {
-            graphService.delete(datasetTitle, modelUUID);
+            graphService.delete(collectionTitle, modelUUID);
         } catch (Exception e) {
             LOGGER.error(DELETE_MODEL_ERROR, e);
             throw new ResponseStatusException(
@@ -536,7 +536,7 @@ public class ModelController {
             LOGGER.error("Unable to delete model in document store: " + modelUUID);
             LOGGER.error("Rolling back delete from graph database for model: " + modelUUID);
 
-            graphService.uploadJsonld(datasetTitle, modelUUID, oldJsonld);
+            graphService.uploadJsonld(collectionTitle, modelUUID, oldJsonld);
 
             LOGGER.error(DELETE_MODEL_ERROR, e);
             throw new ResponseStatusException(

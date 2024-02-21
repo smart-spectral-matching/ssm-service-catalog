@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsCollection;
 
 @Component
 public class ModelUtils {
@@ -28,10 +28,10 @@ public class ModelUtils {
 
 
     /**
-     * Dataset utilities.
+     * Collection utilities.
     */
     @Autowired
-    private DatasetUtils datasetUtils;
+    private CollectionUtils collectionUtils;
 
     /**
      * Assert / checks if Apache Jena Model exists in Fuseki / TDB database and log.
@@ -51,19 +51,19 @@ public class ModelUtils {
     }
 
     /**
-     * Get a Model that belongs to the given Dataset.
+     * Get a Model that belongs to the given Collection.
      *
-     * @param datasetTitle Title of the Dataset
+     * @param collectionTitle Title of the Collection
      * @param modelUuid    UUID of the Model to fetch
      * @return Apache Jena Model for UUID
      */
     public Model getModel(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUuid
     ) {
-        CustomizedBatsDataSet dataset = datasetUtils.getDataset(datasetTitle);
-        String modelUri = configUtils.getModelUri(datasetTitle, modelUuid);
-        Model model = dataset.getModel(modelUri);
+        CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
+        String modelUri = configUtils.getModelUri(collectionTitle, modelUuid);
+        Model model = collection.getModel(modelUri);
         assertModelExists(model, modelUuid);
         return model;
     }

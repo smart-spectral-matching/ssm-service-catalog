@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsDataSet;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsCollection;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.RdfModelWriter;
 
 public final class ModelSparql {
@@ -87,7 +87,7 @@ public final class ModelSparql {
      * implementations may want to handle exceptions differently.
      * </p>
      *
-     * @param endpointUrl Dataset url for SPARQL server
+     * @param endpointUrl Collection url for SPARQL server
      * @param queryStr literal query to call
      * @return a prepared query, ready to be executed
      */
@@ -99,7 +99,7 @@ public final class ModelSparql {
         ParameterizedSparqlString sparql = new ParameterizedSparqlString();
         sparql.append(queryStr);
 
-        //Prepare to execute the query against the given dataset
+        //Prepare to execute the query against the given collection
         Query query = sparql.asQuery();
         return QueryExecution.service(endpointUrl).query(query).build();
     }
@@ -176,19 +176,19 @@ public final class ModelSparql {
     }
 
     /**
-     * Gets full models from dataset based on SPARQL query results.
+     * Gets full models from collection based on SPARQL query results.
      *
      * @param pageSize    Page size for the returned model result set
      * @param pageNumber  Page number to use for the returned model result set
      * @param endpointUrl SPARQL endpoint URL to use for issuing the query
-     * @param dataset     Apache Jena Dataset the models belong to
+     * @param collection     Apache Jena Collection the models belong to
      * @return            List of BatsModel for the full models
     */
     public static List<BatsModel> getFullModels(
         final int pageSize,
         final int pageNumber,
         final String endpointUrl,
-        final CustomizedBatsDataSet dataset
+        final CustomizedBatsCollection collection
     ) throws QueryException {
         List<BatsModel> body = new ArrayList<>();
 
@@ -204,7 +204,7 @@ public final class ModelSparql {
             while (modelResults.hasNext()) {
                 QuerySolution solution = modelResults.next();
                 RDFNode node = solution.get("?model");
-                Model model = dataset.getModel(node.toString());
+                Model model = collection.getModel(node.toString());
                 try {
                     body.add(
                         new BatsModel(//NOPMD
@@ -214,9 +214,9 @@ public final class ModelSparql {
                     );
                 } catch (IOException e) {
                     LOGGER.error(
-                        "Unable to parse JSONLD from model {} dataset {}",
+                        "Unable to parse JSONLD from model {} collection {}",
                         node.toString(),
-                        dataset.getName()
+                        collection.getName()
                     );
                 }
             }

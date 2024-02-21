@@ -70,59 +70,59 @@ public class BatsModelControllerIT {
     }
 
     /**
-     * Returns full database uri given the Dataset title.
+     * Returns full database uri given the Collection title.
      *
-     * @param datasetTitle Title for the Dataset
-     * @return            Full URI for the Dataset
+     * @param collectionTitle Title for the Collection
+     * @return            Full URI for the Collection
     */
-    private String getDatasetUri(final String datasetTitle) {
-        return createUrl("/datasets/" + datasetTitle);
+    private String getCollectionUri(final String collectionTitle) {
+        return createUrl("/collections/" + collectionTitle);
     }
 
     /**
-     * Returns uri given the Dataset title and Model UUID.
+     * Returns uri given the Collection title and Model UUID.
      *
-     * @param datasetTitle Title for the Dataset the model belongs to
+     * @param collectionTitle Title for the Collection the model belongs to
      * @param modelUUID   UUID for the Model
      * @param format      Format return for model
      * @return            Full URI for the Model
     */
     private String getModelUri(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID,
         final String format
     ) {
-        String uri = getDatasetUri(datasetTitle) + "/models/" + modelUUID;
+        String uri = getCollectionUri(collectionTitle) + "/models/" + modelUUID;
         uri += "?format=" + format.toUpperCase(Locale.getDefault());
         return uri;
     }
 
     /**
-     * Returns uri to full model given the Dataset title and Model UUID.
+     * Returns uri to full model given the Collection title and Model UUID.
      *
-     * @param datasetTitle Title for the Dataset the model belongs to
+     * @param collectionTitle Title for the Collection the model belongs to
      * @param modelUUID   UUID for the Model
      * @return            Full URI for the Model
     */
     private String getModelUriFull(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID
     ) {
-        return getModelUri(datasetTitle, modelUUID, "full");
+        return getModelUri(collectionTitle, modelUUID, "full");
     }
 
     /**
-     * Returns parital uri w/o base url given the Dataset and Model UUID.
+     * Returns parital uri w/o base url given the Collection and Model UUID.
      *
-     * @param datasetTitle Title for the Dataset the model belongs to
+     * @param collectionTitle Title for the Collection the model belongs to
      * @param modelUUID   UUID for the Model
      * @return            Partial URI for the Model
     */
     private String getModelUriPartial(
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID
     ) {
-        return "/datasets/" + datasetTitle + "/models/" + modelUUID;
+        return "/collections/" + collectionTitle + "/models/" + modelUUID;
     }
 
     /**
@@ -157,12 +157,12 @@ public class BatsModelControllerIT {
     *  Asserts we have matching URIs in @id part of each object in @graph array.
     *
     * @param resultGraph Result JsonNode to check the @graph array for
-    * @param datasetTitle The title of the dataset for the target model
+    * @param collectionTitle The title of the collection for the target model
     * @param modelUUID   The UUID of the model for the target model
     */
     private void assertEqualIDsInGraphArrayNodes(
         final JsonNode resultGraph,
-        final String datasetTitle,
+        final String collectionTitle,
         final String modelUUID
     ) {
         // Check the URIs match in the @id part of each object in the @graph array
@@ -176,7 +176,7 @@ public class BatsModelControllerIT {
                 continue;
             }
 
-            String modelPath = getModelUriPartial(datasetTitle, modelUUID);
+            String modelPath = getModelUriPartial(collectionTitle, modelUUID);
             String msg = "Asserting " + nodeID + " contains " + modelPath;
             System.out.println(msg);
 
@@ -259,38 +259,38 @@ public class BatsModelControllerIT {
     }
 
     /**
-     * Helper function to create a dataset we can add models to.
+     * Helper function to create a collection we can add models to.
      *
-     * @param title Title for the dataset
-     * @return Dataset title
+     * @param title Title for the collection
+     * @return Collection title
     */
-    private String createDataset(final String title) throws Exception {
+    private String createCollection(final String title) throws Exception {
         ObjectNode titleObject = MAPPER.createObjectNode();
         titleObject.put("title", title);
-        String datasetJson = MAPPER.writeValueAsString(titleObject);
+        String collectionJson = MAPPER.writeValueAsString(titleObject);
 
         String jsonString = restTemplate.postForEntity(
-            createUrl("/datasets"),
-            makeBody(MediaType.APPLICATION_JSON, datasetJson),
+            createUrl("/collections"),
+            makeBody(MediaType.APPLICATION_JSON, collectionJson),
             String.class).getBody();
 
-        String datasetTitle = MAPPER.readTree(jsonString)
+        String collectionTitle = MAPPER.readTree(jsonString)
                                     .get("title")
                                     .asText();
-        return datasetTitle;
+        return collectionTitle;
     }
 
     /**
-     * Helper function to create a model to a given dataset.
+     * Helper function to create a model to a given collection.
      *
-     * @param datasetTitle The title of the dataset to add the model
+     * @param collectionTitle The title of the collection to add the model
      * @param jsonld      JSON-LD for the Model to create
      * @return            Model UUID
     */
-    private String createModel(final String datasetTitle, final String jsonld)
+    private String createModel(final String collectionTitle, final String jsonld)
     throws Exception {
         String jsonString = restTemplate.postForEntity(
-            getDatasetUri(datasetTitle) + "/models",
+            getCollectionUri(collectionTitle) + "/models",
             makeBody(MediaType.APPLICATION_JSON, jsonld),
             String.class).getBody();
         String modelUUID  = MAPPER.readTree(jsonString).get("uuid").asText();
@@ -302,9 +302,9 @@ public class BatsModelControllerIT {
     */
     @Test
     public void testCreateSimpleFullModel() throws Exception {
-        String datasetTitle = createDataset("testCreateSimpleModel");
+        String collectionTitle = createCollection("testCreateSimpleModel");
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getDatasetUri(datasetTitle) + "/models",
+                getCollectionUri(collectionTitle) + "/models",
                 makeBody(MediaType.APPLICATION_JSON, simpleInputJSONLD()),
                 String.class);
 
@@ -338,10 +338,10 @@ public class BatsModelControllerIT {
     */
     @Test
     public void testCreateSciDataFullModel() throws Exception {
-        String datasetTitle = createDataset("testCreateSciDataModel");
+        String collectionTitle = createCollection("testCreateSciDataModel");
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                getDatasetUri(datasetTitle) + "/models",
+                getCollectionUri(collectionTitle) + "/models",
                 makeBody(MediaType.APPLICATION_JSON, scidataInputJSONLD()),
                 String.class);
 
@@ -350,10 +350,10 @@ public class BatsModelControllerIT {
         String modelUUID = MAPPER.readTree(response.getBody())
                                  .get("uuid")
                                  .asText();
-        String modelUri = getModelUriFull(datasetTitle, modelUUID);
+        String modelUri = getModelUriFull(collectionTitle, modelUUID);
 
         System.out.println("\n\n");
-        System.out.println("Dataset title: " + datasetTitle);
+        System.out.println("Collection title: " + collectionTitle);
         System.out.println("Model Uuid: " + modelUUID);
         System.out.println("Model Uri: " + modelUri);
         System.out.println("\n\n");
@@ -365,7 +365,7 @@ public class BatsModelControllerIT {
 
         Assertions.assertEquals(targetGraph.size(), resultGraph.size());
 
-        assertEqualIDsInGraphArrayNodes(resultGraph, datasetTitle, modelUUID);
+        assertEqualIDsInGraphArrayNodes(resultGraph, collectionTitle, modelUUID);
     }
 
     /**
@@ -373,9 +373,9 @@ public class BatsModelControllerIT {
     */
     @Test
     public void testGetSimpleFullModel() throws Exception {
-        String datasetTitle = createDataset("testGetSimpleFullModel");
-        String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
-        String modelUri = getModelUriFull(datasetTitle, modelUUID);
+        String collectionTitle = createCollection("testGetSimpleFullModel");
+        String modelUUID = createModel(collectionTitle, simpleInputJSONLD());
+        String modelUri = getModelUriFull(collectionTitle, modelUUID);
 
         ResponseEntity<String> response = restTemplate.getForEntity(
             modelUri,
@@ -411,9 +411,9 @@ public class BatsModelControllerIT {
     */
     @Test
     public void testGetSciDataFullModel() throws Exception {
-        String datasetTitle = createDataset("testGetSciDataFullModel");
-        String modelUUID = createModel(datasetTitle, scidataInputJSONLD());
-        String modelUri = getModelUriFull(datasetTitle, modelUUID);
+        String collectionTitle = createCollection("testGetSciDataFullModel");
+        String modelUUID = createModel(collectionTitle, scidataInputJSONLD());
+        String modelUri = getModelUriFull(collectionTitle, modelUUID);
 
         ResponseEntity<String> response = restTemplate.getForEntity(
             modelUri,
@@ -436,12 +436,12 @@ public class BatsModelControllerIT {
     */
     @Test
     public void testGetFullModelNotFound() throws Exception {
-        String datasetTitle = createDataset("testGetModelNotFound");
+        String collectionTitle = createCollection("testGetModelNotFound");
 
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                getModelUriFull(datasetTitle, "1"),
+                getModelUriFull(collectionTitle, "1"),
                 Void.class
             ).getStatusCode()
         );
@@ -452,9 +452,9 @@ public class BatsModelControllerIT {
     */
     @Test
     public void testUpdateSimpleFullModelReplace() throws Exception {
-        String datasetTitle = createDataset("testUpdateSimpleModelReplace");
-        String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
-        String modelUri = getModelUriFull(datasetTitle, modelUUID);
+        String collectionTitle = createCollection("testUpdateSimpleModelReplace");
+        String modelUUID = createModel(collectionTitle, simpleInputJSONLD());
+        String modelUri = getModelUriFull(collectionTitle, modelUUID);
 
         // Create @graph node
         JsonNode updateNode = getSimpleUpdateNode();
@@ -500,9 +500,9 @@ public class BatsModelControllerIT {
     */
     @Test
     public void testUpdateSimpleFullModelPartial() throws Exception {
-        String datasetTitle = createDataset("testUpdateSimpleModelPartial");
-        String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
-        String modelUri = getModelUriFull(datasetTitle, modelUUID);
+        String collectionTitle = createCollection("testUpdateSimpleModelPartial");
+        String modelUUID = createModel(collectionTitle, simpleInputJSONLD());
+        String modelUri = getModelUriFull(collectionTitle, modelUUID);
 
         // Create body for our update to the model
         JsonNode newNameNode = getSimpleUpdateNode();
@@ -551,14 +551,14 @@ public class BatsModelControllerIT {
     */
     @Test
     public void testDeleteSimpleFullModel() throws Exception {
-        String datasetTitle = createDataset("testDeleteSimpleModel");
-        String modelUUID = createModel(datasetTitle, simpleInputJSONLD());
+        String collectionTitle = createCollection("testDeleteSimpleModel");
+        String modelUUID = createModel(collectionTitle, simpleInputJSONLD());
 
         // Make sure model exists
         Assertions.assertEquals(
             HttpStatus.OK,
             restTemplate.getForEntity(
-                getModelUriFull(datasetTitle, modelUUID),
+                getModelUriFull(collectionTitle, modelUUID),
                 Void.class
             ).getStatusCode()
         );
@@ -567,7 +567,7 @@ public class BatsModelControllerIT {
         Assertions.assertEquals(
             HttpStatus.NO_CONTENT,
             restTemplate.exchange(
-                getModelUriFull(datasetTitle, modelUUID),
+                getModelUriFull(collectionTitle, modelUUID),
                 HttpMethod.DELETE,
                 HttpEntity.EMPTY,
                 Void.class
@@ -578,7 +578,7 @@ public class BatsModelControllerIT {
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                getModelUriFull(datasetTitle, modelUUID),
+                getModelUriFull(collectionTitle, modelUUID),
                 Void.class
             ).getStatusCode()
         );
