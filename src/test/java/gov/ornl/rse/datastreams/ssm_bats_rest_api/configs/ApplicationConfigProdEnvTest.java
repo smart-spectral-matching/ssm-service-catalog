@@ -31,7 +31,7 @@ public class ApplicationConfigProdEnvTest {
 
     @Test
     void fusekiHostnameSetByPropertyValue() {
-        Assertions.assertEquals("http://ssm-service-catalog-ssm-fuseki-1",
+        Assertions.assertEquals("http://ssm-fuseki",
             config.getFuseki().getHostname());
     }
 
