@@ -42,7 +42,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsCollectio
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.DocumentRepository;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AuthorizationUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.CollectionUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.DatasetSparql;
 
 @RestController
 @RequestMapping("/collections")
@@ -61,7 +61,7 @@ public class BatsCollectionController {
     private ApplicationConfig appConfig;
 
     /**
-     * Document store repository for model documents.
+     * Document store repository for dataset documents.
      */
     @Autowired
     private DocumentRepository repository;
@@ -108,7 +108,7 @@ public class BatsCollectionController {
             "Fuseki URL / connection access error for collection";
 
     /**
-     * CREATE a new Collection collection for Models.
+     * CREATE a new Collection collection for Datasets.
      *
      * @param batsCollection JSON body for creating a new Collection
      * @return BatsCollection for newly created Collection in Fuseki
@@ -238,13 +238,13 @@ public class BatsCollectionController {
             throws Exception {
         CustomizedBatsCollection collection = collectionUtils.getCollection(title);
 
-        // Get the Model UUID list for the collection
+        // Get the Dataset UUID list for the collection
         String endpointUrl = fuseki().getHostname() + ":" + fuseki().getPort() + "/" + title;
         ArrayNode uuidArray = MAPPER.createArrayNode();
         try {
-            uuidArray = ModelSparql.getModelUuids(endpointUrl);
+            uuidArray = DatasetSparql.getDatasetUuids(endpointUrl);
         } catch (QueryException ex) {
-            LOGGER.info("No models to delete for datset.");
+            LOGGER.info("No datasets to delete for datset.");
         }
 
         AuthorizationHandler authHandler = appConfig.getAuthorizationHandler();
@@ -261,19 +261,19 @@ public class BatsCollectionController {
             // authorized to delete
             ArrayList<String> unauthorizedUUIDs = new ArrayList<String>();
 
-            for (JsonNode modelUuidNode : uuidArray) {
-                String modelUUID = modelUuidNode.asText();
-                if (!authHandler.checkPermission(user, Permissions.DELETE, modelUUID)) {
-                    unauthorizedUUIDs.add(modelUUID);
+            for (JsonNode datasetUuidNode : uuidArray) {
+                String datasetUUID = datasetUuidNode.asText();
+                if (!authHandler.checkPermission(user, Permissions.DELETE, datasetUUID)) {
+                    unauthorizedUUIDs.add(datasetUUID);
                 }
             }
 
-            // If there were any undeletable models, do not delete the collection and instead
+            // If there were any undeletable datasets, do not delete the collection and instead
             // return an error.
             if (!unauthorizedUUIDs.isEmpty()) {
 
                 String initialMessage = "User " + user
-                        + " is not authorized to delete the following models contained in the "
+                        + " is not authorized to delete the following datasets contained in the "
                         + "collectiont: ";
 
                 StringBuilder message = new StringBuilder(initialMessage);
@@ -287,34 +287,34 @@ public class BatsCollectionController {
             }
         }
 
-        // Loop to delete the models from collection
-        for (JsonNode modelUuidNode : uuidArray) {
-            String modelUUID = modelUuidNode.asText();
-            String uuid = modelUUID.substring(modelUUID.lastIndexOf('/') + 1);
-            String modelUri = configUtils.getModelUri(title, uuid);
+        // Loop to delete the datasets from collection
+        for (JsonNode datasetUuidNode : uuidArray) {
+            String datasetUUID = datasetUuidNode.asText();
+            String uuid = datasetUUID.substring(datasetUUID.lastIndexOf('/') + 1);
+            String datasetUri = configUtils.getDatasetUri(title, uuid);
 
-            // Get model for rollback
-            Model model = collection.getModel(modelUri);
+            // Get dataset for rollback
+            Model dataset = collection.getModel(datasetUri);
 
-            // Delete model from graph database
-            LOGGER.info("Deleting model: " + uuid + " from graph database");
+            // Delete dataset from graph database
+            LOGGER.info("Deleting dataset: " + uuid + " from graph database");
             try {
-                collection.deleteModel(modelUri);
+                collection.deleteDataset(datasetUri);
             } catch (Exception ex) {
-                String message = "Unable to delete model: " + uuid + " from graph database.";
+                String message = "Unable to delete dataset: " + uuid + " from graph database.";
                 LOGGER.error(message);
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
             }
 
-            // Delete model from document store (rollback graph database if fails)
-            LOGGER.info("Deleting model: " + uuid + " from document store");
+            // Delete dataset from document store (rollback graph database if fails)
+            LOGGER.info("Deleting dataset: " + uuid + " from document store");
             try {
                 repository.delete(repository.findById(uuid).get());
 
             } catch (Exception ex) {
-                String message = "Unable to delete model: " + uuid + " from document store.";
+                String message = "Unable to delete dataset: " + uuid + " from document store.";
                 LOGGER.error(message);
-                collection.updateModel(modelUri, model);
+                collection.updateModel(datasetUri, dataset);
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message);
             }
 

@@ -29,14 +29,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig.Fuseki;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ConfigUtils;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsCollection;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.AbbreviatedJson;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.CollectionUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.DateUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.RdfModelWriter;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.DatasetSparql;
 
 @Component
 public class GraphService {
@@ -103,11 +103,11 @@ public class GraphService {
     */
     private JsonNode formatGraphNode(final JsonNode jsonldNode)
     throws IOException {
-        LOGGER.info("Checking for @graph in model...");
+        LOGGER.info("Checking for @graph in dataset...");
 
         if (jsonldNode.has("@graph") && jsonldNode.get("@graph").isObject()) {
             // Merge @graph node into top-level and remove duplicate @id node
-            LOGGER.info("Moving @graph to top-level of model...");
+            LOGGER.info("Moving @graph to top-level of dataset...");
             JsonNode graphNode = ((ObjectNode) jsonldNode).remove("@graph");
             ((ObjectNode) jsonldNode).remove("@id");
 
@@ -169,14 +169,14 @@ public class GraphService {
     /**
      * Transform incoming input JSON-LD prior to ingestion.
      *
-     * @param collectionTitle    Title of the collection collection for the model
-     * @param modelUUID       UUID for the model
+     * @param collectionTitle    Title of the collection collection for the dataset
+     * @param datasetUUID       UUID for the dataset
      * @param inputJsonld     Input JSON-LD from User as JsonNode
      * @return Transformed JSON-LD for SSM formatting
      */
     private String transformJsonld(
         final String collectionTitle,
-        final String modelUUID,
+        final String datasetUUID,
         final String inputJsonld
     ) throws IOException, JsonProcessingException, JsonMappingException {
         // check if we have a @graph node, need to move all fields to top-level
@@ -187,8 +187,8 @@ public class GraphService {
         scidataNode = JsonUtils.clearTimestamps(scidataNode);
 
         // replace @base in @context block w/ new URI
-        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
-        String outputJsonld = addBaseToContextToJsonLD(scidataNode.toString(), modelUri + "/");
+        String datasetUri = configUtils.getDatasetUri(collectionTitle, datasetUUID);
+        String outputJsonld = addBaseToContextToJsonLD(scidataNode.toString(), datasetUri + "/");
         return outputJsonld;
     }
 
@@ -226,47 +226,47 @@ public class GraphService {
     }
 
     /**
-     * Construct the body response for the GET method of models.
+     * Construct the body response for the GET method of datasets.
      *
      * @param endpointUrl URI used to query Fuseki for the count
-     * @param models     Generic object, representing list of models from SPARQL query
-     * @param modelsUri  Uri to use for the models
+     * @param datasets     Generic object, representing list of datasets from SPARQL query
+     * @param datasetsUri  Uri to use for the datasets
      * @param pageSize   Size of the pages for pagination
      * @param pageNumber Page number for pagination
-     * @param returnFull boolean for returning full model or not
-     * @return Body for JSON response as a Map for list of models
+     * @param returnFull boolean for returning full dataset or not
+     * @return Body for JSON response as a Map for list of datasets
      */
-    private Map<String, Object> constructModelsBody(
+    private Map<String, Object> constructDatasetsBody(
         final String endpointUrl,
-        final Object models,
-        final String modelsUri,
+        final Object datasets,
+        final String datasetsUri,
         final int pageSize,
         final int pageNumber,
         final boolean returnFull
     ) throws QueryException {
         final Map<String, Object> body = new LinkedHashMap<>();
-        final int modelCount = ModelSparql.getModelCount(endpointUrl);
+        final int datasetCount = DatasetSparql.getDatasetCount(endpointUrl);
         /*
         cheeky way to avoid the division twice,
         compare Option 1 vs Option 2 here:
         https://stackoverflow.com/a/21830188
         */
-        final int totalPages = (modelCount - 1) / pageSize + 1;
+        final int totalPages = (datasetCount - 1) / pageSize + 1;
 
-        body.put("data", models);
+        body.put("data", datasets);
 
         // TODO remember to update the values with the full URI once this is changed
-        body.put("first", modelsUri + "?pageNumber=1&pageSize="
+        body.put("first", datasetsUri + "?pageNumber=1&pageSize="
             + pageSize + "&returnFull=" + returnFull);
-        body.put("previous", modelsUri + "?pageNumber="
+        body.put("previous", datasetsUri + "?pageNumber="
             + (pageNumber > 1 ? pageNumber - 1 : 1) + "&pageSize="
             + pageSize + "&returnFull=" + returnFull);
-        body.put("next", modelsUri + "?pageNumber="
+        body.put("next", datasetsUri + "?pageNumber="
             + (pageNumber < totalPages ? pageNumber + 1 : totalPages)
             + "&pageSize=" + pageSize + "&returnFull=" + returnFull);
-        body.put("last", modelsUri + "?pageNumber=" + totalPages
+        body.put("last", datasetsUri + "?pageNumber=" + totalPages
             + "&pageSize=" + pageSize + "&returnFull=" + returnFull);
-        body.put("total", modelCount);
+        body.put("total", datasetCount);
         return body;
     }
 
@@ -283,7 +283,7 @@ public class GraphService {
         final String modelUuid
     ) throws Exception {
         CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
-        String modelUri = configUtils.getModelUri(collectionTitle, modelUuid);
+        String modelUri = configUtils.getDatasetUri(collectionTitle, modelUuid);
         Model model = collection.getModel(modelUri);
         assertModelExists(model, modelUuid);
         return model;
@@ -305,7 +305,7 @@ public class GraphService {
         // Gets model uri for graph
         String endpointUrl = fuseki().getURI() + "/" + collectionTitle;
         Model model = getModel(collectionTitle, modelUUID);
-        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
+        String modelUri = configUtils.getDatasetUri(collectionTitle, modelUUID);
         String json = AbbreviatedJson.getJson(endpointUrl, model, modelUri);
         return json;
     }
@@ -329,16 +329,16 @@ public class GraphService {
     }
 
     /**
-     * Get list of Models for Collection w/ pagination.
+     * Get list of Datasets for Collection w/ pagination.
      *
-     * @param collectionTitle Collection to get model UUIDs for
-     * @param pageNumber   Page number to get for model UUIDs
-     * @param pageSize     Size of pages (number of models per page)
-     * @param returnFull   Boolean if we want full models or just summaries (default: summaries)
+     * @param collectionTitle Collection to get dataset UUIDs for
+     * @param pageNumber   Page number to get for dataset UUIDs
+     * @param pageSize     Size of pages (number of datasets per page)
+     * @param returnFull   Boolean if we want full datasets or just summaries (default: summaries)
      *
-     * @return Map of the model objects via UUIDs
+     * @return Map of the dataset objects via UUIDs
      */
-    public Map<String, Object> getModels(
+    public Map<String, Object> getDatasets(
         final String collectionTitle,
         final int pageNumber,
         final int pageSize,
@@ -349,30 +349,30 @@ public class GraphService {
         // final PropertyEnum[]
         // pmd does not recognize that this will always be closed
         String endpointUrl = fuseki().getURI() + "/" + collectionTitle;
-        String modelsUri = configUtils.getCollectionUri(collectionTitle) + "/models";
+        String datasetsUri = configUtils.getCollectionUri(collectionTitle) + "/datasets";
 
         try {
-            //Add each found model
+            //Add each found dataset
             if (returnFull) {
-                List<BatsModel> models = ModelSparql.getFullModels(
+                List<BatsDataset> datasets = DatasetSparql.getFullModels(
                     pageSize,
                     pageNumber,
                     endpointUrl,
                     collection
                 );
-                Map<String, Object> body = constructModelsBody(
-                    endpointUrl, models, modelsUri,
+                Map<String, Object> body = constructDatasetsBody(
+                    endpointUrl, datasets, datasetsUri,
                     pageSize, pageNumber, returnFull);
                 return body;
             } else {
                 // build the actual body
-                List<Map<String, Object>> models = ModelSparql.getModelSummaries(
+                List<Map<String, Object>> datasets = DatasetSparql.getDatasetSummaries(
                     pageSize,
                     pageNumber,
                     endpointUrl
                 );
-                Map<String, Object> body = constructModelsBody(
-                    endpointUrl, models, modelsUri,
+                Map<String, Object> body = constructDatasetsBody(
+                    endpointUrl, datasets, datasetsUri,
                     pageSize, pageNumber, returnFull);
                 return body;
             }
@@ -382,14 +382,14 @@ public class GraphService {
     }
 
     /**
-     * Get list of UUIDS for the Models in Collection.
+     * Get list of UUIDS for the Datasets in Collection.
      *
-     * @param collectionTitle Title for the collection to pull model UUIDs for
+     * @param collectionTitle Title for the collection to pull dataset UUIDs for
      *
      * @return String with the list of uuids
      * @throws JsonProcessingException
      */
-    public String getModelUUIDsForCollection(
+    public String getDatasetUUIDsForCollection(
         final String collectionTitle
     ) throws JsonProcessingException {
         // Check if collection exists
@@ -399,7 +399,7 @@ public class GraphService {
 
         String output;
         try {
-            ArrayNode uuidArray = ModelSparql.getModelUuids(endpointUrl);
+            ArrayNode uuidArray = DatasetSparql.getDatasetUuids(endpointUrl);
             output = MAPPER.writeValueAsString(uuidArray);
         } catch (QueryException ex) {
             output = MAPPER.writeValueAsString(Collections.EMPTY_LIST);
@@ -426,7 +426,7 @@ public class GraphService {
 
         CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
 
-        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
+        String modelUri = configUtils.getDatasetUri(collectionTitle, modelUUID);
         Model model = collection.getModel(modelUri);
         String modelJsonld = RdfModelWriter.getJsonldForModel(model);
 
@@ -439,52 +439,52 @@ public class GraphService {
     }
 
     /**
-     * Merge Model UUID and new JSON-LD together.
+     * Merge Dataset UUID and new JSON-LD together.
      *
-     * @param collectionTitle Collection that Model UUID belongs to
-     * @param modelUUID    Model UUID to merge JSON-LD with
-     * @param newJsonld    New JSON-LD to merge with Model UUID
+     * @param collectionTitle Collection that Dataset UUID belongs to
+     * @param datasetUUID    Dataset UUID to merge JSON-LD with
+     * @param newJsonld    New JSON-LD to merge with Dataset UUID
      *
      * @return Merged JSON-LD as String
      * @throws Exception
      */
-    public String mergeJsonldForModel(
+    public String mergeJsonldForDataset(
         final String collectionTitle,
-        final String modelUUID,
+        final String datasetUUID,
         final String newJsonld
     ) throws Exception {
-        // Model JSON-LD
-        String modelJsonld = getModelJsonld(collectionTitle, modelUUID);
-        JsonNode modelNode = MAPPER.readTree(modelJsonld);
+        // Dataset JSON-LD
+        String datasetJsonld = getModelJsonld(collectionTitle, datasetUUID);
+        JsonNode datasetNode = MAPPER.readTree(datasetJsonld);
 
         // New JSON-LD to merge
         JsonNode newNode = MAPPER.readTree(newJsonld);
 
-        // Merge model and new JSON-LD via nodes
-        JsonNode mergedModelNode = JsonUtils.merge(modelNode, newNode);
-        String mergedModelJsonld = mergedModelNode.toString();
+        // Merge dataset and new JSON-LD via nodes
+        JsonNode mergedDatasetNode = JsonUtils.merge(datasetNode, newNode);
+        String mergedDatasetJsonld = mergedDatasetNode.toString();
 
-        return mergedModelJsonld;
+        return mergedDatasetJsonld;
     }
 
     /**
-     * Upload Model to Model UUID in graph database w/o prior created time.
+     * Upload Dataset to Dataset UUID in graph database w/o prior created time.
      *
      * @param collectionTitle  Collection title
-     * @param modelUUID     Model UUID
+     * @param datasetUUID     Dataset UUID
      * @param jsonld        JSON-LD to upload
      *
-     * @return BatsModel of the new upload Model
+     * @return BatsDataset of the new upload Dataset
      *
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
-    public BatsModel uploadJsonld(
+    public BatsDataset uploadJsonld(
         final String collectionTitle,
-        final String modelUUID,
+        final String datasetUUID,
         final String jsonld
     ) throws IOException, NoSuchAlgorithmException {
-        return uploadJsonld(collectionTitle, modelUUID, jsonld, null);
+        return uploadJsonld(collectionTitle, datasetUUID, jsonld, null);
     }
 
     /**
@@ -500,7 +500,7 @@ public class GraphService {
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
-    public BatsModel uploadJsonld(
+    public BatsDataset uploadJsonld(
         final String collectionTitle,
         final String modelUUID,
         final String jsonld,
@@ -516,25 +516,25 @@ public class GraphService {
 
         // Add Model to graph database
         Model model = jsonldToModel(modifiedJsonld, modelUUID, priorCreatedTime);
-        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
+        String modelUri = configUtils.getDatasetUri(collectionTitle, modelUUID);
         collection.updateModel(modelUri, model);
         Model newModel = collection.getModel(modelUri);
 
-        return new BatsModel(modelUUID, RdfModelWriter.getJsonldForModel(newModel));
+        return new BatsDataset(modelUUID, RdfModelWriter.getJsonldForModel(newModel));
     }
 
     /**
-     * Delete Model UUID from Collection.
+     * Delete Dataset UUID from Collection.
      *
-     * @param collectionTitle Title of Collection model belongs to
-     * @param modelUUID UUID of Model to delete
+     * @param collectionTitle Title of Collection dataset belongs to
+     * @param datasetUUID UUID of Dataset to delete
      */
     public void delete(
         final String collectionTitle,
-        final String modelUUID
+        final String datasetUUID
     ) {
         CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
-        String modelUri = configUtils.getModelUri(collectionTitle, modelUUID);
-        collection.deleteModel(modelUri);
+        String datasetUri = configUtils.getDatasetUri(collectionTitle, datasetUUID);
+        collection.deleteDataset(datasetUri);
     }
 }

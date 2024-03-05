@@ -1,9 +1,9 @@
 package gov.ornl.rse.datastreams.ssm_bats_rest_api.models;
 
 /**
- * Formats to return for Models.
+ * Formats to return for Datasets.
  */
-public enum BatsModelFormats {
+public enum BatsDatasetFormats {
     /**
      * Abbreviated JSON format.
      */

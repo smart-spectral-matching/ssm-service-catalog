@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.ModelSparql;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.sparql.DatasetSparql;
 
 public final class AbbreviatedJson {
     /**
@@ -511,7 +511,7 @@ public final class AbbreviatedJson {
         final Model model,
         final String modelUri
     ) throws JsonProcessingException {
-        Map<String, Object> map = ModelSparql.getModelSummary(endpointUrl, modelUri);
+        Map<String, Object> map = DatasetSparql.getDatasetSummary(endpointUrl, modelUri);
 
         try {
             map.put("full", map.get("url") + "?full=true");

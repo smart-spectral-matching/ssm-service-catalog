@@ -20,34 +20,34 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsModel;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.BatsDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.CustomizedBatsCollection;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.RdfModelWriter;
 
-public final class ModelSparql {
+public final class DatasetSparql {
     /**
-     * Setup logger for ModelSqarql.
+     * Setup logger for DatasetSqarql.
     */
     private static final Logger LOGGER = LoggerFactory.getLogger(
-        ModelSparql.class
+        DatasetSparql.class
     );
 
     /**
      * Static methods only.
      */
-    private ModelSparql() { }
+    private DatasetSparql() { }
 
     /**
-     * SPARQL query string for model summary.
+     * SPARQL query string for dataset summary.
      *
-     * @param model Model URI to get model summary for
+     * @param dataset Dataset URI to get dataset summary for
      * @return String for part of SPARQL query
      */
-    private static String queryStringForModelSummary(final String model) {
+    private static String queryStringForDatasetSummary(final String dataset) {
         String query =
             "SELECT ?title ?scidata_url ?modified ?created "
             + "WHERE { "
-            + "  GRAPH <" + model + "> { "
+            + "  GRAPH <" + dataset + "> { "
             + "    ?node1 dcterms:title ?_title . "
             + "    ?node2 dcterm:modified ?modified . "
             + "    ?node3 dcterm:created ?created . "
@@ -59,11 +59,11 @@ public final class ModelSparql {
     }
 
     /**
-     * SPARQL query string for model summaries.
+     * SPARQL query string for dataset summaries.
      *
      * @return String for part of the SPARQL query
      */
-    private static String queryStringForModelSummaries() {
+    private static String queryStringForDatasetSummaries() {
         String query =
         "SELECT ?model ?title ?scidata_url ?modified ?created "
         + "WHERE { "
@@ -105,55 +105,55 @@ public final class ModelSparql {
     }
 
     /**
-     * Get model summary for a named graph via a mode URI.
+     * Get dataset summary for a named graph via a mode URI.
      *
      * @param endpointUrl SPARQL endpoint to query for the named graph
-     * @param modelUri    Model URI for the named graph to get the summary for
-     * @return Map with a specific model summary for the named graph
+     * @param datasetUri    Dataset URI for the named graph to get the summary for
+     * @return Map with a specific dataset summary for the named graph
      * @throws QueryException
      */
-    public static Map<String, Object> getModelSummary(
+    public static Map<String, Object> getDatasetSummary(
         final String endpointUrl,
-        final String modelUri
+        final String datasetUri
      ) throws QueryException {
 
         // For some reason, uploading fails with http, getting fails with https
         String queryString = SparqlPrefix.queryPrefixesAll()
         .replace("https://purl.org", "http://purl.org")
-            + queryStringForModelSummary(modelUri);
+            + queryStringForDatasetSummary(datasetUri);
 
         QueryExecution execution = prepareSparqlQuery(//NOPMD
         // pmd does not recognize that this is always being closed
             endpointUrl, queryString
         );
 
-        Map<String, Object> modelSummary = new LinkedHashMap<String, Object>();
-        ResultSet modelResults = execution.execSelect();
+        Map<String, Object> datasetSummary = new LinkedHashMap<String, Object>();
+        ResultSet datasetResults = execution.execSelect();
         try {
-            while (modelResults.hasNext()) {
-                QuerySolution modelSolution = modelResults.next();
-                modelSummary = getModelSummaryFromQuery(modelSolution);
+            while (datasetResults.hasNext()) {
+                QuerySolution datasetSolution = datasetResults.next();
+                datasetSummary = getDatasetSummaryFromQuery(datasetSolution);
             }
         } catch (QueryException ex) {
             throw ex;
         } finally {
             execution.close();
-            modelResults.close();
+            datasetResults.close();
         }
 
-        return modelSummary;
+        return datasetSummary;
     }
 
     /**
-     * Submit SPARQL query for models and return result set.
+     * Submit SPARQL query for datasets and return result set.
      *
-     * @param pageSize    Page size for the returned model result set
-     * @param pageNumber  Page number to use for the returned model result set
+     * @param pageSize    Page size for the returned dataset result set
+     * @param pageNumber  Page number to use for the returned dataset result set
      * @param endpointUrl SPARQL endpoint URL to use for issuing the query
-     * @return SPARQL query execution for model summaries
+     * @return SPARQL query execution for dataset summaries
      * @throws QueryException
      */
-    public static QueryExecution queryModelSummariesWithPagination(
+    public static QueryExecution queryDatasetSummariesWithPagination(
         final int pageSize,
         final int pageNumber,
         final String endpointUrl
@@ -163,7 +163,7 @@ public final class ModelSparql {
         String queryString =
             SparqlPrefix.queryPrefixesAll()
             .replace("https://purl.org", "http://purl.org")
-            + queryStringForModelSummaries()
+            + queryStringForDatasetSummaries()
             + "ORDER BY DESC(?modified) "
             + "OFFSET " + (pageNumber * pageSize - pageSize) + " "
             + "LIMIT " + pageSize;
@@ -184,15 +184,15 @@ public final class ModelSparql {
      * @param collection     Apache Jena Collection the models belong to
      * @return            List of BatsModel for the full models
     */
-    public static List<BatsModel> getFullModels(
+    public static List<BatsDataset> getFullModels(
         final int pageSize,
         final int pageNumber,
         final String endpointUrl,
         final CustomizedBatsCollection collection
     ) throws QueryException {
-        List<BatsModel> body = new ArrayList<>();
+        List<BatsDataset> body = new ArrayList<>();
 
-        QueryExecution execution = ModelSparql.queryModelSummariesWithPagination(//NOPMD
+        QueryExecution execution = DatasetSparql.queryDatasetSummariesWithPagination(//NOPMD
             pageSize,
             pageNumber,
             endpointUrl
@@ -207,7 +207,7 @@ public final class ModelSparql {
                 Model model = collection.getModel(node.toString());
                 try {
                     body.add(
-                        new BatsModel(//NOPMD
+                        new BatsDataset(//NOPMD
                             node.toString(),
                             RdfModelWriter.getJsonldForModel(model)
                         )
@@ -231,34 +231,34 @@ public final class ModelSparql {
     }
 
     /**
-     * Gets model summaries from SPARQL query results.
+     * Gets dataset summaries from SPARQL query results.
      *
-     * @param pageSize    Page size for the returned model result set
-     * @param pageNumber  Page number to use for the returned model result set
+     * @param pageSize    Page size for the returned dataset result set
+     * @param pageNumber  Page number to use for the returned dataset result set
      * @param endpointUrl SPARQL endpoint URL to use for issuing the query
-     * @return             List of Maps for model data
+     * @return             List of Maps for dataset data
     */
-    public static List<Map<String, Object>> getModelSummaries(
+    public static List<Map<String, Object>> getDatasetSummaries(
         final int pageSize,
         final int pageNumber,
         final String endpointUrl
     ) throws QueryException {
         List<Map<String, Object>> body = new ArrayList<>();
 
-        QueryExecution execution = ModelSparql.queryModelSummariesWithPagination(//NOPMD
+        QueryExecution execution = DatasetSparql.queryDatasetSummariesWithPagination(//NOPMD
             pageSize,
             pageNumber,
             endpointUrl
         );
 
         // immediately return 200 if the query was not valid
-        ResultSet modelResults = execution.execSelect();
+        ResultSet datasetResults = execution.execSelect();
         try {
-            while (modelResults.hasNext()) {
-                QuerySolution solution = modelResults.next();
-                Map<String, Object> map = getModelSummaryFromQuery(solution);
+            while (datasetResults.hasNext()) {
+                QuerySolution solution = datasetResults.next();
+                Map<String, Object> map = getDatasetSummaryFromQuery(solution);
 
-                // We do this outside of getModelSummaryFromQuery since for a named graph,
+                // We do this outside of getDatasetSummaryFromQuery since for a named graph,
                 // we dont get ?model back in the query solution
                 String url = solution.get("?model").toString();
                 String[] bits = url.split("/");
@@ -270,18 +270,18 @@ public final class ModelSparql {
             throw ex;
         } finally {
             execution.close();
-            modelResults.close();
+            datasetResults.close();
         }
         return body;
     }
 
     /**
-     * Get a model summary as a map from a single SPARQL query solution.
+     * Get a dataset summary as a map from a single SPARQL query solution.
      *
      * @param solution Single SPARQL query solution from a ResultSet to create the map
-     * @return Map of the model summary info
+     * @return Map of the dataset summary info
      */
-    public static Map<String, Object> getModelSummaryFromQuery(
+    public static Map<String, Object> getDatasetSummaryFromQuery(
         final QuerySolution solution
     ) {
         Map<String, Object> map = new LinkedHashMap<String, Object>();
@@ -299,7 +299,7 @@ public final class ModelSparql {
      * @return ArrayNode of the model uuids from query
      * @throws QueryException
      */
-    public static ArrayNode getModelUuids(final String endpointUrl)
+    public static ArrayNode getDatasetUuids(final String endpointUrl)
     throws QueryException {
         QueryExecution execution = prepareSparqlQuery(//NOPMD
         // pmd does not recognize that this is always being closed
@@ -335,16 +335,16 @@ public final class ModelSparql {
      * @return Total number of models via SPARQL query
      * @throws QueryException
      */
-    public static int getModelCount(final String endpointUrl)
+    public static int getDatasetCount(final String endpointUrl)
     throws QueryException {
-        // SPARQL query for getting the model count
+        // SPARQL query for getting the dataset count
         String countAllQueryString =
             "SELECT (count(distinct ?model) as ?count) WHERE {"
             + "GRAPH ?model { ?x ?y ?z }}";
         QueryExecution countAllExecution = // NOPMD
             prepareSparqlQuery(endpointUrl, countAllQueryString);
 
-        // Extracting out the model count from the result
+        // Extracting out the dataset count from the result
         int totalResults = 0;
         ResultSet countResults = countAllExecution.execSelect();
         try {
