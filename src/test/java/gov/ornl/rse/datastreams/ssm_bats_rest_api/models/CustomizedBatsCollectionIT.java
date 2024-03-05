@@ -159,7 +159,7 @@ public class CustomizedBatsCollectionIT {
         assertFalse(differenceModel2.listStatements().hasNext());
 
         // Delete model and make sure it doesn't exist
-        collection.deleteModel("testModel");
+        collection.deleteDataset("testModel");
         namedModel = collection.getModel("testModel");
         assertNull(namedModel);
     }

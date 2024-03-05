@@ -62,7 +62,7 @@ public class ModelUtils {
         final String modelUuid
     ) {
         CustomizedBatsCollection collection = collectionUtils.getCollection(collectionTitle);
-        String modelUri = configUtils.getModelUri(collectionTitle, modelUuid);
+        String modelUri = configUtils.getDatasetUri(collectionTitle, modelUuid);
         Model model = collection.getModel(modelUri);
         assertModelExists(model, modelUuid);
         return model;

@@ -158,7 +158,7 @@ public class BatsCollectionControllerIT {
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                createUrl("/collection/pizza/models"),
+                createUrl("/collection/pizza/datasets"),
                 Void.class
             ).getStatusCode()
         );
@@ -166,7 +166,7 @@ public class BatsCollectionControllerIT {
         Assertions.assertEquals(
             HttpStatus.NOT_FOUND,
             restTemplate.getForEntity(
-                createUrl("/collections/pizza/models/uuids"),
+                createUrl("/collections/pizza/datasets/uuids"),
                 Void.class
             ).getStatusCode()
         );

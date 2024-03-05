@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.ApplicationConfig;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.configs.JsonConversionType;
-import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.DocumentModel;
+import gov.ornl.rse.datastreams.ssm_bats_rest_api.models.DocumentDataset;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.repositories.DocumentRepository;
 import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 
@@ -61,7 +61,7 @@ public class DocumentService {
     private GraphService graphService;
 
     /**
-     * Document store repository for model documents.
+     * Document store repository for dataset documents.
      */
     @Autowired
     private DocumentRepository repository;
@@ -130,84 +130,84 @@ public class DocumentService {
     }
 
     /**
-     * Get JSON-LD for Model from document store.
+     * Get JSON-LD for Dataset from document store.
      *
-     * @param modelUUID UUID of Model to get JSON-LD
+     * @param datasetUUID UUID of Dataset to get JSON-LD
      *
-     * @return JSON-LD for Model UUID
+     * @return JSON-LD for Dataset UUID
      */
-    public String getJsonld(final String modelUUID) throws ResourceNotFoundException {
-        LOGGER.info("Getting json-ld for model " + modelUUID + " from document store...");
-        DocumentModel documentModel;
-            documentModel = repository.findById(modelUUID).orElseThrow(
+    public String getJsonld(final String datasetUUID) throws ResourceNotFoundException {
+        LOGGER.info("Getting json-ld for dataset " + datasetUUID + " from document store...");
+        DocumentDataset documentDataset;
+            documentDataset = repository.findById(datasetUUID).orElseThrow(
                 () -> new ResourceNotFoundException(
-                    "Model " + modelUUID + " not found in document store"
+                    "Dataset " + datasetUUID + " not found in document store"
                 )
             );
-        LOGGER.info("Retrieved json-ld for model " + modelUUID + " from document store.");
-        return documentModel.getJsonld();
+        LOGGER.info("Retrieved json-ld for dataset " + datasetUUID + " from document store.");
+        return documentDataset.getJsonld();
     }
 
     /**
-     * Get JSON for Model from document store.
+     * Get JSON for Dataset from document store.
      *
-     * @param modelUUID UUID of Model to get JSON
+     * @param datasetUUID UUID of Dataset to get JSON
      *
-     * @return JSON-LD for Model UUID
+     * @return JSON-LD for Dataset UUID
      */
-    public String getJson(final String modelUUID) throws ResourceNotFoundException {
-        LOGGER.info("Getting json for model " + modelUUID + " from document store...");
-        DocumentModel documentModel;
-            documentModel = repository.findById(modelUUID).orElseThrow(
+    public String getJson(final String datasetUUID) throws ResourceNotFoundException {
+        LOGGER.info("Getting json for dataset " + datasetUUID + " from document store...");
+        DocumentDataset documentDataset;
+            documentDataset = repository.findById(datasetUUID).orElseThrow(
                 () -> new ResourceNotFoundException(
-                    "Model " + modelUUID + " not found in document store"
+                    "Dataset " + datasetUUID + " not found in document store"
                 )
             );
-        LOGGER.info("Retrieved json for model " + modelUUID + " from document store.");
-        return documentModel.getJson();
+        LOGGER.info("Retrieved json for dataset " + datasetUUID + " from document store.");
+        return documentDataset.getJson();
     }
 
     /**
-     * Merge Model UUID JSON-LD and new JSON-LD together.
+     * Merge Dataset UUID JSON-LD and new JSON-LD together.
      *
-     * @param modelUUID    Model UUID to merge JSON-LD with
-     * @param newJsonld    New JSON-LD to merge with Model UUID
+     * @param datasetUUID    Dataset UUID to merge JSON-LD with
+     * @param newJsonld    New JSON-LD to merge with Dataset UUID
      *
      * @return Merged JSON-LD as String
      *
      * @throws JsonMappingException
      * @throws JsonProcessingException
      */
-    public String mergeJsonldForModel(
-        final String modelUUID,
+    public String mergeJsonldForDataset(
+        final String datasetUUID,
         final String newJsonld
     ) throws JsonMappingException, JsonProcessingException {
-        // Model JSON-LD
-        String modelJsonld = getJsonld(modelUUID);
-        JsonNode modelNode = MAPPER.readTree(modelJsonld);
+        // Dataset JSON-LD
+        String datasetJsonld = getJsonld(datasetUUID);
+        JsonNode datasetNode = MAPPER.readTree(datasetJsonld);
 
         // New JSON-LD to merge
         JsonNode newNode = MAPPER.readTree(newJsonld);
 
-        // Merge model and new JSON-LD via nodes
-        JsonNode mergedModelNode = JsonUtils.merge(modelNode, newNode);
-        String mergedModelJsonld = mergedModelNode.toString();
+        // Merge dataset and new JSON-LD via nodes
+        JsonNode mergedDatasetNode = JsonUtils.merge(datasetNode, newNode);
+        String mergedDatasetJsonld = mergedDatasetNode.toString();
 
-        return mergedModelJsonld;
+        return mergedDatasetJsonld;
     }
 
     /**
-     * Upload JSON-LD to Model UUID in document store.
+     * Upload JSON-LD to Dataset UUID in document store.
      *
      * @param collectionTitle  Collection title
-     * @param modelUUID     Model UUID
-     * @param jsonldPayload JSON-LD for Model
+     * @param datasetUUID     Dataset UUID
+     * @param jsonldPayload JSON-LD for Dataset
      *
      * @throws Exception
      */
     public void upload(
         final String collectionTitle,
-        final String modelUUID,
+        final String datasetUUID,
         final String jsonldPayload
     ) throws Exception {
         // Create abbreviated json
@@ -216,7 +216,7 @@ public class DocumentService {
         // Get JSON-LD -> SSM JSON conversion
         String json = "";
         if (appConfig.getJsonConversion().equals(JsonConversionType.EMBEDDED)) {
-            json = graphService.getModelJson(collectionTitle, modelUUID);
+            json = graphService.getModelJson(collectionTitle, datasetUUID);
         } else if (
             appConfig.getJsonConversion().equals(JsonConversionType.FILE_CONVERTER_SERVICE)
         ) {
@@ -225,8 +225,8 @@ public class DocumentService {
         }
 
          // Create document
-        DocumentModel document = new DocumentModel();
-        document.setModelId(modelUUID);
+        DocumentDataset document = new DocumentDataset();
+        document.setDatasetId(datasetUUID);
         document.setJsonld(jsonldPayload);
         document.setJson(json);
 
@@ -235,11 +235,11 @@ public class DocumentService {
     }
 
     /**
-     * Delete Model UUID from document store.
+     * Delete Dataset UUID from document store.
      *
-     * @param modelUUID Model UUID to delete
+     * @param datasetUUID Dataset UUID to delete
      */
-    public void delete(final String modelUUID) {
-        repository.delete(repository.findById(modelUUID).get());
+    public void delete(final String datasetUUID) {
+        repository.delete(repository.findById(datasetUUID).get());
     }
 }
