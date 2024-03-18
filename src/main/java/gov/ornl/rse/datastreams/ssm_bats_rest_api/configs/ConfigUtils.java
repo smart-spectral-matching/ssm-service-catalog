@@ -77,7 +77,7 @@ public class ConfigUtils {
     /**
      * Returns collection API URL given the collection.
      *
-     * @param collectionUUID UUID for the Collection the dataset belongs to
+     * @param collectionUUID UUID for the Collection the model belongs to
      * @return Full URI for the Collection
      */
     public String getCollectionUri(final String collectionUUID) {
