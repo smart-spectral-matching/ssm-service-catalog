@@ -4,7 +4,7 @@ import javax.validation.constraints.Pattern;
 
 /**
  * Representation of a BATS Collection for Apache Jena Collection
- * A Collection holds a collection of Models.
+ * A Collection holds a collection of Datasets.
 */
 
 public class BatsCollection {

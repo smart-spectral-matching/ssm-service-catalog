@@ -1,4 +1,4 @@
-package gov.ornl.rse.datastreams.ssm_bats_rest_api;
+package gov.ornl.rse.datastreams.ssm_bats_rest_api.controllers;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,7 +39,7 @@ import gov.ornl.rse.datastreams.ssm_bats_rest_api.utils.JsonUtils;
 @SpringBootTest
 @WebAppConfiguration
 @AutoConfigureMockMvc
-public class BatsModelControllerMvcIT {
+public class BatsDatasetControllerMvcIT {
 
     /**
      * Object mapper.
@@ -90,23 +90,23 @@ public class BatsModelControllerMvcIT {
          */
         private final LocalDateTime createdTime;
         /**
-         * URL to the created Model. Includes the UUID.
+         * URL to the created Dataset. Includes the UUID.
          */
-        private final String modelUri;
+        private final String datasetUri;
 
         /**
          *
          * @param dummyTimeStr Made-up "far past" timestamp as String, for JSON.
          * @param dummyTime Made-up "far past" timestamp, for comparison.
          * @param createdTime Created timestamp from initial POST request.
-         * @param modelUri URL to the created Model. Includes the UUID.
+         * @param datasetUri URL to the created Dataset. Includes the UUID.
          */
         private TestData(final String dummyTimeStr, final LocalDateTime dummyTime,
-            final LocalDateTime createdTime, final String modelUri) {
+            final LocalDateTime createdTime, final String datasetUri) {
                 this.dummyTimeStr = dummyTimeStr;
                 this.dummyTime = dummyTime;
                 this.createdTime = createdTime;
-                this.modelUri = modelUri;
+                this.datasetUri = datasetUri;
         }
     }
 
@@ -131,8 +131,8 @@ public class BatsModelControllerMvcIT {
      * @param collectionTitle collection title part of the URL
      * @return base Moder URI for POSTing (with trailing slash)
      */
-    private String getModelUri(final String collectionTitle) {
-        return getCollectionUri() + collectionTitle + "/models/";
+    private String getDatasetUri(final String collectionTitle) {
+        return getCollectionUri() + collectionTitle + "/datasets/";
     }
 
     /**
@@ -169,7 +169,7 @@ public class BatsModelControllerMvcIT {
      */
     private JsonNode getMetadataNode(final JsonNode json) throws Exception {
         Iterator<JsonNode> graphIter = json
-            .get("model")
+            .get("dataset")
             .get("@graph")
             .elements();
         Iterable<JsonNode> iterable = () -> graphIter;
@@ -181,7 +181,7 @@ public class BatsModelControllerMvcIT {
 
     /**
      *
-     * The base function for creating a model for all of the timestamp tests.
+     * The base function for creating a dataset for all of the timestamp tests.
      *
      * This function can afford to be agnostic about which sample data file you read in.
      *
@@ -203,7 +203,7 @@ public class BatsModelControllerMvcIT {
         final LocalDateTime dummyTimestamp = LocalDateTime.parse(
             dummyTimestampStr.replace(' ', 'T'));
 
-        // create collection and make model URI
+        // create collection and make dataset URI
         String collectionJson = getCollectionData(collectionTitle);
         String response = mockMvc.perform(post(getCollectionUri())
             .contentType(MediaType.APPLICATION_JSON)
@@ -211,9 +211,9 @@ public class BatsModelControllerMvcIT {
             .andExpect(status().isCreated())
             .andReturn().getResponse().getContentAsString();
         final String title = MAPPER.readTree(response).get("title").asText();
-        final String modelUri = getModelUri(title);
+        final String datasetUri = getDatasetUri(title);
 
-        // create model with POST
+        // create dataset with POST
         String sampleJson = getFileDataFromTestResources(jsonld);
         if (userIncludesTimestamps) {
             sampleJson = MAPPER.readValue(sampleJson, ObjectNode.class)
@@ -221,13 +221,13 @@ public class BatsModelControllerMvcIT {
                 .put("modified", dummyTimestampStr)
                 .toString();
         }
-        response = mockMvc.perform(post(modelUri)
+        response = mockMvc.perform(post(datasetUri)
             .contentType(MediaType.APPLICATION_JSON)
             .content(sampleJson))
             .andExpect(status().isCreated())
             .andReturn().getResponse().getContentAsString();
         JsonNode json = MAPPER.readTree(response);
-        final String modelUpdateUri = modelUri + json.get("uuid").asText();
+        final String datasetUpdateUri = datasetUri + json.get("uuid").asText();
 
         // get last element of @graph node, this is the metadata node we want
         json = getMetadataNode(json);
@@ -250,7 +250,7 @@ public class BatsModelControllerMvcIT {
         // today should be after the "far past" time we defined
         assertTrue(createdTime.isAfter(dummyTimestamp));
 
-        return new TestData(dummyTimestampStr, dummyTimestamp, createdTime, modelUpdateUri);
+        return new TestData(dummyTimestampStr, dummyTimestamp, createdTime, datasetUpdateUri);
     }
 
     /**
@@ -267,7 +267,7 @@ public class BatsModelControllerMvcIT {
      */
     private void timestampTestScidataUpdate(final boolean userIncludesTimestamps,
         final String jsonld, final TestData data) throws Exception {
-        /////////// update model with PUT ////////////////
+        /////////// update dataset with PUT ////////////////
         final String updateKey = "publisher";
         String updateValue = "Norton I, Emperor of the United States";
 
@@ -283,7 +283,7 @@ public class BatsModelControllerMvcIT {
         // wait a second before making the request
         Thread.sleep(1000);
 
-        String response = mockMvc.perform(put(data.modelUri)
+        String response = mockMvc.perform(put(data.datasetUri)
             .contentType(MediaType.APPLICATION_JSON)
             .content(sampleJson))
             .andExpect(status().isOk())
@@ -312,7 +312,7 @@ public class BatsModelControllerMvcIT {
         // ASSERT: modified time is after the POST request timestamp
         assertTrue(modifiedTime.isAfter(data.createdTime));
 
-        ///////////// update model with PATCH ////////////////
+        ///////////// update dataset with PATCH ////////////////
         updateValue = "Screaming Lord Sutch";
 
         sampleJson = getFileDataFromTestResources(jsonld);
@@ -328,7 +328,7 @@ public class BatsModelControllerMvcIT {
         // wait a second before making the request
         Thread.sleep(1000);
 
-        response = mockMvc.perform(patch(data.modelUri)
+        response = mockMvc.perform(patch(data.datasetUri)
             .contentType(MediaType.APPLICATION_JSON)
             .content(sampleJson))
             .andExpect(status().isOk())
@@ -372,7 +372,7 @@ public class BatsModelControllerMvcIT {
      */
     private void timestampTestSimpleUpdate(final boolean userIncludesTimestamps,
         final String jsonld, final TestData data) throws Exception {
-        /////////// update model with PUT ////////////////
+        /////////// update dataset with PUT ////////////////
         final String updateKey = "name";
         String updateValue = "Norton I, Emperor of the United States";
 
@@ -389,7 +389,7 @@ public class BatsModelControllerMvcIT {
         // wait a second before making the request
         Thread.sleep(1000);
 
-        String response = mockMvc.perform(put(data.modelUri)
+        String response = mockMvc.perform(put(data.datasetUri)
             .contentType(MediaType.APPLICATION_JSON)
             .content(sampleJson))
             .andExpect(status().isOk())
@@ -418,7 +418,7 @@ public class BatsModelControllerMvcIT {
         // ASSERT: modified time is after the POST request timestamp
         assertTrue(modifiedTime.isAfter(data.createdTime));
 
-        ///////////// update model with PATCH ////////////////
+        ///////////// update dataset with PATCH ////////////////
         updateValue = "Screaming Lord Sutch";
 
         sampleJson = getFileDataFromTestResources(jsonld);
@@ -433,7 +433,7 @@ public class BatsModelControllerMvcIT {
         // wait a second before making the request
         Thread.sleep(1000);
 
-        response = mockMvc.perform(patch(data.modelUri)
+        response = mockMvc.perform(patch(data.datasetUri)
             .contentType(MediaType.APPLICATION_JSON)
             .content(sampleJson))
             .andExpect(status().isOk())
@@ -492,7 +492,7 @@ public class BatsModelControllerMvcIT {
      *
      * Full suite test:
      *
-     * 1. Test that "created" and "modified" are added to response when POSTing model,
+     * 1. Test that "created" and "modified" are added to response when POSTing dataset,
      *    even when they are not included by the user.
      * 2. Test that "created" IS NOT updated, but "modified" IS updated
      *    when making a PUT or PATCH request. This should happen automatically
@@ -541,7 +541,7 @@ public class BatsModelControllerMvcIT {
      *
      * Full suite test:
      *
-     * 1. Test that "created" and "modified" are added to response when POSTing model,
+     * 1. Test that "created" and "modified" are added to response when POSTing dataset,
      *    even when they are not included by the user.
      * 2. Test that "created" IS NOT updated, but "modified" IS updated
      *    when making a PUT or PATCH request. This should happen automatically

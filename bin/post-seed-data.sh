@@ -15,9 +15,9 @@ collection_title=$(curl -X POST -H "Content-Type: application/json" -H "Authoriz
 
 for jsonld in "simple.input.jsonld" "scidata_nmr_abbreviated.input.jsonld" "studtite.jsonld"
 do
-    model_uuid=$(curl -X POST "${server_ip}/collections/${collection_title}/models" -H "Authorization: Bearer $2" -H "Content-Type: application/json" -d @${jsonld} | jq -r .uuid)
+    model_uuid=$(curl -X POST "${server_ip}/collections/${collection_title}/datasets" -H "Authorization: Bearer $2" -H "Content-Type: application/json" -d @${jsonld} | jq -r .uuid)
     name=$(echo ${jsonld} | cut -d'.' -f 1)
-    collections["${name}"]="${server_ip}/collections/${collection_title}/models/${model_uuid}"
+    collections["${name}"]="${server_ip}/collections/${collection_title}/datasets/${model_uuid}"
 done
 
 # Error check the collection and models

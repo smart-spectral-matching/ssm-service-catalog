@@ -190,19 +190,19 @@ public class CustomizedBatsCollection {
             uploadConn.begin(ReadWrite.WRITE);
             uploadConn.put(modelName, model);
             uploadConn.commit();
-            LOGGER.debug("Committed model " + modelName + " to data set" + getName());
+            LOGGER.debug("Committed dataset " + modelName + " to data set" + getName());
         } catch (Exception e) {
-            LOGGER.error("Unable to update model " + modelName + " in data set " + getName()
+            LOGGER.error("Unable to update dataset " + modelName + " in data set " + getName()
                     + " on the remote Fuseki server.", e);
         }
     }
 
     /**
-     * Delete model for the data set.
+     * Delete dataset for the data set.
      *
-     * @param modelName the name of the model that will be deleted
+     * @param datasetName the name of the dataset that will be deleted
      */
-    public void deleteModel(final String modelName) {
+    public void deleteDataset(final String datasetName) {
 
         RDFConnectionRemoteBuilder uploadConnBuilder = RDFConnectionFuseki.create()
                 .destination(getFullURI() + "/data");
@@ -212,11 +212,11 @@ public class CustomizedBatsCollection {
             // Note that transactions must proceed with begin(), some operation(), and
             // commit().
             uploadConn.begin(ReadWrite.WRITE);
-            uploadConn.delete(modelName);
+            uploadConn.delete(datasetName);
             uploadConn.commit();
-            LOGGER.debug("Deleted model " + modelName + " from data set" + getName());
+            LOGGER.debug("Deleted dataset " + datasetName + " from data set" + getName());
         } catch (Exception e) {
-            LOGGER.error("Unable to delete model " + modelName + " in data set " + getName()
+            LOGGER.error("Unable to delete dataset " + datasetName + " in data set " + getName()
                     + " on the remote Fuseki server.", e);
         }
     }
