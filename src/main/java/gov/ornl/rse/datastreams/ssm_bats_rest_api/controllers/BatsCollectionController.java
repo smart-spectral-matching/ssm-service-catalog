@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+ import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -113,7 +114,11 @@ public class BatsCollectionController {
      * @param batsCollection JSON body for creating a new Collection
      * @return BatsCollection for newly created Collection in Fuseki
      */
-    @RequestMapping(value = "", method = RequestMethod.POST)
+    @RequestMapping(
+      value = "",
+      method = RequestMethod.POST,
+      produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public BatsCollection createCollection(@Valid @RequestBody final BatsCollection batsCollection)
@@ -157,7 +162,11 @@ public class BatsCollectionController {
      *
      * @return A JSON formatted list of every collection's title.
      */
-    @RequestMapping(value = "", method = RequestMethod.GET)
+    @RequestMapping(
+      value = "",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public String getTitles() {
@@ -216,7 +225,11 @@ public class BatsCollectionController {
      * @param title Title of Collection to retrieve
      * @return BatsCollection for given Collection title
      */
-    @RequestMapping(value = "/{title}", method = RequestMethod.GET)
+    @RequestMapping(
+      value = "/{title}",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public BatsCollection getCollection(
@@ -231,7 +244,10 @@ public class BatsCollectionController {
      *
      * @param title Title of Collection to delete
      */
-    @RequestMapping(value = "/{title}", method = RequestMethod.DELETE)
+    @RequestMapping(
+      value = "/{title}",
+      method = RequestMethod.DELETE
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCollection(
             @PathVariable("title") @Pattern(regexp = BatsCollection.TITLE_REGEX) final String title)
