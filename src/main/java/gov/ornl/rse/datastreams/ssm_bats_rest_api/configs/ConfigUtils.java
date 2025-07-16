@@ -81,7 +81,7 @@ public class ConfigUtils {
      * @return Full URI for the Collection
      */
     public String getCollectionUri(final String collectionUUID) {
-        final String uri = getBasePath() + "/colections/" + collectionUUID;
+        final String uri = getBasePath() + "/collections/" + collectionUUID;
         return uri.replace("\"", "");
     }
 
